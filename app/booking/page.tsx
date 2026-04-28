@@ -1,0 +1,512 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import { syncToGoogleSheet } from '@/lib/googleSheet'
+
+export default function BookingPage() {
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [dragOver, setDragOver] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setTimeout(() => setMounted(true), 50)
+  }, [])
+
+  const [form, setForm] = useState({
+    full_name: '',
+    phone: '',
+    organization: '',
+    event_name: '',
+    booking_date: '',
+    start_time: '',
+    end_time: '',
+    microphone: 0,
+    aircond: 0,
+    pa_system: 0,
+    lcd_projector: 0,
+  })
+
+  const updateForm = (field: string, value: string | number) => {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const getMinDate = () => {
+    const date = new Date()
+    date.setDate(date.getDate() + 5)
+    return date.toISOString().split('T')[0]
+  }
+
+  const uploadFile = async (bookingId: string) => {
+    if (!file) return null
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${bookingId}.${fileExt}`
+    const { error } = await supabase.storage.from('approval-docs').upload(fileName, file)
+    if (error) return null
+    const { data: urlData } = supabase.storage.from('approval-docs').getPublicUrl(fileName)
+    return urlData.publicUrl
+  }
+
+  const handleSubmit = async () => {
+    setError('')
+    if (!form.full_name || !form.phone || !form.organization || !form.event_name) {
+      setError('Sila isi semua maklumat peribadi.')
+      return
+    }
+    if (!form.booking_date || !form.start_time || !form.end_time) {
+      setError('Sila isi tarikh dan masa.')
+      return
+    }
+    if (form.start_time >= form.end_time) {
+      setError('Masa tamat mesti lebih lewat dari masa mula.')
+      return
+    }
+    if (!file) {
+      setError('Sila muat naik dokumen kelulusan (PDF) sebelum menghantar.')
+      return
+    }
+
+    setLoading(true)
+
+    const { data: inserted, error } = await supabase
+      .from('bookings')
+      .insert([{ ...form, status: 'pending' }])
+      .select()
+      .single()
+
+    if (error) {
+      setError('Ralat semasa menghantar. Sila cuba lagi.')
+      setLoading(false)
+    } else {
+      const attachmentUrl = await uploadFile(inserted.id)
+      if (attachmentUrl) {
+        await supabase.from('bookings').update({ attachment_url: attachmentUrl }).eq('id', inserted.id)
+      }
+      await syncToGoogleSheet({ ...form, id: inserted.id, status: 'pending', created_at: inserted.created_at })
+      setLoading(false)
+      setSuccess(true)
+    }
+  }
+
+  const inputStyle = {
+    width: '100%',
+    background: '#1a1a1a',
+    border: '1.5px solid #1f2937',
+    borderRadius: '8px',
+    padding: '10px 14px',
+    fontSize: '14px',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+    color: 'white',
+    transition: 'border-color 0.2s',
+  }
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '12px',
+    fontWeight: '600' as const,
+    color: '#9ca3af',
+    marginBottom: '6px',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.06em',
+  }
+
+  const cardStyle = {
+    background: '#161616',
+    border: '1px solid #1f1f1f',
+    borderRadius: '16px',
+    padding: '28px',
+  }
+
+  if (success) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+        <nav style={{ background: '#111111', borderBottom: '1px solid #1f1f1f', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <a href="/">
+            <img src="/logo.png" alt="Mini Theater" style={{ height: '44px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+          </a>
+          <a href="/" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Kembali ke Laman Utama
+          </a>
+        </nav>
+
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+          <div style={{
+            ...cardStyle,
+            textAlign: 'center',
+            maxWidth: '440px',
+            width: '100%',
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'all 0.6s ease',
+          }}>
+            <div style={{
+              width: '72px', height: '72px',
+              background: 'rgba(22,163,74,0.12)',
+              border: '1px solid rgba(74,222,128,0.2)',
+              borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 20px',
+            }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'white', marginBottom: '10px' }}>
+              Tempahan Dihantar!
+            </h2>
+            <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.7' }}>
+              Tempahan anda sedang menunggu kelulusan admin. Anda akan dihubungi sekiranya ada pertanyaan.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '28px', flexDirection: 'column' }}>
+              <button
+                onClick={() => {
+                  setSuccess(false)
+                  setFile(null)
+                  setForm({ full_name: '', phone: '', organization: '', event_name: '', booking_date: '', start_time: '', end_time: '', microphone: 0, aircond: 0, pa_system: 0, lcd_projector: 0 })
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #8B0000, #a50000)',
+                  color: 'white', border: 'none', borderRadius: '10px',
+                  padding: '12px 32px', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                  boxShadow: '0 4px 16px rgba(139,0,0,0.3)',
+                }}
+              >Buat Tempahan Baru</button>
+              <a href="/" style={{
+                display: 'block', padding: '12px', borderRadius: '10px',
+                border: '1px solid #1f2937', fontSize: '14px', fontWeight: '500',
+                color: '#6b7280', textDecoration: 'none', textAlign: 'center',
+              }}>← Kembali ke Laman Utama</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Segoe UI', system-ui, sans-serif", color: 'white' }}>
+
+      {/* Navbar */}
+      <nav style={{
+        background: '#111111',
+        borderBottom: '1px solid #1f1f1f',
+        padding: '0 24px',
+        height: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+      }}>
+        <a href="/">
+          <img src="/logo.png" alt="Mini Theater" style={{ height: '44px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <a href="/#availability" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: '500', transition: 'color 0.15s' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#9ca3af'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+          >Semak Ketersediaan</a>
+          <a href="/#status" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: '500', transition: 'color 0.15s' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#9ca3af'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+          >Semak Status</a>
+          <a href="/" style={{
+            fontSize: '13px', color: '#6b7280', textDecoration: 'none',
+            fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px',
+            padding: '6px 10px', borderRadius: '6px', border: '1px solid #1f2937',
+            transition: 'all 0.15s',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = '#374151'; e.currentTarget.style.background = '#1a1a1a' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#1f2937'; e.currentTarget.style.background = 'transparent' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Kembali
+          </a>
+        </div>
+      </nav>
+
+      {/* Hero Strip */}
+      <div style={{
+        position: 'relative',
+        padding: '48px 24px',
+        textAlign: 'center',
+        overflow: 'hidden',
+        background: 'linear-gradient(145deg, #1a0000 0%, #3d0000 40%, #8B0000 100%)',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+          backgroundSize: '40px 40px',
+        }} />
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: '999px', padding: '4px 14px',
+            fontSize: '11px', fontWeight: '600', color: '#fecaca',
+            letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px',
+          }}>
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fca5a5' }} />
+            Mini Theater — UiTM Cawangan Kelantan
+          </div>
+          <h1 style={{ fontSize: '28px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px', marginBottom: '8px' }}>
+            Borang Tempahan
+          </h1>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>
+            Sila isi semua maklumat yang diperlukan dengan lengkap dan tepat
+          </p>
+        </div>
+      </div>
+
+      {/* Progress Steps */}
+      <div style={{ background: '#111111', borderBottom: '1px solid #1f1f1f', padding: '14px 24px' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          {[
+            { num: '1', label: 'Maklumat Peribadi' },
+            { num: '2', label: 'Jadual & Peralatan' },
+            { num: '3', label: 'Dokumen Kelulusan' },
+          ].map((step, i) => (
+            <div key={step.num} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{
+                  width: '22px', height: '22px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #8B0000, #a50000)',
+                  color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '10px', fontWeight: '700', flexShrink: 0,
+                }}>{step.num}</div>
+                <span style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280' }}>{step.label}</span>
+              </div>
+              {i < 2 && <div style={{ width: '28px', height: '1px', background: '#1f2937' }} />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: '32px 16px 48px' }}>
+        {error && (
+          <div style={{
+            maxWidth: '900px', margin: '0 auto 20px',
+            background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.25)',
+            borderRadius: '10px', padding: '12px 16px',
+            color: '#f87171', fontSize: '14px',
+            display: 'flex', alignItems: 'center', gap: '8px',
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {error}
+          </div>
+        )}
+
+        <div style={{
+          maxWidth: '900px', margin: '0 auto',
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px',
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'all 0.6s ease 0.1s',
+        }} className="booking-grid">
+
+          {/* Section 1 */}
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+              <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>1</div>
+              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>Personal & Organization Details</h2>
+            </div>
+
+            {[
+              { label: 'Full Name', field: 'full_name', placeholder: 'Enter your full name', type: 'text' },
+              { label: 'Phone Number', field: 'phone', placeholder: 'e.g. 012-3456789', type: 'tel' },
+              { label: 'Club / Organization Name', field: 'organization', placeholder: 'Enter your club or organization name', type: 'text' },
+              { label: 'Event Name', field: 'event_name', placeholder: 'Enter the name of your event', type: 'text' },
+            ].map((item) => (
+              <div key={item.field} style={{ marginBottom: '16px' }}>
+                <label style={labelStyle}>{item.label} <span style={{ color: '#dc2626' }}>*</span></label>
+                <input
+                  type={item.type}
+                  placeholder={item.placeholder}
+                  onChange={(e) => updateForm(item.field, e.target.value)}
+                  style={inputStyle}
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                  onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Section 2 */}
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+              <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>2</div>
+              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>Schedule & Equipment</h2>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={labelStyle}>Booking Date <span style={{ color: '#dc2626' }}>*</span> <span style={{ fontWeight: '400', color: '#4b5563', fontSize: '12px', textTransform: 'none', letterSpacing: 0 }}>(Min. 5 days in advance)</span></label>
+              <input type="date" min={getMinDate()} onChange={(e) => updateForm('booking_date', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
+                onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+              {[{ label: 'Start Time', field: 'start_time' }, { label: 'End Time', field: 'end_time' }].map((t) => (
+                <div key={t.field}>
+                  <label style={labelStyle}>{t.label} <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="time" min="07:00" max="22:30" onChange={(e) => updateForm(t.field, e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+                </div>
+              ))}
+            </div>
+
+            <label style={{ ...labelStyle, marginBottom: '12px' }}>Additional Equipment Request</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {[
+                { label: 'Microphone', field: 'microphone', icon: '🎤', max: 2 },
+                { label: 'Air-cond', field: 'aircond', icon: '❄️', max: 1 },
+                { label: 'PA System', field: 'pa_system', icon: '🔊', max: 1 },
+                { label: 'LCD Projector', field: 'lcd_projector', icon: '📽️', max: 1 },
+              ].map((eq) => (
+                <div key={eq.field} style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '12px', background: '#111111' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: '500' }}>{eq.icon} {eq.label}</span>
+                    <span style={{ fontSize: '10px', color: '#4b5563', background: '#1f2937', padding: '1px 6px', borderRadius: '4px', fontWeight: '600' }}>MAX {eq.max}</span>
+                  </div>
+                  <select onChange={(e) => updateForm(eq.field, parseInt(e.target.value))} style={{ width: '100%', border: '1px solid #1f2937', borderRadius: '6px', padding: '6px 10px', fontSize: '13px', outline: 'none', background: '#1a1a1a', color: 'white' }}>
+                    {Array.from({ length: eq.max + 1 }, (_, i) => <option key={i} value={i}>{i}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: '14px', background: 'rgba(217,119,6,0.1)', border: '1px solid rgba(217,119,6,0.2)', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#fbbf24', display: 'flex', gap: '6px' }}>
+              <span>⚠️</span>
+              <span><strong>Warning:</strong> others equipment like rostrum or sofa or etc were needed to applied in "emajlis" web</span>
+            </div>
+          </div>
+
+          {/* Section 3 */}
+          <div style={{ ...cardStyle, gridColumn: '1 / -1' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>3</div>
+              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>Upload Approval Paperwork <span style={{ color: '#dc2626' }}>*</span></h2>
+            </div>
+
+            {file ? (
+              <div style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111111' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', background: 'rgba(139,0,0,0.15)', border: '1px solid rgba(139,0,0,0.25)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '13px', fontWeight: '600', color: 'white' }}>{file.name}</p>
+                    <p style={{ fontSize: '11px', color: '#6b7280' }}>{(file.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                </div>
+                <button onClick={() => setFile(null)} style={{ background: 'rgba(220,38,38,0.1)', color: '#f87171', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Buang</button>
+              </div>
+            ) : (
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault(); setDragOver(false)
+                  const dropped = e.dataTransfer.files?.[0]
+                  if (dropped?.type === 'application/pdf') setFile(dropped)
+                  else setError('Hanya fail PDF dibenarkan.')
+                }}
+                style={{
+                  border: `2px dashed ${dragOver ? '#8B0000' : '#1f2937'}`,
+                  borderRadius: '12px', padding: '48px',
+                  textAlign: 'center',
+                  background: dragOver ? 'rgba(139,0,0,0.08)' : '#111111',
+                  transition: 'all 0.2s', cursor: 'pointer',
+                }}
+              >
+                <label style={{ cursor: 'pointer', display: 'block' }}>
+                  <div style={{
+                    width: '48px', height: '48px',
+                    background: 'rgba(139,0,0,0.12)', border: '1px solid rgba(139,0,0,0.2)',
+                    borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 16px',
+                  }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                  </div>
+                  <p style={{ fontSize: '14px', fontWeight: '600', color: 'white', marginBottom: '4px' }}>
+                    Click to upload or drag and drop
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#4b5563' }}>Only PDF files (Approval Documents) are allowed</p>
+                  <input type="file" accept=".pdf" style={{ display: 'none' }} onChange={(e) => {
+                    const selected = e.target.files?.[0]
+                    if (selected?.type === 'application/pdf') setFile(selected)
+                    else setError('Hanya fail PDF dibenarkan.')
+                  }} />
+                </label>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Submit */}
+        <div style={{ maxWidth: '900px', margin: '16px auto 0' }}>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            style={{
+              width: '100%',
+              background: loading ? '#1f1f1f' : 'linear-gradient(135deg, #8B0000, #a50000)',
+              color: loading ? '#6b7280' : 'white',
+              border: loading ? '1px solid #2d2d2d' : 'none',
+              borderRadius: '12px', padding: '16px',
+              fontSize: '16px', fontWeight: '700',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              boxShadow: loading ? 'none' : '0 4px 20px rgba(139,0,0,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            {loading ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+                  <polyline points="23 4 23 10 17 10"/>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+                Menghantar...
+              </>
+            ) : 'Hantar Tempahan →'}
+          </button>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer style={{ background: '#060606', borderTop: '1px solid #0f0f0f', padding: '28px 24px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <img src="/logo.png" alt="Mini Theater" style={{ height: '36px', width: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto 12px', filter: 'brightness(0) invert(1)', opacity: 0.4 }} />
+          <p style={{ fontSize: '11px', color: '#1f2937' }}>
+            © {new Date().getFullYear()} Mini Theater Booking System. All rights reserved.
+          </p>
+        </div>
+      </footer>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .booking-grid { grid-template-columns: 1fr !important; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          filter: invert(1) opacity(0.5);
+        }
+      `}</style>
+    </div>
+  )
+}
