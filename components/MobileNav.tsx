@@ -22,7 +22,7 @@ export default function MobileNav({ userName }: { userName: string }) {
   }, [])
 
   const navItems = [
-    { label: 'Dashboard', href: '/admin', icon: (
+    { label: 'Dashboard', href: '/admin/dashboard', icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -62,8 +62,9 @@ export default function MobileNav({ userName }: { userName: string }) {
     <>
       {/* Top bar */}
       <nav style={{
-        background: 'white',
-        borderBottom: '1px solid #e5e7eb',
+        background: '#0a0a0a',
+        borderBottom: '1px solid #1f1f1f',
+        color: '#9ca3af',
         padding: '0 16px',
         display: 'flex',
         alignItems: 'center',
@@ -112,8 +113,9 @@ export default function MobileNav({ userName }: { userName: string }) {
           gap: '8px',
           padding: '5px 10px',
           borderRadius: '999px',
-          background: '#f9fafb',
-          border: '1px solid #f3f4f6',
+          background: '#161616',
+          border: '1px solid #1f1f1f',
+          color: '#9ca3af',
         }}>
           <div style={{
             width: '24px',
@@ -130,15 +132,15 @@ export default function MobileNav({ userName }: { userName: string }) {
           }}>
             {userName.charAt(0).toUpperCase()}
           </div>
-          <span style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>{userName}</span>
+          <span style={{ fontSize: '12px', fontWeight: '500', color: '#9ca3af' }}>{userName}</span>
         </div>
       </nav>
 
       {/* Dropdown menu */}
       {menuOpen && (
         <div style={{
-          background: 'white',
-          borderBottom: '1px solid #e5e7eb',
+          background: '#0a0a0a',
+          borderBottom: '1px solid #1f1f1f',
           padding: '8px',
           position: 'sticky',
           top: '56px',
@@ -147,7 +149,7 @@ export default function MobileNav({ userName }: { userName: string }) {
         }}>
           {/* Nav label */}
           <div style={{ padding: '6px 12px 8px' }}>
-            <span style={{ fontSize: '10px', fontWeight: '700', color: '#9ca3af', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '10px', fontWeight: '700', color: '#374151', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               Menu
             </span>
           </div>
@@ -172,8 +174,8 @@ export default function MobileNav({ userName }: { userName: string }) {
                   marginBottom: '2px',
                   fontSize: '13.5px',
                   fontWeight: isActive ? '600' : '400',
-                  color: isActive ? '#8B0000' : '#4b5563',
-                  background: isActive ? '#fef2f2' : 'transparent',
+                  color: isActive ? '#f87171' : '#6b7280',
+                  background: isActive ? 'rgba(139,0,0,0.2)' : 'transparent',
                   borderLeft: isActive ? '3px solid #8B0000' : '3px solid transparent',
                   transition: 'all 0.15s',
                   textDecoration: 'none',
@@ -199,8 +201,8 @@ export default function MobileNav({ userName }: { userName: string }) {
                 </div>
                 {item.badge !== null && (
                   <span style={{
-                    background: '#dc2626',
-                    color: 'white',
+                    background: 'rgba(139,0,0,0.1)',
+                    color: '#f87171',
                     fontSize: '10px',
                     fontWeight: '700',
                     padding: '2px 6px',
@@ -227,7 +229,7 @@ export default function MobileNav({ userName }: { userName: string }) {
               borderRadius: '8px',
               border: 'none',
               background: 'transparent',
-              color: '#9ca3af',
+              color: '#4b5563',
               fontSize: '13.5px',
               cursor: 'pointer',
               display: 'flex',

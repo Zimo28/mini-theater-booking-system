@@ -21,7 +21,7 @@ export default function Sidebar() {
   }, [])
 
   const navItems = [
-    { label: 'Dashboard', href: '/admin', icon: (
+    { label: 'Dashboard', href: '/admin/dashboard', icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -63,41 +63,25 @@ export default function Sidebar() {
       height: '100vh',
       position: 'sticky',
       top: 0,
-      background: 'white',
+      background: '#0a0a0a',
       display: 'flex',
       flexDirection: 'column',
-      borderRight: '1px solid #e5e7eb',
+      borderRight: '1px solid #1f1f1f',
       flexShrink: 0,
       overflowY: 'auto',
     }}>
-      {/* Logo — clickable */}
-      <Link href="/admin" style={{ textDecoration: 'none' }}>
-        <div style={{
-          padding: '16px',
-          borderBottom: '1px solid #f3f4f6',
-          cursor: 'pointer',
-        }}>
-          <img
-            src="/logo.png"
-            alt="Mini Theater"
-            style={{
-              width: '100%',
-              maxHeight: '80px',
-              objectFit: 'contain',
-              display: 'block',
-            }}
-          />
+      <Link href="/admin/dashboard" style={{ textDecoration: 'none' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid #1f1f1f', cursor: 'pointer' }}>
+          <img src="/logo.png" alt="Mini Theater" style={{ width: '100%', maxHeight: '80px', objectFit: 'contain', display: 'block', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
         </div>
       </Link>
 
-      {/* Nav Label */}
       <div style={{ padding: '16px 16px 6px' }}>
-        <span style={{ fontSize: '10px', fontWeight: '700', color: '#9ca3af', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '10px', fontWeight: '700', color: '#374151', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           Menu
         </span>
       </div>
 
-      {/* Nav */}
       <nav style={{ flex: 1, padding: '4px 8px' }}>
         {navItems.map((item) => {
           const isActive = item.href === '/admin/tempahan'
@@ -118,23 +102,23 @@ export default function Sidebar() {
                 marginBottom: '2px',
                 fontSize: '13.5px',
                 fontWeight: isActive ? '600' : '400',
-                color: isActive ? '#8B0000' : '#4b5563',
-                background: isActive ? '#fef2f2' : 'transparent',
+                color: isActive ? '#f87171' : '#6b7280',
+                background: isActive ? 'rgba(139,0,0,0.2)' : 'transparent',
                 borderLeft: isActive ? '3px solid #8B0000' : '3px solid transparent',
                 transition: 'all 0.15s',
                 textDecoration: 'none',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.background = '#fef2f2'
-                  e.currentTarget.style.color = '#8B0000'
-                  e.currentTarget.style.borderLeft = '3px solid #fecaca'
+                  e.currentTarget.style.background = 'rgba(139,0,0,0.1)'
+                  e.currentTarget.style.color = '#f87171'
+                  e.currentTarget.style.borderLeft = '3px solid rgba(139,0,0,0.3)'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
                   e.currentTarget.style.background = 'transparent'
-                  e.currentTarget.style.color = '#4b5563'
+                  e.currentTarget.style.color = '#6b7280'
                   e.currentTarget.style.borderLeft = '3px solid transparent'
                 }
               }}
@@ -144,16 +128,7 @@ export default function Sidebar() {
                 {item.label}
               </div>
               {item.badge !== null && (
-                <span style={{
-                  background: '#dc2626',
-                  color: 'white',
-                  fontSize: '10px',
-                  fontWeight: '700',
-                  padding: '2px 6px',
-                  borderRadius: '999px',
-                  minWidth: '18px',
-                  textAlign: 'center',
-                }}>
+                <span style={{ background: '#dc2626', color: 'white', fontSize: '10px', fontWeight: '700', padding: '2px 6px', borderRadius: '999px', minWidth: '18px', textAlign: 'center' }}>
                   {item.badge}
                 </span>
               )}
@@ -162,32 +137,12 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Logout */}
-      <div style={{ padding: '8px', borderTop: '1px solid #f3f4f6' }}>
+      <div style={{ padding: '8px', borderTop: '1px solid #1f1f1f' }}>
         <button
           onClick={handleLogout}
-          style={{
-            width: '100%',
-            padding: '9px 12px',
-            borderRadius: '8px',
-            border: 'none',
-            background: 'transparent',
-            color: '#9ca3af',
-            fontSize: '13.5px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            transition: 'all 0.15s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#fef2f2'
-            e.currentTarget.style.color = '#8B0000'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.color = '#9ca3af'
-          }}
+          style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: 'none', background: 'transparent', color: '#4b5563', fontSize: '13.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.15s' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139,0,0,0.1)'; e.currentTarget.style.color = '#f87171' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4b5563' }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>

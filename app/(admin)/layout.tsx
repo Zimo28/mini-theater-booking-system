@@ -23,7 +23,7 @@ export default async function AdminLayout({
   const userName = profile?.full_name ?? user?.email ?? 'Admin'
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f3f4f6' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#0a0a0a' }}>
       <div className="sidebar-wrapper">
         <Sidebar />
       </div>
@@ -37,7 +37,7 @@ export default async function AdminLayout({
           <Header />
         </div>
 
-        <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: '32px', background: '#0a0a0a', overflowY: 'auto' }}>
           {children}
         </main>
       </div>

@@ -15,51 +15,38 @@ export default async function Header() {
 
   return (
     <header style={{
-      background: 'white',
-      borderBottom: '1px solid #f3f4f6',
+      background: '#0a0a0a',
+      borderBottom: '1px solid #1f1f1f',
       padding: '0 28px',
       height: '56px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'flex-end',
       gap: '12px',
-      position: 'sticky',  
-      top: 0,              
+      position: 'sticky',
+      top: 0,
       zIndex: 10,
     }}>
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        padding: '6px 12px',
-        borderRadius: '999px',
-        background: '#f9fafb',
-        border: '1px solid #f3f4f6',
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '6px 12px', borderRadius: '999px',
+        background: '#161616', border: '1px solid #1f1f1f',
       }}>
         <div style={{
-          width: '28px',
-          height: '28px',
-          borderRadius: '50%',
+          width: '28px', height: '28px', borderRadius: '50%',
           background: 'linear-gradient(135deg, #8B0000, #a50000)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '12px',
-          color: 'white',
-          fontWeight: '700',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '12px', color: 'white', fontWeight: '700',
         }}>
           {userName.charAt(0).toUpperCase()}
         </div>
-        <span style={{ fontSize: '13px', fontWeight: '500', color: '#374151' }}>{userName}</span>
+        <span style={{ fontSize: '13px', fontWeight: '500', color: '#9ca3af' }}>{userName}</span>
         <span style={{
-          background: '#fef2f2',
-          color: '#8B0000',
-          padding: '2px 8px',
-          borderRadius: '999px',
-          fontSize: '10px',
-          fontWeight: '700',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
+          background: 'rgba(139,0,0,0.2)', color: '#f87171',
+          padding: '2px 8px', borderRadius: '999px',
+          fontSize: '10px', fontWeight: '700',
+          textTransform: 'uppercase', letterSpacing: '0.05em',
+          border: '1px solid rgba(139,0,0,0.3)',
         }}>
           {role}
         </span>
