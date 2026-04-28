@@ -125,9 +125,30 @@ export default function LoginPage() {
 
           {/* Stats / info */}
           {[
-            { icon: '🎭', label: 'Booking Management' },
-            { icon: '📅', label: 'Calendar & Availability' },
-            { icon: '⚙️', label: 'System Settings' },
+            {
+              icon: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 10s3-3 3-8h14c0 5 3 8 3 8"/><path d="M6 15s-2 2-2 5h16c0-3-2-5-2-5"/><path d="M7 15h10"/><path d="M7 10h10"/>
+                </svg>
+              ),
+              label: 'Booking Management'
+            },
+            {
+              icon: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              ),
+              label: 'Calendar & Availability'
+            },
+            {
+              icon: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+                </svg>
+              ),
+              label: 'System Settings'
+            },
           ].map((item, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: '12px',
@@ -141,7 +162,7 @@ export default function LoginPage() {
                 background: 'rgba(255,255,255,0.08)',
                 borderRadius: '10px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '16px', flexShrink: 0,
+                flexShrink: 0,
                 border: '1px solid rgba(255,255,255,0.06)',
               }}>{item.icon}</div>
               <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', fontWeight: '500' }}>
