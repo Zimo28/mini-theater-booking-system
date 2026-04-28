@@ -4,6 +4,79 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { syncToGoogleSheet } from '@/lib/googleSheet'
 
+function EquipmentSelect({ eq, value, onChange }: { 
+  eq: { label: string; field: string; icon: React.ReactNode; max: number }
+  value: number
+  onChange: (val: number) => void 
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '12px', background: '#111111', position: 'relative' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {eq.icon} {eq.label}
+        </span>
+        <span style={{ fontSize: '10px', color: '#93c5fd', background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', padding: '1px 6px', borderRadius: '4px', fontWeight: '600' }}>
+          MAX {eq.max}
+        </span>
+      </div>
+
+      {/* Custom Dropdown Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%', background: '#0d0d0d', border: `1px solid ${open ? '#8B0000' : '#1f2937'}`,
+          borderRadius: '6px', padding: '8px 12px', fontSize: '14px', fontWeight: '600',
+          color: 'white', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          transition: 'all 0.2s',
+          boxShadow: open ? '0 0 0 2px rgba(139,0,0,0.15)' : 'none',
+        }}
+      >
+        <span>{value}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}>
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      {/* Dropdown Options */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, zIndex: 50,
+        background: '#0d0d0d', border: '1px solid #1f2937', borderRadius: '8px',
+        marginTop: '4px', overflow: 'hidden',
+        maxHeight: open ? '200px' : '0px',
+        opacity: open ? 1 : 0,
+        transform: open ? 'translateY(0)' : 'translateY(-8px)',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+        pointerEvents: open ? 'auto' : 'none',
+      }}>
+        {Array.from({ length: eq.max + 1 }, (_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => { onChange(i); setOpen(false) }}
+            style={{
+              width: '100%', padding: '10px 14px', fontSize: '14px', fontWeight: '500',
+              background: value === i ? 'rgba(139,0,0,0.2)' : 'transparent',
+              color: value === i ? '#f87171' : '#9ca3af',
+              border: 'none', cursor: 'pointer', textAlign: 'left',
+              borderBottom: i < eq.max ? '1px solid #1a1a1a' : 'none',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => { if (value !== i) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+            onMouseLeave={(e) => { if (value !== i) e.currentTarget.style.background = 'transparent' }}
+          >
+            {i}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function BookingPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -364,20 +437,12 @@ export default function BookingPage() {
             <label style={{ ...labelStyle, marginBottom: '12px' }}>Additional Equipment Request</label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               {[
-                { label: 'Microphone', field: 'microphone', icon: '🎤', max: 2 },
-                { label: 'Air-cond', field: 'aircond', icon: '❄️', max: 1 },
-                { label: 'PA System', field: 'pa_system', icon: '🔊', max: 1 },
-                { label: 'LCD Projector', field: 'lcd_projector', icon: '📽️', max: 1 },
+                { label: 'Microphone', field: 'microphone', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>, max: 2 },
+                { label: 'Air-cond', field: 'aircond', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>, max: 1 },
+                { label: 'PA System', field: 'pa_system', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>, max: 1 },
+                { label: 'LCD Projector', field: 'lcd_projector', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>, max: 1 },
               ].map((eq) => (
-                <div key={eq.field} style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '12px', background: '#111111' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: '500' }}>{eq.icon} {eq.label}</span>
-                    <span style={{ fontSize: '10px', color: '#4b5563', background: '#1f2937', padding: '1px 6px', borderRadius: '4px', fontWeight: '600' }}>MAX {eq.max}</span>
-                  </div>
-                  <select onChange={(e) => updateForm(eq.field, parseInt(e.target.value))} style={{ width: '100%', border: '1px solid #1f2937', borderRadius: '6px', padding: '6px 10px', fontSize: '13px', outline: 'none', background: '#1a1a1a', color: 'white' }}>
-                    {Array.from({ length: eq.max + 1 }, (_, i) => <option key={i} value={i}>{i}</option>)}
-                  </select>
-                </div>
+                <EquipmentSelect key={eq.field} eq={eq} value={form[eq.field as keyof typeof form] as number} onChange={(val) => updateForm(eq.field, val)} />
               ))}
             </div>
 
@@ -504,7 +569,9 @@ export default function BookingPage() {
         }
         input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator {
-          filter: invert(1) opacity(0.5);
+          filter: brightness(0) invert(1);
+          cursor: pointer;
+          opacity: 1;
         }
       `}</style>
     </div>
