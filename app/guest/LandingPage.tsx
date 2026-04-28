@@ -53,6 +53,7 @@ export default function LandingPage({
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    window.history.scrollRestoration = 'manual'
     window.scrollTo(0, 0)
     setTimeout(() => setMounted(true), 50)
     const handleScroll = () => {
