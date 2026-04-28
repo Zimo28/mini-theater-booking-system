@@ -36,10 +36,10 @@ export default function QRClient() {
   }
 
   // Save settings lepas upload logo
-  const saveSettings = async (logoUrl: string) => {
+  const saveAllSettings = async (updates: Record<string, unknown>) => {
     await supabase
       .from('qr_settings')
-      .update({ logo_url: logoUrl, updated_at: new Date().toISOString() })
+      .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', 1)
   }
   
@@ -95,7 +95,7 @@ export default function QRClient() {
       .getPublicUrl(data.path)
 
     setLogo(urlData.publicUrl)
-    await saveSettings(urlData.publicUrl)
+    await saveAllSettings({ logo_url: urlData.publicUrl })
     showToast('Logo berjaya diupload!', 'success')
   }
   
@@ -180,6 +180,24 @@ export default function QRClient() {
             <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
               Tukar URL ni bila dah deploy ke Vercel
             </p>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <button
+                onClick={async () => {
+                  await saveAllSettings({ qr_url: qrUrl })
+                  showToast('URL berjaya disimpan!', 'success')
+                }}
+                style={{
+                  background: '#f0fdf4',
+                  color: '#16a34a',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '6px',
+                  padding: '5px 12px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >Simpan URL</button>
+            </div>
           </div>
 
           {/* Colors */}

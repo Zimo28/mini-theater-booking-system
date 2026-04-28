@@ -53,6 +53,7 @@ export default function LandingPage({
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     setTimeout(() => setMounted(true), 50)
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
@@ -384,11 +385,13 @@ export default function LandingPage({
                       position: 'relative', transition: 'all 0.15s',
                     }}>
                       {day}
-                      {(status === 'booked' || status === 'pending') && !isSelected && (
+                      {(status === 'booked' || status === 'pending') && (
                         <span style={{
                           position: 'absolute', bottom: '3px', left: '50%', transform: 'translateX(-50%)',
                           width: '14px', height: '2px', borderRadius: '2px',
-                          background: status === 'booked' ? '#dc2626' : '#d97706',
+                          background: isSelected 
+                            ? 'white'
+                            : status === 'booked' ? '#dc2626' : '#d97706',
                           display: 'block',
                         }} />
                       )}
