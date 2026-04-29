@@ -357,8 +357,8 @@ export default function SettingsClient({
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Contact Us Settings</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
-                <label style={labelStyle}>Email</label>
-                <input type="email" value={settings['contact_email'] ?? ''} onChange={(e) => updateSetting('contact_email', e.target.value)} style={inputStyle}
+                <label style={labelStyle}>Nama</label>
+                <input type="text" value={settings['contact_name'] ?? ''} onChange={(e) => updateSetting('contact_name', e.target.value)} style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
               </div>
               <div>
@@ -366,15 +366,20 @@ export default function SettingsClient({
                 <input type="text" value={settings['contact_phone'] ?? ''} onChange={(e) => updateSetting('contact_phone', e.target.value)} style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
               </div>
+              <div>
+                <label style={labelStyle}>Email</label>
+                <input type="email" value={settings['contact_email'] ?? ''} onChange={(e) => updateSetting('contact_email', e.target.value)} style={inputStyle}
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+              </div>
+              <div>
+                <label style={labelStyle}>Operating Hours</label>
+                <input type="text" value={settings['contact_hours'] ?? ''} placeholder="e.g. 7:00 AM – 10:30 PM" onChange={(e) => updateSetting('contact_hours', e.target.value)} style={inputStyle}
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+              </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>Address</label>
                 <textarea value={settings['contact_address'] ?? ''} onChange={(e) => updateSetting('contact_address', e.target.value)} rows={2}
                   style={{ ...inputStyle, resize: 'vertical' }}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelStyle}>Operating Hours</label>
-                <input type="text" value={settings['contact_hours'] ?? ''} onChange={(e) => updateSetting('contact_hours', e.target.value)} style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
               </div>
             </div>

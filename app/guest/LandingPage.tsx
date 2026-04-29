@@ -699,7 +699,7 @@ export default function LandingPage({
           <p style={{ fontSize: '12px', color: '#1f2937', marginBottom: '6px' }}>
             {settings['theater_name'] ?? 'Mini Theater'} — {settings['contact_address'] ?? ''}
           </p>
-          <p style={{ fontSize: '11px', color: '#111827' }}>
+          <p style={{ fontSize: '11px', color: '#1f2937' }}>
             © {new Date().getFullYear()} Mini Theater Booking System. All rights reserved.
           </p>
         </div>

@@ -15,14 +15,14 @@ export default function AdminAccountSection() {
 
   const inputStyle = {
     width: '100%',
-    border: '1.5px solid #e5e7eb',
+    border: '1.5px solid #1f2937',
     borderRadius: '8px',
     padding: '10px 14px',
     fontSize: '13px',
     outline: 'none',
     boxSizing: 'border-box' as const,
-    color: '#111827',
-    background: 'white',
+    color: 'white',
+    background: '#1a1a1a',
     transition: 'border-color 0.2s',
   }
 
@@ -30,7 +30,7 @@ export default function AdminAccountSection() {
     display: 'block',
     fontSize: '12px',
     fontWeight: '600' as const,
-    color: '#374151',
+    color: '#9ca3af',
     marginBottom: '6px',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
@@ -110,7 +110,7 @@ export default function AdminAccountSection() {
     <div>
       {/* Update Profile */}
       <div style={{ marginBottom: '28px' }}>
-        <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
+        <p style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af', marginBottom: '16px' }}>
           Kemaskini Profil
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
@@ -123,7 +123,7 @@ export default function AdminAccountSection() {
               onChange={(e) => setFullName(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
             />
           </div>
           <div>
@@ -135,7 +135,7 @@ export default function AdminAccountSection() {
               onChange={(e) => setEmail(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
             />
           </div>
         </div>
@@ -153,16 +153,28 @@ export default function AdminAccountSection() {
             cursor: loadingProfile ? 'not-allowed' : 'pointer',
             boxShadow: loadingProfile ? 'none' : '0 2px 8px rgba(139,0,0,0.2)',
           }}
+          onMouseEnter={(e) => {
+            if (!loadingProfile) {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(139,0,0,0.4)'
+              e.currentTarget.style.transform = 'translateY(-1px)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!loadingProfile) {
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(139,0,0,0.2)'
+              e.currentTarget.style.transform = 'translateY(0)'
+            }
+          }}
         >
           {loadingProfile ? 'Menyimpan...' : 'Kemaskini Profil'}
         </button>
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', marginBottom: '28px' }} />
+      <hr style={{ border: 'none', borderTop: '1px solid #1f1f1f', marginBottom: '28px' }} />
 
       {/* Update Password */}
       <div>
-        <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
+        <p style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af', marginBottom: '16px' }}>
           Tukar Password
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
@@ -175,7 +187,7 @@ export default function AdminAccountSection() {
               onChange={(e) => setNewPassword(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
             />
           </div>
           <div>
@@ -187,7 +199,7 @@ export default function AdminAccountSection() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
             />
           </div>
         </div>
@@ -195,14 +207,28 @@ export default function AdminAccountSection() {
           onClick={updatePassword}
           disabled={loadingPassword}
           style={{
-            background: loadingPassword ? '#d1d5db' : '#111827',
+            background: loadingPassword ? '#1f1f1f' : '#161616',
+            border: loadingPassword ? '1px solid #2d2d2d' : '1px solid #374151',
             color: 'white',
-            border: 'none',
             borderRadius: '8px',
             padding: '10px 20px',
             fontSize: '13px',
             fontWeight: '600',
             cursor: loadingPassword ? 'not-allowed' : 'pointer',
+          }}
+          onMouseEnter={(e) => {
+            if (!loadingPassword) {
+              e.currentTarget.style.background = '#1f1f1f'
+              e.currentTarget.style.borderColor = '#6b7280'
+              e.currentTarget.style.boxShadow = '0 0 0 2px rgba(107,114,128,0.15)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!loadingPassword) {
+              e.currentTarget.style.background = '#161616'
+              e.currentTarget.style.borderColor = '#374151'
+              e.currentTarget.style.boxShadow = 'none'
+            }
           }}
         >
           {loadingPassword ? 'Menyimpan...' : 'Tukar Password'}

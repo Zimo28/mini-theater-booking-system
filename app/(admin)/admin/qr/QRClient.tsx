@@ -170,9 +170,6 @@ export default function QRClient() {
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
               onBlur={(e) => e.target.style.borderColor = '#1f1f1f'}
             />
-            <p style={{ fontSize: '11px', color: '#4b5563', marginTop: '4px' }}>
-              Tukar URL ni bila dah deploy ke Vercel
-            </p>
             <button
               onClick={async () => {
                 await saveAllSettings({ qr_url: qrUrl })
