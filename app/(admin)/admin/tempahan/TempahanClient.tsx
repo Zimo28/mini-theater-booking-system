@@ -22,6 +22,7 @@ type Booking = {
   lcd_projector: number
   status: string
   attachment_url?: string
+  note?: string
   created_at: string
 }
 
@@ -51,6 +52,9 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [sheetUrl, setSheetUrl] = useState<string | null>(null)
+  const [editingNote, setEditingNote] = useState<string | null>(null)
+  const [noteValues, setNoteValues] = useState<Record<string, string>>({})
+  const [savingNote, setSavingNote] = useState(false)
 
   const searchParams = useSearchParams()
 
@@ -79,6 +83,28 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
       }
     }
   }, [])
+
+  useEffect(() => {
+    const notes: Record<string, string> = {}
+    initial.forEach(b => { notes[b.id] = b.note ?? '' })
+    setNoteValues(notes)
+  }, [])
+
+  const saveNote = async (id: string) => {
+    setSavingNote(true)
+    const { error } = await supabase
+      .from('bookings')
+      .update({ note: noteValues[id] ?? '' })
+      .eq('id', id)
+    if (!error) {
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, note: noteValues[id] } : b))
+      setEditingNote(null)
+      showToast('Note berjaya disimpan!', 'success')
+    } else {
+      showToast('Ralat semasa menyimpan note.', 'error')
+    }
+    setSavingNote(false)
+  }
 
   const filtered = bookings
     .filter(b => filter === 'all' || b.status === filter)
@@ -439,6 +465,57 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                                 </div>
                               ) : (
                                 <span style={{ fontSize: '12px', color: '#4b5563' }}>Tiada fail</span>
+                              )}
+                            </div>
+
+                            {/* Note Section */}
+                            <div style={{ marginTop: '16px', border: '1px solid #1f1f1f', borderRadius: '10px', padding: '12px 16px', background: '#111111' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <p style={{ fontSize: '11px', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                  Admin Note
+                                </p>
+                                {editingNote !== booking.id ? (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setEditingNote(booking.id) }}
+                                    style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #1f2937', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = '#f87171'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                                  >Edit</button>
+                                ) : (
+                                  <div style={{ display: 'flex', gap: '6px' }}>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setEditingNote(null) }}
+                                      style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #1f2937', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
+                                    >Batal</button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); saveNote(booking.id) }}
+                                      disabled={savingNote}
+                                      style={{ fontSize: '12px', color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer', fontWeight: '600' }}
+                                    >{savingNote ? '...' : 'Simpan'}</button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {editingNote === booking.id ? (
+                                <textarea
+                                  value={noteValues[booking.id] ?? ''}
+                                  onChange={(e) => setNoteValues(prev => ({ ...prev, [booking.id]: e.target.value }))}
+                                  onClick={(e) => e.stopPropagation()}
+                                  placeholder="Tambah note untuk tempahan ini..."
+                                  rows={3}
+                                  style={{
+                                    width: '100%', background: '#161616', border: '1px solid #1f2937',
+                                    borderRadius: '8px', padding: '10px 12px', fontSize: '13px',
+                                    color: '#e5e7eb', outline: 'none', resize: 'vertical',
+                                    boxSizing: 'border-box', fontFamily: 'inherit',
+                                  }}
+                                  onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                                  onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+                                />
+                              ) : (
+                                <p style={{ fontSize: '13px', color: noteValues[booking.id] ? '#9ca3af' : '#374151', fontStyle: noteValues[booking.id] ? 'normal' : 'italic' }}>
+                                  {noteValues[booking.id] || 'Tiada note. Klik Edit untuk tambah.'}
+                                </p>
                               )}
                             </div>
 
