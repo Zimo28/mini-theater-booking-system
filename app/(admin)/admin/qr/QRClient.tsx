@@ -3,12 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import QRCode from 'qrcode'
 import { showToast } from '@/components/Toast'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { supabase } from '@/lib/supabase'
 
 const card = {
   background: '#161616',
@@ -60,6 +55,7 @@ export default function QRClient() {
         const ctx = canvas.getContext('2d')
         if (!ctx) return resolve()
         const img = new Image()
+        img.crossOrigin = 'anonymous'
         img.src = logo
         img.onload = () => {
           const x = (canvas.width - logoSize) / 2
