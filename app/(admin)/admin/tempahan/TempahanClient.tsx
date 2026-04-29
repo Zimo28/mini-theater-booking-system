@@ -174,7 +174,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
               <span style={{
                 marginLeft: '6px',
                 background: filter === tab.value ? 'rgba(255,255,255,0.2)' : '#1f1f1f',
-                color: filter === tab.value ? 'white' : '#374151',
+                color: filter === tab.value ? 'white' : '#4b5563',
                 padding: '1px 6px', borderRadius: '999px', fontSize: '11px',
               }}>
                 {tab.value === 'all' ? bookings.length : bookings.filter(b => b.status === tab.value).length}
@@ -293,14 +293,14 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
               <polyline points="14 2 14 8 20 8"/>
             </svg>
-            <p style={{ fontSize: '14px', color: '#374151' }}>Tiada tempahan</p>
+            <p style={{ fontSize: '14px', color: '#4b5563' }}>Tiada tempahan</p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #1f1f1f' }}>
                 {['', 'Event', 'Nama Pemohon', 'Organisasi', 'Tarikh', 'Masa', 'Status'].map((h) => (
-                  <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                  <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -348,7 +348,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                               <div>
                                 <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>{booking.full_name}</h3>
-                                <p style={{ fontSize: '12px', color: '#374151' }}>Submitted on {formatSubmitted(booking.created_at)}</p>
+                                <p style={{ fontSize: '12px', color: '#4b5563' }}>Submitted on {formatSubmitted(booking.created_at)}</p>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <span style={{
@@ -361,9 +361,9 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                                 </span>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); deleteBooking(booking.id) }}
-                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.15s' }}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.15s' }}
                                   onMouseEnter={(e) => e.currentTarget.style.color = '#f87171'}
-                                  onMouseLeave={(e) => e.currentTarget.style.color = '#374151'}
+                                  onMouseLeave={(e) => e.currentTarget.style.color = '#4b5563'}
                                 >
                                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <polyline points="3 6 5 6 21 6"/>
@@ -386,7 +386,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                                 { label: 'Booking Date & Time', value: `${new Date(booking.booking_date + 'T00:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} | ${booking.start_time} - ${booking.end_time}` },
                               ].map((item) => (
                                 <div key={item.label}>
-                                  <p style={{ fontSize: '11px', color: '#374151', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</p>
+                                  <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</p>
                                   <p style={{ fontSize: '14px', fontWeight: '600', color: item.highlight ? '#f87171' : '#e5e7eb' }}>{item.value}</p>
                                 </div>
                               ))}
@@ -395,7 +395,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                             {/* Equipment */}
                             {equipment(booking).length > 0 && (
                               <div style={{ marginBottom: '16px' }}>
-                                <p style={{ fontSize: '11px', color: '#374151', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Requested Equipment:</p>
+                                <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Requested Equipment:</p>
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                   {equipment(booking).map((eq) => (
                                     <span key={eq.label} style={{ padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '500', background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
@@ -409,7 +409,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                             {/* Attached File */}
                             <div style={{ border: '1px solid #1f1f1f', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: booking.status === 'pending' ? '16px' : '0', background: '#111111' }}>
                               <div>
-                                <p style={{ fontSize: '11px', color: '#374151', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Attached File</p>
+                                <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Attached File</p>
                                 <p style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af' }}>Approval Paperwork Attachment</p>
                               </div>
                               {booking.attachment_url ? (
@@ -438,7 +438,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                                   </a>
                                 </div>
                               ) : (
-                                <span style={{ fontSize: '12px', color: '#374151' }}>Tiada fail</span>
+                                <span style={{ fontSize: '12px', color: '#4b5563' }}>Tiada fail</span>
                               )}
                             </div>
 

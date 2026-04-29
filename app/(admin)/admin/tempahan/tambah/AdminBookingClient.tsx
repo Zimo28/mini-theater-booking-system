@@ -72,6 +72,8 @@ function EquipmentSelect({ eq, value, onChange }: {
 
 export default function AdminBookingClient() {
   const [loading, setLoading] = useState(false)
+  const [file, setFile] = useState<File | null>(null)
+  const [dragOver, setDragOver] = useState(false)
   const [form, setForm] = useState({
     full_name: '', phone: '', organization: '', event_name: '',
     booking_date: '', start_time: '', end_time: '',
@@ -80,6 +82,16 @@ export default function AdminBookingClient() {
 
   const updateForm = (field: string, value: string | number) => {
     setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const uploadFile = async (bookingId: string) => {
+    if (!file) return null
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${bookingId}.${fileExt}`
+    const { error } = await supabase.storage.from('approval-docs').upload(fileName, file)
+    if (error) return null
+    const { data: urlData } = supabase.storage.from('approval-docs').getPublicUrl(fileName)
+    return urlData.publicUrl
   }
 
   const handleSubmit = async () => {
@@ -100,6 +112,10 @@ export default function AdminBookingClient() {
     if (error) {
       showToast('Ralat semasa menambah tempahan.', 'error')
     } else {
+      const attachmentUrl = await uploadFile(inserted.id)
+      if (attachmentUrl) {
+        await supabase.from('bookings').update({ attachment_url: attachmentUrl }).eq('id', inserted.id)
+      }
       await syncToGoogleSheet({ ...form, id: inserted.id, status: 'approved', created_at: inserted.created_at })
       showToast('Tempahan berjaya ditambah dan diluluskan!', 'success')
       setTimeout(() => { window.location.href = '/admin/tempahan' }, 1200)
@@ -154,7 +170,7 @@ export default function AdminBookingClient() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }} className="booking-grid">
 
-        {/* Section 1 */}
+        {/* Section 1 — Personal */}
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
             <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>1</div>
@@ -176,7 +192,7 @@ export default function AdminBookingClient() {
           ))}
         </div>
 
-        {/* Section 2 */}
+        {/* Section 2 — Schedule */}
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
             <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>2</div>
@@ -215,13 +231,86 @@ export default function AdminBookingClient() {
             ))}
           </div>
 
-          {/* Admin Note */}
           <div style={{ marginTop: '14px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#93c5fd', display: 'flex', gap: '6px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}>
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
             <span><strong>Admin Note:</strong> This booking will be created as "Approved" bypassing lead times and time restrictions.</span>
           </div>
+        </div>
+
+        {/* Section 3 — Upload (full width) */}
+        <div style={{ ...cardStyle, gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+            <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>3</div>
+            <div>
+              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white', margin: 0 }}>Upload Approval Paperwork</h2>
+              <p style={{ fontSize: '12px', color: '#4b5563', margin: '2px 0 0' }}>Optional — upload if physical approval document is available</p>
+            </div>
+          </div>
+
+          {file ? (
+            <div style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111111' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '40px', height: '40px', background: 'rgba(139,0,0,0.15)', border: '1px solid rgba(139,0,0,0.25)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </div>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: '600', color: 'white', margin: 0 }}>{file.name}</p>
+                  <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>{(file.size / 1024).toFixed(1)} KB</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setFile(null)}
+                style={{ background: 'rgba(220,38,38,0.1)', color: '#f87171', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+              >Buang</button>
+            </div>
+          ) : (
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault(); setDragOver(false)
+                const dropped = e.dataTransfer.files?.[0]
+                if (dropped?.type === 'application/pdf') setFile(dropped)
+                else showToast('Hanya fail PDF dibenarkan.', 'error')
+              }}
+              style={{
+                border: `2px dashed ${dragOver ? '#8B0000' : '#1f2937'}`,
+                borderRadius: '12px', padding: '40px',
+                textAlign: 'center',
+                background: dragOver ? 'rgba(139,0,0,0.08)' : '#111111',
+                transition: 'all 0.2s', cursor: 'pointer',
+              }}
+            >
+              <label style={{ cursor: 'pointer', display: 'block' }}>
+                <div style={{
+                  width: '48px', height: '48px',
+                  background: 'rgba(139,0,0,0.12)', border: '1px solid rgba(139,0,0,0.2)',
+                  borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 16px',
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                </div>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: 'white', marginBottom: '4px' }}>
+                  Click to upload or drag and drop
+                </p>
+                <p style={{ fontSize: '12px', color: '#4b5563' }}>Only PDF files are accepted</p>
+                <input type="file" accept=".pdf" style={{ display: 'none' }} onChange={(e) => {
+                  const selected = e.target.files?.[0]
+                  if (selected?.type === 'application/pdf') setFile(selected)
+                  else showToast('Hanya fail PDF dibenarkan.', 'error')
+                }} />
+              </label>
+            </div>
+          )}
         </div>
       </div>
 
