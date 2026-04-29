@@ -196,7 +196,7 @@ export default function DashboardClient({
                 7 hari akan datang
               </span>
             </div>
-            <a href="/admin/tempahan" style={{ fontSize: '13px', color: '#f87171', fontWeight: '500', textDecoration: 'none' }}>
+            <a href="/admin/upcoming" style={{ fontSize: '13px', color: '#f87171', fontWeight: '500', textDecoration: 'none' }}>
               Lihat semua →
             </a>
           </div>
