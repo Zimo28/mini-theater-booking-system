@@ -247,12 +247,12 @@ export default function SettingsClient({
 
               <div>
                 <label style={labelStyle}>Masa Buka</label>
-                <input type="time" value={settings['operating_hours_start'] ?? '07:00'} onChange={(e) => updateSetting('operating_hours_start', e.target.value)} style={inputStyle}
+                <input type="time" value={settings['operating_hours_start'] ?? '07:00'} onChange={(e) => updateSetting('operating_hours_start', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
               </div>
               <div>
                 <label style={labelStyle}>Masa Tutup</label>
-                <input type="time" value={settings['operating_hours_end'] ?? '22:30'} onChange={(e) => updateSetting('operating_hours_end', e.target.value)} style={inputStyle}
+                <input type="time" value={settings['operating_hours_end'] ?? '22:30'} onChange={(e) => updateSetting('operating_hours_end', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
               </div>
               <div>
@@ -325,13 +325,28 @@ export default function SettingsClient({
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Equipment Settings</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               {[
-                { label: '🎤 Max Microphone', key: 'max_microphone' },
-                { label: '❄️ Max Air-cond', key: 'max_aircond' },
-                { label: '🔊 Max PA System', key: 'max_pa_system' },
-                { label: '📽️ Max LCD Projector', key: 'max_lcd_projector' },
+                { 
+                  label: 'Max Microphone', key: 'max_microphone',
+                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                },
+                { 
+                  label: 'Max Air-cond', key: 'max_aircond',
+                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+                },
+                { 
+                  label: 'Max PA System', key: 'max_pa_system',
+                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                },
+                { 
+                  label: 'Max LCD Projector', key: 'max_lcd_projector',
+                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>
+                },
               ].map((item) => (
                 <div key={item.key}>
-                  <label style={labelStyle}>{item.label}</label>
+                  <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color: '#9ca3af' }}>{item.icon}</span>
+                    {item.label}
+                  </label>
                   <input type="number" min="0" max="10" value={settings[item.key] ?? '1'} onChange={(e) => updateSetting(item.key, e.target.value)} style={inputStyle}
                     onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
                 </div>
