@@ -151,7 +151,7 @@ export default function DashboardClient({
         <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'white', letterSpacing: '-0.5px' }}>
           Admin Dashboard
         </h1>
-        <p style={{ color: '#4b5563', fontSize: '14px', marginTop: '4px' }}>
+        <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
           Manage bookings and monitor theater availability
         </p>
       </div>
@@ -167,7 +167,7 @@ export default function DashboardClient({
             justifyContent: 'space-between',
           }}>
             <div>
-              <p style={{ fontSize: '13px', color: '#4b5563', marginBottom: '6px' }}>{stat.label}</p>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>{stat.label}</p>
               <p style={{ fontSize: '32px', fontWeight: '700', color: 'white', lineHeight: 1 }}>{stat.value}</p>
             </div>
             <div style={{
@@ -221,24 +221,24 @@ export default function DashboardClient({
                   <div style={{
                     flexShrink: 0, width: '48px', textAlign: 'center',
                     background: isToday ? '#8B0000' : '#1a1a1a',
-                    border: `1px solid ${isToday ? '#8B0000' : '#1f2937'}`,
+                    border: `1px solid ${isToday ? '#8B0000' : '#6b7280'}`,
                     borderRadius: '10px', padding: '6px 4px',
                   }}>
                     <p style={{ fontSize: '18px', fontWeight: '800', color: 'white', lineHeight: 1 }}>{date.getDate()}</p>
-                    <p style={{ fontSize: '10px', fontWeight: '600', color: isToday ? 'rgba(255,255,255,0.7)' : '#4b5563', textTransform: 'uppercase' }}>
+                    <p style={{ fontSize: '10px', fontWeight: '600', color: isToday ? 'rgba(255,255,255,0.7)' : '#6b7280', textTransform: 'uppercase' }}>
                       {date.toLocaleDateString('en', { month: 'short' })}
                     </p>
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: '14px', fontWeight: '600', color: 'white', marginBottom: '2px' }}>{event.event_name}</p>
-                    <p style={{ fontSize: '12px', color: '#4b5563' }}>{event.organization} · {event.start_time} - {event.end_time}</p>
+                    <p style={{ fontSize: '12px', color: '#6b7280' }}>{event.organization} · {event.start_time} - {event.end_time}</p>
                   </div>
 
                   <span style={{
                     flexShrink: 0, padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '700',
                     background: isToday ? '#8B0000' : isTomorrow ? 'rgba(217,119,6,0.15)' : '#1f1f1f',
-                    color: isToday ? 'white' : isTomorrow ? '#fbbf24' : '#4b5563',
+                    color: isToday ? 'white' : isTomorrow ? '#fbbf24' : '#6b7280',
                     border: `1px solid ${isToday ? '#8B0000' : isTomorrow ? 'rgba(217,119,6,0.25)' : '#2d2d2d'}`,
                   }}>
                     {isToday ? 'Hari Ini' : isTomorrow ? 'Esok' : `${diffDays} hari lagi`}
@@ -272,12 +272,12 @@ export default function DashboardClient({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: '8px' }}>
-              {dayNames.map(d => <div key={d} style={{ textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#374151', padding: '4px 0' }}>{d}</div>)}
+              {dayNames.map(d => <div key={d} style={{ textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280', padding: '4px 0' }}>{d}</div>)}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
               {Array.from({ length: firstDay }).map((_, i) => (
-                <div key={`prev-${i}`} style={{ aspectRatio: '1', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#1f2937' }}>
+                <div key={`prev-${i}`} style={{ aspectRatio: '1', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#6b7280' }}>
                   {prevDays - firstDay + i + 1}
                 </div>
               ))}
@@ -369,8 +369,8 @@ export default function DashboardClient({
                     <line x1="8" y1="2" x2="8" y2="6"/>
                     <line x1="3" y1="10" x2="21" y2="10"/>
                   </svg>
-                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Select a date</p>
-                  <p style={{ fontSize: '13px', color: '#1f2937', marginTop: '4px' }}>Click pada tarikh untuk lihat tempahan</p>
+                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Select a date</p>
+                  <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>Click pada tarikh untuk lihat tempahan</p>
                 </div>
               ) : selectedBookings.length === 0 ? (
                 <div style={{ padding: '40px 0', textAlign: 'center' }}>
@@ -379,11 +379,11 @@ export default function DashboardClient({
                     <polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
                   <p style={{ fontSize: '16px', fontWeight: '600', color: 'white', marginBottom: '4px' }}>Slot Available</p>
-                  <p style={{ fontSize: '13px', color: '#374151' }}>No approved bookings for this date.</p>
+                  <p style={{ fontSize: '13px', color: '#6b7280' }}>No approved bookings for this date.</p>
                 </div>
               ) : (
                 <div>
-                  <p style={{ fontSize: '13px', color: '#4b5563', marginBottom: '12px' }}>
+                  <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
                     {selectedBookings.some(b => b.status === 'approved') ? 'Scheduled approved events:' : 'Pending approval:'}
                   </p>
                   {selectedBookings.map((booking) => (
@@ -414,7 +414,7 @@ export default function DashboardClient({
                       <p style={{ fontSize: '13px', fontWeight: '600', color: booking.status === 'approved' ? '#f87171' : '#fbbf24', marginBottom: '10px' }}>
                         {booking.event_name}
                       </p>
-                      <div style={{ display: 'flex', gap: '8px', fontSize: '13px', color: '#4b5563', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', fontSize: '13px', color: '#6b7280', alignItems: 'center' }}>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                         </svg>
@@ -440,11 +440,11 @@ export default function DashboardClient({
                 <span style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af' }}>Operating Hours</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                <span style={{ color: '#4b5563' }}>Everyday:</span>
+                <span style={{ color: '#6b7280' }}>Everyday:</span>
                 <span style={{ color: '#e5e7eb', fontWeight: '500' }}>7:00 AM - 10:30 PM</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', gap: '16px' }}>
-                <span style={{ color: '#4b5563' }}>Special Holidays / Semester Break / Study Week:</span>
+                <span style={{ color: '#6b7280' }}>Special Holidays / Semester Break / Study Week:</span>
                 <span style={{ color: '#f87171', fontWeight: '600', flexShrink: 0 }}>Closed</span>
               </div>
             </div>

@@ -282,11 +282,21 @@ export default function BookingPage() {
           <img src="/logo.png" alt="Mini Theater" style={{ height: '44px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
         </a>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <a href="/#availability" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: '500', transition: 'color 0.15s' }}
+          <a href="/" onClick={(e) => {
+            e.preventDefault()
+            sessionStorage.setItem('scrollTo', 'availability')
+            window.location.href = '/'
+          }}
+            style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: '500', transition: 'color 0.15s' }}
             onMouseEnter={(e) => e.currentTarget.style.color = '#9ca3af'}
             onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
           >Semak Ketersediaan</a>
-          <a href="/#status" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: '500', transition: 'color 0.15s' }}
+          <a href="/" onClick={(e) => {
+            e.preventDefault()
+            sessionStorage.setItem('scrollTo', 'status')
+            window.location.href = '/'
+          }}
+            style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: '500', transition: 'color 0.15s' }}
             onMouseEnter={(e) => e.currentTarget.style.color = '#9ca3af'}
             onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
           >Semak Status</a>

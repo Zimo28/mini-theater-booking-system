@@ -54,7 +54,15 @@ export default function LandingPage({
 
   useEffect(() => {
     window.history.scrollRestoration = 'manual'
-    window.scrollTo(0, 0)
+    const scrollTarget = sessionStorage.getItem('scrollTo')
+    if (scrollTarget) {
+      sessionStorage.removeItem('scrollTo')
+      setTimeout(() => {
+        document.getElementById(scrollTarget)?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    } else {
+      window.scrollTo(0, 0)
+    }
     setTimeout(() => setMounted(true), 50)
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
