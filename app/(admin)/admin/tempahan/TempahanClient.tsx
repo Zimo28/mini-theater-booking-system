@@ -449,10 +449,23 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                                     </svg>
                                     View
                                   </a>
-                                  <a
-                                    href={booking.attachment_url} download
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #1f2937', background: '#1a1a1a', fontSize: '12px', fontWeight: '600', color: '#9ca3af', textDecoration: 'none' }}
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation()
+                                      try {
+                                        const response = await fetch(booking.attachment_url!)
+                                        const blob = await response.blob()
+                                        const url = URL.createObjectURL(blob)
+                                        const link = document.createElement('a')
+                                        link.href = url
+                                        link.download = `attachment-${booking.id}.pdf`
+                                        link.click()
+                                        URL.revokeObjectURL(url)
+                                      } catch {
+                                        showToast('Gagal muat turun fail.', 'error')
+                                      }
+                                    }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #1f2937', background: '#1a1a1a', fontSize: '12px', fontWeight: '600', color: '#9ca3af', cursor: 'pointer' }}
                                   >
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -460,7 +473,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                                       <line x1="12" y1="15" x2="12" y2="3"/>
                                     </svg>
                                     Download
-                                  </a>
+                                  </button>
                                 </div>
                               ) : (
                                 <span style={{ fontSize: '12px', color: '#4b5563' }}>Tiada fail</span>
@@ -520,7 +533,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
 
                             {/* Action Buttons */}
                             {booking.status === 'pending' && (
-                              <div style={{ display: 'flex', gap: '10px' }}>
+                              <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); updateStatus(booking.id, 'approved') }}
                                   disabled={loading}
