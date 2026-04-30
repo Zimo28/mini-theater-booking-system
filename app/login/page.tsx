@@ -38,10 +38,10 @@ export default function LoginPage() {
       minHeight: '100vh',
       fontFamily: "'Segoe UI', system-ui, sans-serif",
       display: 'flex',
-      background: '#0a0a0a',
+      background: '#f9fafb',
     }}>
 
-      {/* Left Panel — dekorasi */}
+      {/* Left Panel */}
       <div className="left-panel" style={{
         flex: '1',
         position: 'relative',
@@ -53,10 +53,9 @@ export default function LoginPage() {
         padding: '60px 48px',
         overflow: 'hidden',
       }}>
-        {/* Grid pattern overlay */}
+        {/* Grid pattern */}
         <div style={{
-          position: 'absolute',
-          inset: 0,
+          position: 'absolute', inset: 0,
           backgroundImage: `
             linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
@@ -66,93 +65,64 @@ export default function LoginPage() {
 
         {/* Glow orbs */}
         <div style={{
-          position: 'absolute',
-          top: '-80px', left: '-80px',
+          position: 'absolute', top: '-80px', left: '-80px',
           width: '400px', height: '400px',
           background: 'radial-gradient(circle, rgba(139,0,0,0.4) 0%, transparent 70%)',
           borderRadius: '50%',
         }} />
         <div style={{
-          position: 'absolute',
-          bottom: '-100px', right: '-100px',
+          position: 'absolute', bottom: '-100px', right: '-100px',
           width: '500px', height: '500px',
           background: 'radial-gradient(circle, rgba(180,0,0,0.25) 0%, transparent 70%)',
           borderRadius: '50%',
         }} />
 
-        {/* Content */}
         <div style={{
-          position: 'relative',
-          textAlign: 'center',
+          position: 'relative', textAlign: 'center',
           opacity: mounted ? 1 : 0,
           transform: mounted ? 'translateY(0)' : 'translateY(20px)',
           transition: 'all 0.7s ease',
         }}>
           <a href="/">
-            <img
-              src="/logo.png"
-              alt="Mini Theater"
-              style={{
-                height: '72px', width: 'auto', objectFit: 'contain',
-                display: 'block', margin: '0 auto 32px',
-                filter: 'brightness(0) invert(1)',
-                opacity: 0.95,
-              }}
-            />
+            <img src="/logo.png" alt="Mini Theater" style={{
+              height: '72px', width: 'auto', objectFit: 'contain',
+              display: 'block', margin: '0 auto 32px',
+              filter: 'brightness(0) invert(1)', opacity: 0.95,
+            }} />
           </a>
 
           <h1 style={{
             fontSize: '32px', fontWeight: '800', color: 'white',
             letterSpacing: '-0.5px', marginBottom: '12px', lineHeight: 1.2,
-          }}>
-            Mini Theater
-          </h1>
+          }}>Mini Theater</h1>
           <p style={{
             fontSize: '13px', color: 'rgba(255,255,255,0.5)',
             fontWeight: '500', letterSpacing: '0.15em',
             textTransform: 'uppercase', marginBottom: '48px',
-          }}>
-            UiTM Cawangan Kelantan
-          </p>
+          }}>UiTM Cawangan Kelantan</p>
 
-          {/* Divider */}
           <div style={{
             width: '40px', height: '2px',
             background: 'rgba(255,255,255,0.2)',
-            margin: '0 auto 48px',
-            borderRadius: '2px',
+            margin: '0 auto 48px', borderRadius: '2px',
           }} />
 
-          {/* Stats / info */}
           {[
             {
-              icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 10s3-3 3-8h14c0 5 3 8 3 8"/><path d="M6 15s-2 2-2 5h16c0-3-2-5-2-5"/><path d="M7 15h10"/><path d="M7 10h10"/>
-                </svg>
-              ),
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10s3-3 3-8h14c0 5 3 8 3 8"/><path d="M6 15s-2 2-2 5h16c0-3-2-5-2-5"/><path d="M7 15h10"/><path d="M7 10h10"/></svg>,
               label: 'Booking Management'
             },
             {
-              icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-              ),
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
               label: 'Calendar & Availability'
             },
             {
-              icon: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-                </svg>
-              ),
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
               label: 'System Settings'
             },
           ].map((item, i) => (
             <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: '12px',
-              marginBottom: '16px',
+              display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px',
               opacity: mounted ? 1 : 0,
               transform: mounted ? 'translateX(0)' : 'translateX(-20px)',
               transition: `all 0.6s ease ${0.2 + i * 0.1}s`,
@@ -162,8 +132,7 @@ export default function LoginPage() {
                 background: 'rgba(255,255,255,0.08)',
                 borderRadius: '10px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-                border: '1px solid rgba(255,255,255,0.06)',
+                flexShrink: 0, border: '1px solid rgba(255,255,255,0.06)',
               }}>{item.icon}</div>
               <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', fontWeight: '500' }}>
                 {item.label}
@@ -172,47 +141,40 @@ export default function LoginPage() {
           ))}
         </div>
 
-        {/* Bottom credit */}
         <p style={{
           position: 'absolute', bottom: '24px',
           fontSize: '11px', color: 'rgba(255,255,255,0.2)',
           letterSpacing: '0.05em',
-        }}>
-          © {new Date().getFullYear()} Mini Theater Booking System
-        </p>
+        }}>© {new Date().getFullYear()} Mini Theater Booking System</p>
       </div>
 
-      {/* Right Panel — form */}
+      {/* Right Panel */}
       <div style={{
-        width: '460px',
-        flexShrink: 0,
-        background: '#111111',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '48px 40px',
-        position: 'relative',
-      }}
-      className="right-panel"
-      >
+        width: '460px', flexShrink: 0,
+        background: 'white',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '48px 40px', position: 'relative',
+        borderLeft: '1px solid #f3f4f6',
+        boxShadow: '-4px 0 24px rgba(0,0,0,0.04)',
+      }} className="right-panel">
+
         {/* Back button */}
         <a href="/" style={{
           position: 'absolute', top: '24px', left: '24px',
           display: 'flex', alignItems: 'center', gap: '6px',
-          fontSize: '12px', color: '#6b7280', textDecoration: 'none',
+          fontSize: '12px', color: '#9ca3af', textDecoration: 'none',
           padding: '6px 10px', borderRadius: '6px',
-          border: '1px solid #1f1f1f',
-          transition: 'all 0.15s',
+          border: '1px solid #e5e7eb', transition: 'all 0.15s',
         }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = '#9ca3af'
-            e.currentTarget.style.borderColor = '#374151'
-            e.currentTarget.style.background = '#1a1a1a'
+            e.currentTarget.style.color = '#6b7280'
+            e.currentTarget.style.borderColor = '#d1d5db'
+            e.currentTarget.style.background = '#f9fafb'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = '#6b7280'
-            e.currentTarget.style.borderColor = '#1f1f1f'
+            e.currentTarget.style.color = '#9ca3af'
+            e.currentTarget.style.borderColor = '#e5e7eb'
             e.currentTarget.style.background = 'transparent'
           }}
         >
@@ -231,21 +193,18 @@ export default function LoginPage() {
           <div style={{ marginBottom: '36px' }}>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px',
-              background: 'rgba(139,0,0,0.15)', border: '1px solid rgba(139,0,0,0.3)',
+              background: '#fef2f2', border: '1px solid #fecaca',
               borderRadius: '999px', padding: '4px 12px',
-              fontSize: '11px', fontWeight: '600', color: '#f87171',
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-              marginBottom: '16px',
+              fontSize: '11px', fontWeight: '600', color: '#8B0000',
+              letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px',
             }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626' }} />
               Admin Access
             </div>
             <h2 style={{
-              fontSize: '26px', fontWeight: '800', color: 'white',
+              fontSize: '26px', fontWeight: '800', color: '#111827',
               letterSpacing: '-0.5px', marginBottom: '6px',
-            }}>
-              Log Masuk
-            </h2>
+            }}>Log Masuk</h2>
             <p style={{ fontSize: '13px', color: '#6b7280' }}>
               Masukkan credentials untuk akses panel admin
             </p>
@@ -253,9 +212,9 @@ export default function LoginPage() {
 
           {error && (
             <div style={{
-              background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.25)',
+              background: '#fef2f2', border: '1px solid #fecaca',
               borderRadius: '8px', padding: '10px 14px', marginBottom: '20px',
-              fontSize: '13px', color: '#f87171',
+              fontSize: '13px', color: '#dc2626',
               display: 'flex', alignItems: 'center', gap: '8px',
             }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -271,11 +230,11 @@ export default function LoginPage() {
           <div style={{ marginBottom: '16px' }}>
             <label style={{
               display: 'block', fontSize: '12px', fontWeight: '600',
-              color: '#9ca3af', marginBottom: '8px',
+              color: '#374151', marginBottom: '8px',
               textTransform: 'uppercase', letterSpacing: '0.08em',
             }}>Username</label>
             <div style={{ position: 'relative' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4b5563" strokeWidth="2"
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"
                 style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
@@ -287,14 +246,14 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                 style={{
-                  width: '100%', background: '#1a1a1a',
-                  border: '1.5px solid #1f2937', borderRadius: '8px',
+                  width: '100%', background: 'white',
+                  border: '1.5px solid #e5e7eb', borderRadius: '8px',
                   padding: '11px 14px 11px 38px', fontSize: '14px', outline: 'none',
-                  boxSizing: 'border-box', color: 'white',
+                  boxSizing: 'border-box', color: '#111827',
                   transition: 'border-color 0.2s',
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               />
             </div>
           </div>
@@ -303,11 +262,11 @@ export default function LoginPage() {
           <div style={{ marginBottom: '28px' }}>
             <label style={{
               display: 'block', fontSize: '12px', fontWeight: '600',
-              color: '#9ca3af', marginBottom: '8px',
+              color: '#374151', marginBottom: '8px',
               textTransform: 'uppercase', letterSpacing: '0.08em',
             }}>Password</label>
             <div style={{ position: 'relative' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4b5563" strokeWidth="2"
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"
                 style={{ position: 'absolute', left: '13px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -319,25 +278,25 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                 style={{
-                  width: '100%', background: '#1a1a1a',
-                  border: '1.5px solid #1f2937', borderRadius: '8px',
+                  width: '100%', background: 'white',
+                  border: '1.5px solid #e5e7eb', borderRadius: '8px',
                   padding: '11px 40px 11px 38px', fontSize: '14px', outline: 'none',
-                  boxSizing: 'border-box', color: 'white',
+                  boxSizing: 'border-box', color: '#111827',
                   transition: 'border-color 0.2s',
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', padding: '2px',
+                  background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '2px',
                   transition: 'color 0.15s',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#9ca3af'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#4b5563'}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
               >
                 {showPassword ? (
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -360,22 +319,17 @@ export default function LoginPage() {
             disabled={loading}
             style={{
               width: '100%',
-              background: loading ? '#1f1f1f' : 'linear-gradient(135deg, #8B0000, #a50000)',
-              color: loading ? '#6b7280' : 'white',
-              border: loading ? '1px solid #2d2d2d' : 'none',
-              borderRadius: '10px', padding: '13px',
+              background: loading ? '#f3f4f6' : 'linear-gradient(135deg, #8B0000, #a50000)',
+              color: loading ? '#9ca3af' : 'white',
+              border: 'none', borderRadius: '10px', padding: '13px',
               fontSize: '14px', fontWeight: '700',
               cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: loading ? 'none' : '0 4px 20px rgba(139,0,0,0.35)',
+              boxShadow: loading ? 'none' : '0 4px 20px rgba(139,0,0,0.25)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               transition: 'all 0.2s',
             }}
-            onMouseEnter={(e) => {
-              if (!loading) e.currentTarget.style.boxShadow = '0 6px 28px rgba(139,0,0,0.5)'
-            }}
-            onMouseLeave={(e) => {
-              if (!loading) e.currentTarget.style.boxShadow = '0 4px 20px rgba(139,0,0,0.35)'
-            }}
+            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.boxShadow = '0 6px 28px rgba(139,0,0,0.35)' }}
+            onMouseLeave={(e) => { if (!loading) e.currentTarget.style.boxShadow = '0 4px 20px rgba(139,0,0,0.25)' }}
           >
             {loading ? (
               <>
@@ -390,7 +344,7 @@ export default function LoginPage() {
           </button>
 
           <p style={{
-            textAlign: 'center', fontSize: '11px', color: '#374151',
+            textAlign: 'center', fontSize: '11px', color: '#9ca3af',
             marginTop: '28px', letterSpacing: '0.03em',
           }}>
             Hanya untuk kakitangan yang diberi kebenaran
