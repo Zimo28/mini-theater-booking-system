@@ -109,7 +109,7 @@ export default function MobileNav({ userName }: { userName: string }) {
           />
         </div>
 
-        {/* User info — sama macam Header */}
+        {/* User info */}
         <div style={{
           display: 'flex',
           alignItems: 'center',

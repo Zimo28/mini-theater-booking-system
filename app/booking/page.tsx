@@ -263,10 +263,10 @@ export default function BookingPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Segoe UI', system-ui, sans-serif", color: 'white' }}>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Segoe UI', system-ui, sans-serif", color: 'white', overflowX: 'hidden' }}>
 
       {/* Navbar */}
-      <nav style={{
+      <nav className="booking-nav" style={{
         background: '#111111',
         borderBottom: '1px solid #1f1f1f',
         padding: '0 24px',
@@ -281,7 +281,7 @@ export default function BookingPage() {
         <a href="/">
           <img src="/logo.png" alt="Mini Theater" style={{ height: '44px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
         </a>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="booking-nav-links" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <a href="/" onClick={(e) => {
             e.preventDefault()
             sessionStorage.setItem('scrollTo', 'availability')
@@ -372,7 +372,7 @@ export default function BookingPage() {
         </div>
       </div>
 
-      <div style={{ padding: '32px 16px 48px' }}>
+      <div className="booking-content" style={{ padding: '32px 16px 48px' }}>
         {error && (
           <div style={{
             maxWidth: '900px', margin: '0 auto 20px',
@@ -529,7 +529,7 @@ export default function BookingPage() {
         </div>
 
         {/* Submit */}
-        <div style={{ maxWidth: '900px', margin: '16px auto 0' }}>
+        <div className="booking-submit" style={{ maxWidth: '900px', margin: '16px auto 0' }}>
           <button
             onClick={handleSubmit}
             disabled={loading}
@@ -573,6 +573,20 @@ export default function BookingPage() {
         @media (max-width: 768px) {
           .booking-grid { grid-template-columns: 1fr !important; }
         }
+
+        @media (max-width: 480px) {
+          /* Fix navbar tersepit */
+          .booking-nav-links { display: none !important; }
+          .booking-nav { padding: 0 16px !important; }
+
+          /* Fix content overflow */
+          .booking-content { padding: 20px 12px 40px !important; }
+          .booking-form-wrapper { padding: 0 !important; }
+
+          /* Fix submit button */
+          .booking-submit { margin: 16px 0 0 !important; }
+        }
+
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
