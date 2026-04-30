@@ -159,9 +159,11 @@ export default function LandingPage({
         height: '64px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <img src="/logo.png" alt="Mini Theater"
-          style={{ height: '42px', width: 'auto', objectFit: 'contain', cursor: 'pointer', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
-          onClick={() => scrollTo('hero')} />
+        <a href="/" style={{ display: 'flex', alignItems: 'center' }}>
+          <img src="/logo.png" alt="Mini Theater"
+            style={{ height: '42px', width: 'auto', objectFit: 'contain', cursor: 'pointer', filter: 'brightness(0) invert(1)', opacity: 0.9 }}
+          />
+        </a>
 
         {/* Desktop Nav */}
         <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
