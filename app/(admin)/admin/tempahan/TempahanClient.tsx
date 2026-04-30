@@ -176,9 +176,9 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
       </div>
 
       {/* Filter Tabs + Action Buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }} className="filter-action-row">
+      <div className="filter-action-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
         {/* Filter Tabs */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }} className="filter-tabs">
+        <div className="filter-tabs" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
             { label: 'Semua', value: 'all' },
             { label: 'Pending', value: 'pending' },
@@ -210,7 +210,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '8px' }} className="action-buttons">
+        <div className="action-buttons" style={{ display: 'flex', gap: '8px' }}>
           {sheetUrl && (
             <a
               href={sheetUrl} target="_blank" rel="noopener noreferrer"
@@ -265,8 +265,8 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
       </div>
 
       {/* Search & Sort */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' }} className="search-sort-row">
-        <div style={{ flex: 1, position: 'relative', minWidth: '200px' }}>
+      <div className="search-sort-row" style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
+        <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}>
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -311,7 +311,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table / Card List */}
       <div style={{ ...card, overflow: 'hidden' }}>
         {filtered.length === 0 ? (
           <div style={{ padding: '64px', textAlign: 'center' }}>
@@ -322,243 +322,113 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
             <p style={{ fontSize: '14px', color: '#4b5563' }}>Tiada tempahan</p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }} className="tempahan-table">
-            <thead>
-              <tr className="main-row" style={{ borderBottom: '1px solid #1f1f1f' }}>
-                {['', 'Event', 'Nama Pemohon', 'Organisasi', 'Tarikh', 'Masa', 'Status'].map((h) => (
-                  <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((booking) => {
-                const sc = statusColor(booking.status)
-                return (
-                  <React.Fragment key={booking.id}>
-                    <tr
-                      id={`booking-${booking.id}`}
-                      className="main-row"
-                      onClick={() => setExpanded(expanded === booking.id ? null : booking.id)}
-                      style={{
-                        borderBottom: '1px solid #1a1a1a',
-                        background: expanded === booking.id ? '#1a1a1a' : 'transparent',
-                        cursor: 'pointer', transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => { if (expanded !== booking.id) e.currentTarget.style.background = '#111111' }}
-                      onMouseLeave={(e) => { if (expanded !== booking.id) e.currentTarget.style.background = 'transparent' }}
-                    >
-                      {/* Chevron td */}
-                      <td className="td-chevron" style={{ padding: '12px 8px 12px 16px', width: '24px' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                          style={{ transition: 'transform 0.2s ease', transform: expanded === booking.id ? 'rotate(180deg)' : 'rotate(0deg)', display: 'block' }}>
-                          <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                      </td>
-
-                      {/* Event td */}
-                      <td className="td-event" style={{ padding: '12px 16px', fontSize: '13px', color: '#f87171', fontWeight: '600' }}>{booking.event_name}</td>
-
-                      <td className="td-name" style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: 'white', wordBreak: 'break-word' }}>{booking.full_name}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.organization}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
-                        {new Date(booking.booking_date).toLocaleDateString('ms-MY')}
-                      </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.start_time} - {booking.end_time}</td>
-                      
-                      {/* Status td */}
-                      <td className="td-status" style={{ padding: '12px 16px' }}>
-                        <span style={{ padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
-                          {statusLabel(booking.status)}
-                        </span>
-                      </td>
-                    </tr>
-
-                    {expanded === booking.id && (
-                      <tr className="detail-row" key={`${booking.id}-detail`}>
-                        <td colSpan={7} style={{ padding: '8px 12px 20px', background: '#111111' }}>
-                          <div style={{ background: '#161616', borderRadius: '12px', border: '1px solid #1f1f1f', padding: '20px 24px', animation: 'slideDown 0.2s ease' }} className="detail-panel">
-                            {/* Top */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                              <div>
-                                <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>{booking.full_name}</h3>
-                                <p style={{ fontSize: '12px', color: '#4b5563' }}>Submitted on {formatSubmitted(booking.created_at)}</p>
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); deleteBooking(booking.id) }}
-                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.15s' }}
-                                  onMouseEnter={(e) => e.currentTarget.style.color = '#f87171'}
-                                  onMouseLeave={(e) => e.currentTarget.style.color = '#4b5563'}
-                                >
-                                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                                    <path d="M10 11v6M14 11v6"/>
-                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-
-                            <hr style={{ border: 'none', borderTop: '1px solid #1f1f1f', margin: '16px 0' }} />
-
-                            {/* Details Grid */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }} className="detail-grid">
-                              {[
-                                { label: 'Event Name', value: booking.event_name, highlight: true },
-                                { label: 'Organization', value: booking.organization },
-                                { label: 'Full Name / Phone', value: `${booking.full_name}\n${booking.phone}` },
-                                { label: 'Booking Date & Time', value: `${new Date(booking.booking_date + 'T00:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} | ${booking.start_time} - ${booking.end_time}` },
-                              ].map((item) => (
-                                <div key={item.label}>
-                                  <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</p>
-                                  <p className="detail-value" style={{ fontSize: '14px', fontWeight: '600', color: item.highlight ? '#f87171' : '#e5e7eb', wordBreak: 'break-word' }}>{item.value}</p>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Equipment */}
-                            {equipment(booking).length > 0 && (
-                              <div style={{ marginBottom: '16px' }}>
-                                <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Requested Equipment:</p>
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                  {equipment(booking).map((eq) => (
-                                    <span key={eq.label} style={{ padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '500', background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
-                                      {eq.label}: {eq.value}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Attached File */}
-                            <div style={{ border: '1px solid #1f1f1f', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: booking.status === 'pending' ? '16px' : '0', background: '#111111' }}>
-                              <div>
-                                <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Attached File</p>
-                                <p style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af' }}>Approval Paperwork Attachment</p>
-                              </div>
-                              {booking.attachment_url ? (
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                  <a
-                                    href={booking.attachment_url} target="_blank" rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #1f2937', background: '#1a1a1a', fontSize: '12px', fontWeight: '600', color: '#9ca3af', textDecoration: 'none' }}
-                                  >
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                                    </svg>
-                                    View
-                                  </a>
-                                  <button
-                                    onClick={async (e) => {
-                                      e.stopPropagation()
-                                      try {
-                                        const response = await fetch(booking.attachment_url!)
-                                        const blob = await response.blob()
-                                        const url = URL.createObjectURL(blob)
-                                        const link = document.createElement('a')
-                                        link.href = url
-                                        link.download = `attachment-${booking.id}.pdf`
-                                        link.click()
-                                        URL.revokeObjectURL(url)
-                                      } catch {
-                                        showToast('Gagal muat turun fail.', 'error')
-                                      }
-                                    }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #1f2937', background: '#1a1a1a', fontSize: '12px', fontWeight: '600', color: '#9ca3af', cursor: 'pointer' }}
-                                  >
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                      <polyline points="7 10 12 15 17 10"/>
-                                      <line x1="12" y1="15" x2="12" y2="3"/>
-                                    </svg>
-                                    Download
-                                  </button>
-                                </div>
-                              ) : (
-                                <span style={{ fontSize: '12px', color: '#4b5563' }}>Tiada fail</span>
-                              )}
-                            </div>
-
-                            {/* Note Section */}
-                            <div style={{ marginTop: '16px', border: '1px solid #1f1f1f', borderRadius: '10px', padding: '12px 16px', background: '#111111' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                <p style={{ fontSize: '11px', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                  Admin Note
-                                </p>
-                                {editingNote !== booking.id ? (
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); setEditingNote(booking.id) }}
-                                    style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #1f2937', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = '#f87171'}
-                                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-                                  >Edit</button>
-                                ) : (
-                                  <div style={{ display: 'flex', gap: '6px' }}>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); setEditingNote(null) }}
-                                      style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #1f2937', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
-                                    >Batal</button>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); saveNote(booking.id) }}
-                                      disabled={savingNote}
-                                      style={{ fontSize: '12px', color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer', fontWeight: '600' }}
-                                    >{savingNote ? '...' : 'Simpan'}</button>
-                                  </div>
-                                )}
-                              </div>
-
-                              {editingNote === booking.id ? (
-                                <textarea
-                                  value={noteValues[booking.id] ?? ''}
-                                  onChange={(e) => setNoteValues(prev => ({ ...prev, [booking.id]: e.target.value }))}
-                                  onClick={(e) => e.stopPropagation()}
-                                  placeholder="Tambah note untuk tempahan ini..."
-                                  rows={3}
-                                  style={{
-                                    width: '100%', background: '#161616', border: '1px solid #1f2937',
-                                    borderRadius: '8px', padding: '10px 12px', fontSize: '13px',
-                                    color: '#e5e7eb', outline: 'none', resize: 'vertical',
-                                    boxSizing: 'border-box', fontFamily: 'inherit',
-                                  }}
-                                  onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                                  onBlur={(e) => e.target.style.borderColor = '#1f2937'}
-                                />
-                              ) : (
-                                <p style={{ fontSize: '13px', color: noteValues[booking.id] ? '#9ca3af' : '#374151', fontStyle: noteValues[booking.id] ? 'normal' : 'italic' }}>
-                                  {noteValues[booking.id] || 'Tiada note. Klik Edit untuk tambah.'}
-                                </p>
-                              )}
-                            </div>
-
-                            {/* Action Buttons */}
-                            {booking.status === 'pending' && (
-                              <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); updateStatus(booking.id, 'approved') }}
-                                  disabled={loading}
-                                  style={{ padding: '9px 24px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)', color: '#4ade80', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(74,222,128,0.2)'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(74,222,128,0.1)'}
-                                >✓ Approve</button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); updateStatus(booking.id, 'rejected') }}
-                                  disabled={loading}
-                                  style={{ padding: '9px 24px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.25)', background: 'rgba(248,113,113,0.1)', color: '#f87171', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(248,113,113,0.2)'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(248,113,113,0.1)'}
-                                >✗ Reject</button>
-                              </div>
-                            )}
-                          </div>
+          <>
+            {/* Desktop Table */}
+            <table className="desktop-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #1f1f1f' }}>
+                  {['', 'Event', 'Nama Pemohon', 'Organisasi', 'Tarikh', 'Masa', 'Status'].map((h) => (
+                    <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((booking) => {
+                  const sc = statusColor(booking.status)
+                  return (
+                    <React.Fragment key={booking.id}>
+                      <tr
+                        id={`booking-${booking.id}`}
+                        onClick={() => setExpanded(expanded === booking.id ? null : booking.id)}
+                        style={{
+                          borderBottom: '1px solid #1a1a1a',
+                          background: expanded === booking.id ? '#1a1a1a' : 'transparent',
+                          cursor: 'pointer', transition: 'background 0.15s',
+                        }}
+                        onMouseEnter={(e) => { if (expanded !== booking.id) e.currentTarget.style.background = '#111111' }}
+                        onMouseLeave={(e) => { if (expanded !== booking.id) e.currentTarget.style.background = 'transparent' }}
+                      >
+                        <td style={{ padding: '12px 8px 12px 16px', width: '24px' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                            style={{ transition: 'transform 0.2s ease', transform: expanded === booking.id ? 'rotate(180deg)' : 'rotate(0deg)', display: 'block' }}>
+                            <polyline points="6 9 12 15 18 9"/>
+                          </svg>
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#f87171', fontWeight: '600' }}>{booking.event_name}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: 'white', wordBreak: 'break-word' }}>{booking.full_name}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.organization}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
+                          {new Date(booking.booking_date).toLocaleDateString('ms-MY')}
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.start_time} - {booking.end_time}</td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{ padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
+                            {statusLabel(booking.status)}
+                          </span>
                         </td>
                       </tr>
+
+                      {expanded === booking.id && (
+                        <tr key={`${booking.id}-detail`}>
+                          <td colSpan={7} style={{ padding: '8px 12px 20px', background: '#111111' }}>
+                            {renderDetail(booking)}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
+              </tbody>
+            </table>
+
+            {/* Mobile Card List */}
+            <div className="mobile-cards">
+              {filtered.map((booking) => {
+                const sc = statusColor(booking.status)
+                const isOpen = expanded === booking.id
+                return (
+                  <div key={booking.id} id={`booking-${booking.id}`}>
+                    {/* Card Row */}
+                    <div
+                      onClick={() => setExpanded(isOpen ? null : booking.id)}
+                      style={{
+                        padding: '14px 16px',
+                        borderBottom: '1px solid #1a1a1a',
+                        background: isOpen ? '#1a1a1a' : 'transparent',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                      }}
+                    >
+                      {/* Chevron */}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ flexShrink: 0, transition: 'transform 0.2s ease', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+
+                      {/* Event name */}
+                      <span style={{ flex: 1, fontSize: '13px', color: '#f87171', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {booking.event_name}
+                      </span>
+
+                      {/* Status badge */}
+                      <span style={{ flexShrink: 0, padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '600', background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
+                        {statusLabel(booking.status)}
+                      </span>
+                    </div>
+
+                    {/* Expanded detail */}
+                    {isOpen && (
+                      <div style={{ padding: '8px 12px 16px', background: '#111111' }}>
+                        {renderDetail(booking)}
+                      </div>
                     )}
-                  </React.Fragment>
+                  </div>
                 )
               })}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -568,97 +438,242 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
           to { opacity: 1; transform: translateY(0); }
         }
 
-        @media (max-width: 768px) {
-        .detail-grid {
-          grid-template-columns: 1fr !important;
-        }
+        /* Default: show table, hide mobile cards */
+        .desktop-table { display: table; }
+        .mobile-cards { display: none; }
 
-        .detail-value { 
-          white-space: pre-line; 
-        }
+        @media (max-width: 640px) {
+          /* Switch views */
+          .desktop-table { display: none !important; }
+          .mobile-cards { display: block !important; }
 
-        .detail-panel {
-          padding: 16px 12px !important;
-        }
+          /* Filter row */
+          .filter-action-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .filter-tabs {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+          .filter-tabs button {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+          .action-buttons {
+            flex-direction: column !important;
+            width: 100% !important;
+          }
+          .action-buttons a,
+          .action-buttons button {
+            width: 100% !important;
+            justify-content: center !important;
+            text-align: center !important;
+            box-sizing: border-box !important;
+          }
 
-        .search-sort-row {
-          flex-wrap: wrap !important;
-        }
+          /* Search + sort stack */
+          .search-sort-row {
+            flex-wrap: wrap !important;
+          }
+          .search-sort-row > div:last-child {
+            width: 100% !important;
+          }
+          .search-sort-row > div:last-child select {
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
 
-        .search-sort-row > div:last-child select {
-          width: 100% !important;
+          /* Detail panel */
+          .detail-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .detail-value {
+            white-space: pre-line;
+          }
+          .detail-panel {
+            padding: 14px 12px !important;
+          }
         }
-
-        .search-sort-row > div:last-child {
-          width: 100% !important;
-        }
-
-        .filter-action-row {
-          flex-direction: column !important;
-          align-items: stretch !important;
-        }
-
-        .filter-tabs {
-          width: 100%;
-          display: grid !important;
-          grid-template-columns: 1fr 1fr !important;
-          gap: 8px !important;
-        }
-
-        .filter-tabs button {
-          width: 100% !important;
-          justify-content: center !important;
-        }
-
-        .action-buttons {
-          width: 100% !important;
-          display: flex !important;
-          flex-direction: column !important;
-          gap: 8px !important;
-        }
-
-        .action-buttons a,
-        .action-buttons button {
-          width: 100% !important;
-          justify-content: center !important;
-          text-align: center !important;
-          font-size: 13px !important;
-          padding: 10px 14px !important;
-          box-sizing: border-box !important;
-        }
-
-        .tempahan-table thead { display: none; }
-        .tempahan-table tbody tr.main-row { 
-          display: block !important;
-          padding: 14px 16px !important;
-          border-bottom: 1px solid #1a1a1a !important;
-        }
-        .tempahan-table td { 
-          display: none !important;
-        }
-        .tempahan-table td.td-chevron,
-        .tempahan-table td.td-event,
-        .tempahan-table td.td-status {
-          display: inline-block !important;
-          padding: 0 !important;
-          vertical-align: middle;
-        }
-        .tempahan-table td.td-chevron { width: 20px; }
-        .tempahan-table td.td-event { 
-          width: calc(100% - 130px);
-          padding-left: 8px !important;
-        }
-        .tempahan-table td.td-name { display: none !important; }
-        .tempahan-table td.td-status { 
-          float: right;
-          margin-top: -2px;
-        }
-        .tempahan-table tr.detail-row td {
-          display: block !important;
-          padding: 12px 12px 20px !important;
-        }
-      }
       `}</style>
     </div>
   )
+
+  function renderDetail(booking: Booking) {
+    const eq = equipment(booking)
+    return (
+      <div className="detail-panel" style={{ background: '#161616', borderRadius: '12px', border: '1px solid #1f1f1f', padding: '20px 24px', animation: 'slideDown 0.2s ease' }}>
+        {/* Top */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+          <div>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>{booking.full_name}</h3>
+            <p style={{ fontSize: '12px', color: '#4b5563' }}>Submitted on {formatSubmitted(booking.created_at)}</p>
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); deleteBooking(booking.id) }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.15s' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#f87171'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#4b5563'}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+          </button>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid #1f1f1f', margin: '16px 0' }} />
+
+        {/* Details Grid */}
+        <div className="detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
+          {[
+            { label: 'Event Name', value: booking.event_name, highlight: true },
+            { label: 'Organization', value: booking.organization },
+            { label: 'Full Name / Phone', value: `${booking.full_name}\n${booking.phone}` },
+            { label: 'Booking Date & Time', value: `${new Date(booking.booking_date + 'T00:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} | ${booking.start_time} - ${booking.end_time}` },
+          ].map((item) => (
+            <div key={item.label}>
+              <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</p>
+              <p className="detail-value" style={{ fontSize: '14px', fontWeight: '600', color: item.highlight ? '#f87171' : '#e5e7eb', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Equipment */}
+        {eq.length > 0 && (
+          <div style={{ marginBottom: '16px' }}>
+            <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Requested Equipment:</p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {eq.map((e) => (
+                <span key={e.label} style={{ padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '500', background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.2)' }}>
+                  {e.label}: {e.value}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Attached File */}
+        <div style={{ border: '1px solid #1f1f1f', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px', background: '#111111' }}>
+          <div>
+            <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Attached File</p>
+            <p style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af' }}>Approval Paperwork Attachment</p>
+          </div>
+          {booking.attachment_url ? (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <a
+                href={booking.attachment_url} target="_blank" rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #1f2937', background: '#1a1a1a', fontSize: '12px', fontWeight: '600', color: '#9ca3af', textDecoration: 'none' }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                View
+              </a>
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  try {
+                    const response = await fetch(booking.attachment_url!)
+                    const blob = await response.blob()
+                    const url = URL.createObjectURL(blob)
+                    const link = document.createElement('a')
+                    link.href = url
+                    link.download = `attachment-${booking.id}.pdf`
+                    link.click()
+                    URL.revokeObjectURL(url)
+                  } catch {
+                    showToast('Gagal muat turun fail.', 'error')
+                  }
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #1f2937', background: '#1a1a1a', fontSize: '12px', fontWeight: '600', color: '#9ca3af', cursor: 'pointer' }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download
+              </button>
+            </div>
+          ) : (
+            <span style={{ fontSize: '12px', color: '#4b5563' }}>Tiada fail</span>
+          )}
+        </div>
+
+        {/* Admin Note */}
+        <div style={{ border: '1px solid #1f1f1f', borderRadius: '10px', padding: '12px 16px', background: '#111111' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <p style={{ fontSize: '11px', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Admin Note</p>
+            {editingNote !== booking.id ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); setEditingNote(booking.id) }}
+                style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #1f2937', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#f87171'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+              >Edit</button>
+            ) : (
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditingNote(null) }}
+                  style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #1f2937', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
+                >Batal</button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); saveNote(booking.id) }}
+                  disabled={savingNote}
+                  style={{ fontSize: '12px', color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer', fontWeight: '600' }}
+                >{savingNote ? '...' : 'Simpan'}</button>
+              </div>
+            )}
+          </div>
+
+          {editingNote === booking.id ? (
+            <textarea
+              value={noteValues[booking.id] ?? ''}
+              onChange={(e) => setNoteValues(prev => ({ ...prev, [booking.id]: e.target.value }))}
+              onClick={(e) => e.stopPropagation()}
+              placeholder="Tambah note untuk tempahan ini..."
+              rows={3}
+              style={{
+                width: '100%', background: '#161616', border: '1px solid #1f2937',
+                borderRadius: '8px', padding: '10px 12px', fontSize: '13px',
+                color: '#e5e7eb', outline: 'none', resize: 'vertical',
+                boxSizing: 'border-box', fontFamily: 'inherit',
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+            />
+          ) : (
+            <p style={{ fontSize: '13px', color: noteValues[booking.id] ? '#9ca3af' : '#374151', fontStyle: noteValues[booking.id] ? 'normal' : 'italic' }}>
+              {noteValues[booking.id] || 'Tiada note. Klik Edit untuk tambah.'}
+            </p>
+          )}
+        </div>
+
+        {/* Approve / Reject */}
+        {booking.status === 'pending' && (
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); updateStatus(booking.id, 'approved') }}
+              disabled={loading}
+              style={{ padding: '9px 24px', borderRadius: '8px', border: '1px solid rgba(74,222,128,0.25)', background: 'rgba(74,222,128,0.1)', color: '#4ade80', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(74,222,128,0.2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(74,222,128,0.1)'}
+            >✓ Approve</button>
+            <button
+              onClick={(e) => { e.stopPropagation(); updateStatus(booking.id, 'rejected') }}
+              disabled={loading}
+              style={{ padding: '9px 24px', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.25)', background: 'rgba(248,113,113,0.1)', color: '#f87171', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(248,113,113,0.2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(248,113,113,0.1)'}
+            >✗ Reject</button>
+          </div>
+        )}
+      </div>
+    )
+  }
 }
