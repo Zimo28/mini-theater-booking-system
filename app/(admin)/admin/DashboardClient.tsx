@@ -165,14 +165,16 @@ export default function DashboardClient({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: '12px',        // ← tambah gap
           }}>
-            <div>
+            <div style={{ minWidth: 0 }}>   {/* ← tambah minWidth: 0 supaya text tak overflow */}
               <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>{stat.label}</p>
               <p style={{ fontSize: '32px', fontWeight: '700', color: 'white', lineHeight: 1 }}>{stat.value}</p>
             </div>
             <div style={{
               width: '52px', height: '52px', borderRadius: '14px',
-              background: stat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              background: stat.bg, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', flexShrink: 0,   // ← pastikan ada flexShrink: 0
             }}>
               <stat.Icon />
             </div>
@@ -184,10 +186,13 @@ export default function DashboardClient({
       {upcoming.length > 0 && (
         <div style={{ ...card, overflow: 'hidden', marginBottom: '20px' }}>
           <div style={{
-            padding: '16px 24px', borderBottom: '1px solid #1f1f1f',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              padding: '16px 24px', borderBottom: '1px solid #1f1f1f',
+              display: 'flex', alignItems: 'flex-start',  
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',   
+              gap: '8px',       
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
               </svg>
@@ -459,6 +464,12 @@ export default function DashboardClient({
         }
         @media (max-width: 640px) {
           .stats-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          /* Stats card — kecilkan font dan icon */
+          .stats-grid > div { padding: 14px 16px !important; }
+          .stats-grid p:first-child { font-size: 11px !important; }
+          .stats-grid p:last-child { font-size: 24px !important; }
         }
       `}</style>
     </div>
