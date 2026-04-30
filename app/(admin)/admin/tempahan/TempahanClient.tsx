@@ -403,7 +403,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                             <hr style={{ border: 'none', borderTop: '1px solid #1f1f1f', margin: '16px 0' }} />
 
                             {/* Details Grid */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }} className="detail-grid">
                               {[
                                 { label: 'Event Name', value: booking.event_name, highlight: true },
                                 { label: 'Organization', value: booking.organization },
@@ -569,6 +569,10 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
         }
 
         @media (max-width: 768px) {
+        .detail-grid {
+          grid-template-columns: 1fr !important;
+        }
+
         .search-sort-row {
           flex-wrap: wrap !important;
         }
