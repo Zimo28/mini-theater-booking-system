@@ -22,7 +22,6 @@ function EquipmentSelect({ eq, value, onChange }: {
         </span>
       </div>
 
-      {/* Custom Dropdown Trigger */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -41,7 +40,6 @@ function EquipmentSelect({ eq, value, onChange }: {
         </svg>
       </button>
 
-      {/* Dropdown Options */}
       <div style={{
         position: 'absolute', left: 0, right: 0, zIndex: 50,
         background: '#0d0d0d', border: '1px solid #1f2937', borderRadius: '8px',
@@ -179,19 +177,20 @@ export default function BookingPage() {
 
   const labelStyle = {
     display: 'block',
-    fontSize: '12px',
+    fontSize: '11px',
     fontWeight: '600' as const,
-    color: '#9ca3af',
+    color: '#6b7280',
     marginBottom: '6px',
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.06em',
+    letterSpacing: '0.07em',
   }
 
+  // ✅ FIX: padding ditambah balik
   const cardStyle = {
     background: '#161616',
     border: '1px solid #1f1f1f',
     borderRadius: '16px',
-    padding: '28px',
+    padding: '24px',
   }
 
   if (success) {
@@ -263,14 +262,14 @@ export default function BookingPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Segoe UI', system-ui, sans-serif", color: 'white', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Segoe UI', system-ui, sans-serif", color: 'white' }}>
 
       {/* Navbar */}
       <nav style={{
         background: '#111111',
         borderBottom: '1px solid #1f1f1f',
-        padding: '0 24px',
-        height: '64px',
+        padding: '0 20px',
+        height: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -279,13 +278,13 @@ export default function BookingPage() {
         zIndex: 50,
       }}>
         <a href="/">
-          <img src="/logo.png" alt="Mini Theater" style={{ height: '44px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+          <img src="/logo.png" alt="Mini Theater" style={{ height: '40px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
         </a>
         <a href="/" style={{
           fontSize: '13px', color: '#6b7280', textDecoration: 'none',
           fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px',
           padding: '6px 12px', borderRadius: '6px', border: '1px solid #1f2937',
-          transition: 'all 0.15s',
+          transition: 'all 0.15s', whiteSpace: 'nowrap',
         }}
           onMouseEnter={(e) => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = '#374151'; e.currentTarget.style.background = '#1a1a1a' }}
           onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#1f2937'; e.currentTarget.style.background = 'transparent' }}
@@ -298,7 +297,7 @@ export default function BookingPage() {
       {/* Hero Strip */}
       <div style={{
         position: 'relative',
-        padding: '48px 24px',
+        padding: '40px 24px',
         textAlign: 'center',
         overflow: 'hidden',
         background: 'linear-gradient(145deg, #1a0000 0%, #3d0000 40%, #8B0000 100%)',
@@ -314,29 +313,29 @@ export default function BookingPage() {
             background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
             borderRadius: '999px', padding: '4px 14px',
             fontSize: '11px', fontWeight: '600', color: '#fecaca',
-            letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px',
+            letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px',
           }}>
             <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fca5a5' }} />
             Mini Theater — UiTM Cawangan Kelantan
           </div>
-          <h1 style={{ fontSize: '28px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px', marginBottom: '8px' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px', marginBottom: '6px' }}>
             Borang Tempahan
           </h1>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
             Sila isi semua maklumat yang diperlukan dengan lengkap dan tepat
           </p>
         </div>
       </div>
 
       {/* Progress Steps */}
-      <div style={{ background: '#111111', borderBottom: '1px solid #1f1f1f', padding: '14px 24px' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
+      <div style={{ background: '#111111', borderBottom: '1px solid #1f1f1f', padding: '12px 16px', overflowX: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', minWidth: 'max-content', margin: '0 auto' }}>
           {[
             { num: '1', label: 'Maklumat Peribadi' },
             { num: '2', label: 'Jadual & Peralatan' },
             { num: '3', label: 'Dokumen Kelulusan' },
           ].map((step, i) => (
-            <div key={step.num} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div key={step.num} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div style={{
                   width: '22px', height: '22px', borderRadius: '50%',
@@ -344,123 +343,143 @@ export default function BookingPage() {
                   color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '10px', fontWeight: '700', flexShrink: 0,
                 }}>{step.num}</div>
-                <span style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280' }} className="step-label">{step.label}</span>
+                <span style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', whiteSpace: 'nowrap' }}>{step.label}</span>
               </div>
-              {i < 2 && <div style={{ width: '28px', height: '1px', background: '#1f2937' }} />}
+              {i < 2 && <div style={{ width: '24px', height: '1px', background: '#1f2937', flexShrink: 0 }} />}
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ padding: '32px 16px 48px' }} className="booking-content">
-        {error && (
+      {/* Error */}
+      {error && (
+        <div style={{
+          maxWidth: '900px', margin: '16px auto 0', padding: '0 16px',
+        }}>
           <div style={{
-            maxWidth: '900px', margin: '0 auto 20px',
             background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.25)',
             borderRadius: '10px', padding: '12px 16px',
             color: '#f87171', fontSize: '14px',
             display: 'flex', alignItems: 'center', gap: '8px',
           }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             {error}
           </div>
-        )}
+        </div>
+      )}
 
+      {/* Main Content */}
+      <div style={{ padding: '20px 16px 48px' }}>
         <div style={{
-          maxWidth: '900px', margin: '0 auto', width: '100%',
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px',
+          maxWidth: '900px', margin: '0 auto',
           opacity: mounted ? 1 : 0,
           transform: mounted ? 'translateY(0)' : 'translateY(20px)',
           transition: 'all 0.6s ease 0.1s',
-        }} className="booking-grid">
+        }}>
 
-          {/* Section 1 */}
-          <div style={cardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-              <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>1</div>
-              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>Personal & Organization Details</h2>
-            </div>
+          {/* Top 2 cards — side by side desktop, stacked mobile */}
+          <div style={{ display: 'grid', gap: '16px', marginBottom: '16px' }} className="top-grid">
 
-            {[
-              { label: 'Full Name', field: 'full_name', placeholder: 'Enter your full name', type: 'text' },
-              { label: 'Phone Number', field: 'phone', placeholder: 'e.g. 012-3456789', type: 'tel' },
-              { label: 'Club / Organization Name', field: 'organization', placeholder: 'Enter your club or organization name', type: 'text' },
-              { label: 'Event Name', field: 'event_name', placeholder: 'Enter the name of your event', type: 'text' },
-            ].map((item) => (
-              <div key={item.field} style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>{item.label} <span style={{ color: '#dc2626' }}>*</span></label>
-                <input
-                  type={item.type}
-                  placeholder={item.placeholder}
-                  onChange={(e) => updateForm(item.field, e.target.value)}
-                  style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                  onBlur={(e) => e.target.style.borderColor = '#1f2937'}
-                />
+            {/* Section 1 — Personal */}
+            <div style={cardStyle}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                <div style={{ width: '26px', height: '26px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px', fontWeight: '700', flexShrink: 0 }}>1</div>
+                <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'white', margin: 0 }}>Personal & Organization Details</h2>
               </div>
-            ))}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }} className="personal-grid">
+                {[
+                  { label: 'Full Name', field: 'full_name', placeholder: 'Enter your full name', type: 'text', col: '1 / -1' },
+                  { label: 'Phone Number', field: 'phone', placeholder: 'e.g. 012-3456789', type: 'tel', col: undefined },
+                  { label: 'Organization', field: 'organization', placeholder: 'Club or organization name', type: 'text', col: undefined },
+                  { label: 'Event Name', field: 'event_name', placeholder: 'Enter the name of your event', type: 'text', col: '1 / -1' },
+                ].map((item) => (
+                  <div key={item.field} style={{ gridColumn: item.col }}>
+                    <label style={labelStyle}>{item.label} <span style={{ color: '#dc2626' }}>*</span></label>
+                    <input
+                      type={item.type}
+                      placeholder={item.placeholder}
+                      onChange={(e) => updateForm(item.field, e.target.value)}
+                      style={inputStyle}
+                      onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                      onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 2 — Schedule */}
+            <div style={cardStyle}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                <div style={{ width: '26px', height: '26px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px', fontWeight: '700', flexShrink: 0 }}>2</div>
+                <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'white', margin: 0 }}>Schedule & Equipment</h2>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={labelStyle}>
+                  Booking Date <span style={{ color: '#dc2626' }}>*</span>{' '}
+                  <span style={{ fontWeight: '400', color: '#4b5563', textTransform: 'none', letterSpacing: 0 }}>(Min. 5 days)</span>
+                </label>
+                <input type="date" min={getMinDate()} onChange={(e) => updateForm('booking_date', e.target.value)}
+                  style={{ ...inputStyle, colorScheme: 'dark' }}
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                  onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                {[{ label: 'Start Time', field: 'start_time' }, { label: 'End Time', field: 'end_time' }].map((t) => (
+                  <div key={t.field}>
+                    <label style={labelStyle}>{t.label} <span style={{ color: '#dc2626' }}>*</span></label>
+                    <input type="time" min="07:00" max="22:30"
+                      onChange={(e) => updateForm(t.field, e.target.value)}
+                      style={{ ...inputStyle, colorScheme: 'dark' }}
+                      onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                      onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+                  </div>
+                ))}
+              </div>
+
+              <label style={{ ...labelStyle, marginBottom: '10px', display: 'block' }}>Additional Equipment</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                {[
+                  { label: 'Microphone', field: 'microphone', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>, max: 2 },
+                  { label: 'Air-cond', field: 'aircond', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>, max: 1 },
+                  { label: 'PA System', field: 'pa_system', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>, max: 1 },
+                  { label: 'LCD Projector', field: 'lcd_projector', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>, max: 1 },
+                ].map((eq) => (
+                  <EquipmentSelect key={eq.field} eq={eq} value={form[eq.field as keyof typeof form] as number} onChange={(val) => updateForm(eq.field, val)} />
+                ))}
+              </div>
+
+              <div style={{ background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)', borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: '#fbbf24', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                <span style={{ flexShrink: 0 }}>⚠️</span>
+                <span><strong>Warning:</strong> Other equipment (rostrum, sofa, etc.) must be applied via "emajlis" web.</span>
+              </div>
+            </div>
           </div>
 
-          {/* Section 2 */}
-          <div style={cardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-              <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>2</div>
-              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>Schedule & Equipment</h2>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={labelStyle}>Booking Date <span style={{ color: '#dc2626' }}>*</span> <span style={{ fontWeight: '400', color: '#4b5563', fontSize: '12px', textTransform: 'none', letterSpacing: 0 }}>(Min. 5 days in advance)</span></label>
-              <input type="date" min={getMinDate()} onChange={(e) => updateForm('booking_date', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
-                onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-              {[{ label: 'Start Time', field: 'start_time' }, { label: 'End Time', field: 'end_time' }].map((t) => (
-                <div key={t.field}>
-                  <label style={labelStyle}>{t.label} <span style={{ color: '#dc2626' }}>*</span></label>
-                  <input type="time" min="07:00" max="22:30" onChange={(e) => updateForm(t.field, e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
-                    onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
-                </div>
-              ))}
-            </div>
-
-            <label style={{ ...labelStyle, marginBottom: '12px' }}>Additional Equipment Request</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              {[
-                { label: 'Microphone', field: 'microphone', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>, max: 2 },
-                { label: 'Air-cond', field: 'aircond', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>, max: 1 },
-                { label: 'PA System', field: 'pa_system', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>, max: 1 },
-                { label: 'LCD Projector', field: 'lcd_projector', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>, max: 1 },
-              ].map((eq) => (
-                <EquipmentSelect key={eq.field} eq={eq} value={form[eq.field as keyof typeof form] as number} onChange={(val) => updateForm(eq.field, val)} />
-              ))}
-            </div>
-
-            <div style={{ marginTop: '14px', background: 'rgba(217,119,6,0.1)', border: '1px solid rgba(217,119,6,0.2)', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#fbbf24', display: 'flex', gap: '6px' }}>
-              <span>⚠️</span>
-              <span><strong>Warning:</strong> others equipment like rostrum or sofa or etc were needed to applied in "emajlis" web</span>
-            </div>
-          </div>
-
-          {/* Section 3 */}
-          <div style={{ ...cardStyle, gridColumn: '1 / -1' }}>
+          {/* Section 3 — Upload (full width) */}
+          <div style={{ ...cardStyle, marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-              <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>3</div>
-              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>Upload Approval Paperwork <span style={{ color: '#dc2626' }}>*</span></h2>
+              <div style={{ width: '26px', height: '26px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px', fontWeight: '700', flexShrink: 0 }}>3</div>
+              <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'white', margin: 0 }}>
+                Upload Approval Paperwork <span style={{ color: '#dc2626' }}>*</span>
+              </h2>
             </div>
 
             {file ? (
-              <div style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111111' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', background: 'rgba(139,0,0,0.15)', border: '1px solid rgba(139,0,0,0.25)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <div style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111111', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                  <div style={{ width: '38px', height: '38px', flexShrink: 0, background: 'rgba(139,0,0,0.15)', border: '1px solid rgba(139,0,0,0.25)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                   </div>
-                  <div>
-                    <p style={{ fontSize: '13px', fontWeight: '600', color: 'white' }}>{file.name}</p>
-                    <p style={{ fontSize: '11px', color: '#6b7280' }}>{(file.size / 1024).toFixed(1)} KB</p>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: '600', color: 'white', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</p>
+                    <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>{(file.size / 1024).toFixed(1)} KB</p>
                   </div>
                 </div>
-                <button onClick={() => setFile(null)} style={{ background: 'rgba(220,38,38,0.1)', color: '#f87171', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Buang</button>
+                <button onClick={() => setFile(null)} style={{ flexShrink: 0, background: 'rgba(220,38,38,0.1)', color: '#f87171', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>Buang</button>
               </div>
             ) : (
               <div
@@ -474,7 +493,7 @@ export default function BookingPage() {
                 }}
                 style={{
                   border: `2px dashed ${dragOver ? '#8B0000' : '#1f2937'}`,
-                  borderRadius: '12px', padding: '48px',
+                  borderRadius: '12px', padding: '40px 24px',
                   textAlign: 'center',
                   background: dragOver ? 'rgba(139,0,0,0.08)' : '#111111',
                   transition: 'all 0.2s', cursor: 'pointer',
@@ -482,12 +501,12 @@ export default function BookingPage() {
               >
                 <label style={{ cursor: 'pointer', display: 'block' }}>
                   <div style={{
-                    width: '48px', height: '48px',
+                    width: '44px', height: '44px',
                     background: 'rgba(139,0,0,0.12)', border: '1px solid rgba(139,0,0,0.2)',
                     borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    margin: '0 auto 16px',
+                    margin: '0 auto 12px',
                   }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                       <polyline points="17 8 12 3 7 8"/>
                       <line x1="12" y1="3" x2="12" y2="15"/>
@@ -506,10 +525,8 @@ export default function BookingPage() {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Submit */}
-        <div className="booking-submit" style={{ maxWidth: '900px', margin: '16px auto 0', width: '100%' }}>
+          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={loading}
@@ -518,13 +535,15 @@ export default function BookingPage() {
               background: loading ? '#1f1f1f' : 'linear-gradient(135deg, #8B0000, #a50000)',
               color: loading ? '#6b7280' : 'white',
               border: loading ? '1px solid #2d2d2d' : 'none',
-              borderRadius: '12px', padding: '16px',
-              fontSize: '16px', fontWeight: '700',
+              borderRadius: '12px', padding: '15px',
+              fontSize: '15px', fontWeight: '700',
               cursor: loading ? 'not-allowed' : 'pointer',
               boxShadow: loading ? 'none' : '0 4px 20px rgba(139,0,0,0.35)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               transition: 'all 0.2s',
             }}
+            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.boxShadow = '0 6px 28px rgba(139,0,0,0.5)' }}
+            onMouseLeave={(e) => { if (!loading) e.currentTarget.style.boxShadow = '0 4px 20px rgba(139,0,0,0.35)' }}
           >
             {loading ? (
               <>
@@ -540,38 +559,43 @@ export default function BookingPage() {
       </div>
 
       {/* Footer */}
-      <footer style={{ background: '#060606', borderTop: '1px solid #0f0f0f', padding: '28px 24px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <img src="/logo.png" alt="Mini Theater" style={{ height: '36px', width: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto 12px', filter: 'brightness(0) invert(1)', opacity: 0.4 }} />
-          <p style={{ fontSize: '11px', color: '#1f2937' }}>
-            © {new Date().getFullYear()} Mini Theater Booking System. All rights reserved.
-          </p>
-        </div>
+      <footer style={{ background: '#060606', borderTop: '1px solid #0f0f0f', padding: '24px', textAlign: 'center' }}>
+        <img src="/logo.png" alt="Mini Theater" style={{ height: '32px', width: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto 10px', filter: 'brightness(0) invert(1)', opacity: 0.35 }} />
+        <p style={{ fontSize: '11px', color: '#1f2937', margin: 0 }}>
+          © {new Date().getFullYear()} Mini Theater Booking System. All rights reserved.
+        </p>
       </footer>
 
       <style>{`
+        /* ── Top grid: 2 col desktop, 1 col mobile ── */
+        .top-grid {
+          grid-template-columns: 1fr 1fr;
+        }
         @media (max-width: 768px) {
-          .booking-grid { grid-template-columns: 1fr !important; }
+          .top-grid { grid-template-columns: 1fr !important; }
+          .personal-grid { grid-template-columns: 1fr !important; }
+          .personal-grid > div[style*="1 / -1"] { grid-column: 1 !important; }
         }
-
         @media (max-width: 480px) {
-          .booking-grid { grid-template-columns: 1fr !important; }
-  .       .step-label { font-size: 10px !important; }
-          
-          .booking-content { padding: 20px 12px 40px !important; }
-          .booking-submit { margin: 16px 0 0 !important; }
+          .top-grid { padding: 0; }
         }
 
+        /* ── Spin animation ── */
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+
+        /* ── Date/time picker icon color ── */
         input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator {
           filter: brightness(0) invert(1);
           cursor: pointer;
-          opacity: 1;
+          opacity: 0.6;
         }
+
+        /* ── Input placeholder color ── */
+        input::placeholder { color: #374151; }
       `}</style>
     </div>
   )
