@@ -232,19 +232,38 @@ export default function LandingPage({
               cursor: 'pointer', padding: '12px 16px', borderRadius: '8px', textAlign: 'left',
               alignItems: 'center', gap: '10px',
               animation: `menuItemFade 0.3s ease ${i * 0.05}s both`,
-            }}>
+              transition: 'all 0.15s',
+            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(139,0,0,0.12)'
+                e.currentTarget.style.color = '#f87171'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'none'
+                e.currentTarget.style.color = '#9ca3af'
+              }}
+            >
               <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#8B0000', flexShrink: 0 }} />
               {link.label}
             </button>
           ))}
           <div style={{ height: '1px', background: '#1f1f1f', margin: '8px 0' }} />
-          <a href="/login" style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            padding: '12px 16px', color: '#4b5563',
-            fontSize: '13px', fontWeight: '500', textDecoration: 'none',
-            borderRadius: '8px',
-            animation: 'menuItemFade 0.3s ease 0.25s both',
-          }}>
+            <a href="/login" style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '12px 16px', color: '#4b5563',
+              fontSize: '13px', fontWeight: '500', textDecoration: 'none',
+              borderRadius: '8px', transition: 'all 0.15s',
+              animation: 'menuItemFade 0.3s ease 0.25s both',
+            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                e.currentTarget.style.color = '#6b7280'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'none'
+                e.currentTarget.style.color = '#4b5563'
+              }}
+            >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
