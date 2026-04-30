@@ -330,7 +330,7 @@ export default function BookingPage() {
 
       {/* Progress Steps */}
       <div style={{ background: '#111111', borderBottom: '1px solid #1f1f1f', padding: '14px 24px' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
           {[
             { num: '1', label: 'Maklumat Peribadi' },
             { num: '2', label: 'Jadual & Peralatan' },
@@ -344,7 +344,7 @@ export default function BookingPage() {
                   color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '10px', fontWeight: '700', flexShrink: 0,
                 }}>{step.num}</div>
-                <span style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280' }}>{step.label}</span>
+                <span style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280' }} className="step-label">{step.label}</span>
               </div>
               {i < 2 && <div style={{ width: '28px', height: '1px', background: '#1f2937' }} />}
             </div>
@@ -352,7 +352,7 @@ export default function BookingPage() {
         </div>
       </div>
 
-      <div className="booking-content" style={{ padding: '32px 16px 48px' }}>
+      <div style={{ padding: '32px 16px 48px' }} className="booking-content">
         {error && (
           <div style={{
             maxWidth: '900px', margin: '0 auto 20px',
@@ -367,7 +367,7 @@ export default function BookingPage() {
         )}
 
         <div style={{
-          maxWidth: '900px', margin: '0 auto',
+          maxWidth: '900px', margin: '0 auto', width: '100%',
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px',
           opacity: mounted ? 1 : 0,
           transform: mounted ? 'translateY(0)' : 'translateY(20px)',
@@ -509,7 +509,7 @@ export default function BookingPage() {
         </div>
 
         {/* Submit */}
-        <div className="booking-submit" style={{ maxWidth: '900px', margin: '16px auto 0' }}>
+        <div className="booking-submit" style={{ maxWidth: '900px', margin: '16px auto 0', width: '100%' }}>
           <button
             onClick={handleSubmit}
             disabled={loading}
@@ -555,11 +555,9 @@ export default function BookingPage() {
         }
 
         @media (max-width: 480px) {
-          /* Jangan hide nav links, kecilkan gap je */
-          .booking-nav-links { gap: '8px' !important; }
-          .booking-nav-links a { font-size: 11px !important; }
+          .booking-grid { grid-template-columns: 1fr !important; }
+  .       .step-label { font-size: 10px !important; }
           
-          /* Fix content */
           .booking-content { padding: 20px 12px 40px !important; }
           .booking-submit { margin: 16px 0 0 !important; }
         }
