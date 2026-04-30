@@ -223,23 +223,40 @@ export default function LandingPage({
           position: 'fixed', top: '64px', left: 0, right: 0, zIndex: 99,
           background: '#111111', borderBottom: '1px solid #1f1f1f',
           padding: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          animation: 'menuSlideDown 0.2s ease',
         }}>
-          {navLinks.map(link => (
+          {navLinks.map((link, i) => (
             <button key={link.id} onClick={() => scrollTo(link.id)} style={{
-              display: 'block', width: '100%', background: 'none', border: 'none',
+              display: 'flex', width: '100%', background: 'none', border: 'none',
               fontSize: '14px', fontWeight: '500', color: '#9ca3af',
               cursor: 'pointer', padding: '12px 16px', borderRadius: '8px', textAlign: 'left',
-            }}>{link.label}</button>
+              alignItems: 'center', gap: '10px',
+              animation: `menuItemFade 0.3s ease ${i * 0.05}s both`,
+            }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#8B0000', flexShrink: 0 }} />
+              {link.label}
+            </button>
           ))}
+          <div style={{ height: '1px', background: '#1f1f1f', margin: '8px 0' }} />
           <a href="/login" style={{
-            display: 'block', padding: '12px 16px', color: '#4b5563',
-            fontSize: '14px', fontWeight: '500', textDecoration: 'none',
-          }}>Admin Login</a>
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: '12px 16px', color: '#4b5563',
+            fontSize: '13px', fontWeight: '500', textDecoration: 'none',
+            borderRadius: '8px',
+            animation: 'menuItemFade 0.3s ease 0.25s both',
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Admin Login
+          </a>
           <a href="/booking" style={{
             display: 'block', background: 'linear-gradient(135deg, #8B0000, #a50000)',
             color: 'white', textDecoration: 'none', borderRadius: '8px',
-            padding: '12px 16px', fontSize: '14px', fontWeight: '600', marginTop: '8px',
-          }}>Tempah Sekarang</a>
+            padding: '13px 16px', fontSize: '14px', fontWeight: '600', marginTop: '8px',
+            textAlign: 'center', boxShadow: '0 2px 12px rgba(139,0,0,0.3)',
+            animation: 'menuItemFade 0.3s ease 0.3s both',
+          }}>Tempah Sekarang →</a>
         </div>
       )}
 
@@ -744,6 +761,14 @@ export default function LandingPage({
       </footer>
 
       <style>{`
+        @keyframes menuSlideDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes menuItemFade {
+          from { opacity: 0; transform: translateX(-8px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
         @media (max-width: 768px) {
           .desktop-nav { display: none !important; }
           .mobile-menu-btn { display: flex !important; }
