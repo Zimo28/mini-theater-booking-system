@@ -59,16 +59,25 @@ export default function QRClient() {
       await new Promise<void>((resolve) => {
         const ctx = canvas.getContext('2d')
         if (!ctx) return resolve()
-        const img = new Image()
-        img.src = logo
-        img.onload = () => {
-          const x = (canvas.width - logoSize) / 2
-          const y = (canvas.height - logoSize) / 2
-          ctx.fillStyle = bgColor
-          ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12)
-          ctx.drawImage(img, x, y, logoSize, logoSize)
-          resolve()
-        }
+
+        // Fetch logo dulu, convert ke blob URL — elak CORS issue
+        fetch(logo)
+          .then(res => res.blob())
+          .then(blob => {
+            const blobUrl = URL.createObjectURL(blob)
+            const img = new Image()
+            img.src = blobUrl
+            img.onload = () => {
+              const x = (canvas.width - logoSize) / 2
+              const y = (canvas.height - logoSize) / 2
+              ctx.fillStyle = bgColor
+              ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12)
+              ctx.drawImage(img, x, y, logoSize, logoSize)
+              URL.revokeObjectURL(blobUrl)  // cleanup
+              resolve()
+            }
+          })
+          .catch(() => resolve())  // kalau fetch fail, skip logo
       })
     }
     setGenerated(true)
