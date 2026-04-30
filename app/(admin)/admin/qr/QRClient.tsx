@@ -202,7 +202,7 @@ export default function QRClient() {
           </div>
 
           {/* Colors */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }} className="qr-colors">
             {[
               { label: 'Warna QR', value: fgColor, onChange: setFgColor, key: 'fg_color' },
               { label: 'Warna Background', value: bgColor, onChange: setBgColor, key: 'bg_color' },
@@ -383,6 +383,9 @@ export default function QRClient() {
           .qr-preview {
             position: static !important;
             order: -1;
+          }
+          .qr-colors {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>
