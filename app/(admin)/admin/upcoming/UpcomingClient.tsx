@@ -20,6 +20,15 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
+  // Group events by month
+  const grouped = events.reduce((acc, event) => {
+    const date = new Date(event.booking_date + 'T00:00:00')
+    const key = `${date.getFullYear()}-${date.getMonth()}`
+    if (!acc[key]) acc[key] = { label: `${monthNames[date.getMonth()]} ${date.getFullYear()}`, events: [] }
+    acc[key].events.push(event)
+    return acc
+  }, {} as Record<string, { label: string; events: Event[] }>)
+
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
       {/* Header */}
@@ -35,7 +44,7 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
           Upcoming Events
         </h1>
         <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-          {events.length} event dalam 30 hari akan datang
+          {events.length} event akan datang
         </p>
       </div>
 
@@ -47,77 +56,105 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
           <p style={{ color: '#6b7280', fontSize: '14px' }}>Tiada upcoming events</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {events.map((event) => {
-            const date = new Date(event.booking_date + 'T00:00:00')
-            const diffDays = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-            const isToday = diffDays === 0
-            const isTomorrow = diffDays === 1
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          {Object.values(grouped).map((group) => (
+            <div key={group.label}>
 
-            return (
-              <a
-                key={event.id}
-                href={`/admin/tempahan?id=${event.id}`}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '16px',
-                  padding: '16px 20px', borderRadius: '12px',
-                  background: isToday ? 'rgba(139,0,0,0.15)' : '#161616',
-                  border: `1px solid ${isToday ? 'rgba(139,0,0,0.3)' : '#1f1f1f'}`,
-                  textDecoration: 'none', transition: 'all 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = isToday ? 'rgba(139,0,0,0.2)' : '#1a1a1a'}
-                onMouseLeave={e => e.currentTarget.style.background = isToday ? 'rgba(139,0,0,0.15)' : '#161616'}
-              >
-                {/* Date Badge */}
-                <div style={{
-                  flexShrink: 0, width: '52px', textAlign: 'center',
-                  background: isToday ? '#8B0000' : '#1a1a1a',
-                  border: `1px solid ${isToday ? '#8B0000' : '#2d2d2d'}`,
-                  borderRadius: '10px', padding: '8px 4px',
+              {/* Month Header */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px'
+              }}>
+                <span style={{
+                  fontSize: '13px', fontWeight: '700', color: '#f87171',
+                  textTransform: 'uppercase', letterSpacing: '0.08em'
                 }}>
-                  <p style={{ fontSize: '20px', fontWeight: '800', color: 'white', lineHeight: 1 }}>
-                    {date.getDate()}
-                  </p>
-                  <p style={{ fontSize: '10px', fontWeight: '600', color: isToday ? 'rgba(255,255,255,0.7)' : '#6b7280', textTransform: 'uppercase' }}>
-                    {monthShort[date.getMonth()]}
-                  </p>
-                </div>
+                  {group.label}
+                </span>
+                <div style={{ flex: 1, height: '1px', background: '#1f1f1f' }} />
+                <span style={{
+                  fontSize: '11px', color: '#4b5563', fontWeight: '500',
+                  background: '#161616', border: '1px solid #1f1f1f',
+                  padding: '2px 8px', borderRadius: '999px'
+                }}>
+                  {group.events.length} event
+                </span>
+              </div>
 
-                {/* Event Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>
-                    {event.event_name}
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#6b7280' }}>
-                    {event.organization} · {event.start_time} - {event.end_time}
-                  </p>
-                  <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '2px' }}>
-                    {event.full_name}
-                  </p>
-                </div>
+              {/* Events */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {group.events.map((event) => {
+                  const date = new Date(event.booking_date + 'T00:00:00')
+                  const diffDays = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                  const isToday = diffDays === 0
+                  const isTomorrow = diffDays === 1
 
-                {/* Status + Days Badge */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
-                  <span style={{
-                    padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '700',
-                    background: event.status === 'approved' ? '#dc2626' : 'rgba(217,119,6,0.15)',
-                    color: event.status === 'approved' ? 'white' : '#fbbf24',
-                    border: event.status === 'approved' ? 'none' : '1px solid rgba(217,119,6,0.25)',
-                  }}>
-                    {event.status === 'approved' ? 'Approved' : 'Pending'}
-                  </span>
-                  <span style={{
-                    padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '600',
-                    background: isToday ? '#8B0000' : isTomorrow ? 'rgba(217,119,6,0.15)' : '#1f1f1f',
-                    color: isToday ? 'white' : isTomorrow ? '#fbbf24' : '#6b7280',
-                    border: `1px solid ${isToday ? '#8B0000' : isTomorrow ? 'rgba(217,119,6,0.25)' : '#2d2d2d'}`,
-                  }}>
-                    {isToday ? 'Hari Ini' : isTomorrow ? 'Esok' : `${diffDays} hari lagi`}
-                  </span>
-                </div>
-              </a>
-            )
-          })}
+                  return (
+                    <a
+                      key={event.id}
+                      href={`/admin/tempahan?id=${event.id}`}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '16px',
+                        padding: '16px 20px', borderRadius: '12px',
+                        background: isToday ? 'rgba(139,0,0,0.15)' : '#161616',
+                        border: `1px solid ${isToday ? 'rgba(139,0,0,0.3)' : '#1f1f1f'}`,
+                        textDecoration: 'none', transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = isToday ? 'rgba(139,0,0,0.2)' : '#1a1a1a'}
+                      onMouseLeave={e => e.currentTarget.style.background = isToday ? 'rgba(139,0,0,0.15)' : '#161616'}
+                    >
+                      {/* Date Badge */}
+                      <div style={{
+                        flexShrink: 0, width: '52px', textAlign: 'center',
+                        background: isToday ? '#8B0000' : '#1a1a1a',
+                        border: `1px solid ${isToday ? '#8B0000' : '#2d2d2d'}`,
+                        borderRadius: '10px', padding: '8px 4px',
+                      }}>
+                        <p style={{ fontSize: '20px', fontWeight: '800', color: 'white', lineHeight: 1 }}>
+                          {date.getDate()}
+                        </p>
+                        <p style={{ fontSize: '10px', fontWeight: '600', color: isToday ? 'rgba(255,255,255,0.7)' : '#6b7280', textTransform: 'uppercase' }}>
+                          {monthShort[date.getMonth()]}
+                        </p>
+                      </div>
+
+                      {/* Event Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {event.event_name}
+                        </p>
+                        <p style={{ fontSize: '13px', color: '#6b7280' }}>
+                          {event.organization} · {event.start_time} - {event.end_time}
+                        </p>
+                        <p style={{ fontSize: '12px', color: '#4b5563', marginTop: '2px' }}>
+                          {event.full_name}
+                        </p>
+                      </div>
+
+                      {/* Status + Days Badge */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                        <span style={{
+                          padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '700',
+                          background: event.status === 'approved' ? '#dc2626' : 'rgba(217,119,6,0.15)',
+                          color: event.status === 'approved' ? 'white' : '#fbbf24',
+                          border: event.status === 'approved' ? 'none' : '1px solid rgba(217,119,6,0.25)',
+                        }}>
+                          {event.status === 'approved' ? 'Approved' : 'Pending'}
+                        </span>
+                        <span style={{
+                          padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '600',
+                          background: isToday ? '#8B0000' : isTomorrow ? 'rgba(217,119,6,0.15)' : '#1f1f1f',
+                          color: isToday ? 'white' : isTomorrow ? '#fbbf24' : '#6b7280',
+                          border: `1px solid ${isToday ? '#8B0000' : isTomorrow ? 'rgba(217,119,6,0.25)' : '#2d2d2d'}`,
+                        }}>
+                          {isToday ? 'Hari Ini' : isTomorrow ? 'Esok' : `${diffDays} hari lagi`}
+                        </span>
+                      </div>
+                    </a>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

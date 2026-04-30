@@ -176,9 +176,9 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
       </div>
 
       {/* Filter Tabs + Action Buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }} className="filter-action-row">
         {/* Filter Tabs */}
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }} className="filter-tabs">
           {[
             { label: 'Semua', value: 'all' },
             { label: 'Pending', value: 'pending' },
@@ -210,7 +210,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px' }} className="action-buttons">
           {sheetUrl && (
             <a
               href={sheetUrl} target="_blank" rel="noopener noreferrer"
@@ -265,7 +265,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
       </div>
 
       {/* Search & Sort */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' }} className="search-sort-row">
         <div style={{ flex: 1, position: 'relative', minWidth: '200px' }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}>
@@ -375,7 +375,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
 
                     {expanded === booking.id && (
                       <tr className="detail-row" key={`${booking.id}-detail`}>
-                        <td colSpan={7} style={{ padding: '0 16px 16px', background: '#111111' }}>
+                        <td colSpan={7} style={{ padding: '8px 12px 20px', background: '#111111' }}>
                           <div style={{ background: '#161616', borderRadius: '12px', border: '1px solid #1f1f1f', padding: '20px 24px', animation: 'slideDown 0.2s ease' }}>
                             {/* Top */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
@@ -384,14 +384,6 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                                 <p style={{ fontSize: '12px', color: '#4b5563' }}>Submitted on {formatSubmitted(booking.created_at)}</p>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{
-                                  padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700',
-                                  background: booking.status === 'approved' ? 'rgba(74,222,128,0.15)' : booking.status === 'rejected' ? 'rgba(107,114,128,0.15)' : 'rgba(251,191,36,0.15)',
-                                  color: booking.status === 'approved' ? '#4ade80' : booking.status === 'rejected' ? '#9ca3af' : '#fbbf24',
-                                  border: `1px solid ${booking.status === 'approved' ? 'rgba(74,222,128,0.2)' : booking.status === 'rejected' ? 'rgba(107,114,128,0.2)' : 'rgba(251,191,36,0.2)'}`,
-                                }}>
-                                  {statusLabel(booking.status)}
-                                </span>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); deleteBooking(booking.id) }}
                                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.15s' }}
@@ -564,38 +556,83 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
         }
 
         @media (max-width: 768px) {
-          .tempahan-table thead { display: none; }
-          .tempahan-table tbody tr.main-row { 
-            display: block !important;
-            padding: 14px 16px !important;
-            border-bottom: 1px solid #1a1a1a !important;
-          }
-          .tempahan-table td { 
-            display: none !important;
-          }
-          .tempahan-table td.td-chevron,
-          .tempahan-table td.td-event,
-          .tempahan-table td.td-name,
-          .tempahan-table td.td-status {
-            display: inline-block !important;
-            padding: 0 !important;
-            vertical-align: middle;
-          }
-          .tempahan-table td.td-chevron { width: 20px; }
-          .tempahan-table td.td-event { 
-            width: calc(100% - 130px);
-            padding-left: 8px !important;
-          }
-          .tempahan-table td.td-name { display: none !important; }
-          .tempahan-table td.td-status { 
-            float: right;
-            margin-top: -2px;
-          }
-          .tempahan-table tr.detail-row td {
-            display: block !important;
-            padding: 0 8px 12px !important;
-          }
+        .search-sort-row {
+          flex-wrap: wrap !important;
         }
+
+        .search-sort-row > div:last-child select {
+          width: 100% !important;
+        }
+
+        .search-sort-row > div:last-child {
+          width: 100% !important;
+        }
+
+        .filter-action-row {
+          flex-direction: column !important;
+          align-items: stretch !important;
+        }
+
+        .filter-tabs {
+          width: 100%;
+          display: grid !important;
+          grid-template-columns: 1fr 1fr !important;
+          gap: 8px !important;
+        }
+
+        .filter-tabs button {
+          width: 100% !important;
+          justify-content: center !important;
+        }
+
+        .action-buttons {
+          width: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 8px !important;
+        }
+
+        .action-buttons a,
+        .action-buttons button {
+          width: 100% !important;
+          justify-content: center !important;
+          text-align: center !important;
+          font-size: 13px !important;
+          padding: 10px 14px !important;
+          box-sizing: border-box !important;
+        }
+
+        .tempahan-table thead { display: none; }
+        .tempahan-table tbody tr.main-row { 
+          display: block !important;
+          padding: 14px 16px !important;
+          border-bottom: 1px solid #1a1a1a !important;
+        }
+        .tempahan-table td { 
+          display: none !important;
+        }
+        .tempahan-table td.td-chevron,
+        .tempahan-table td.td-event,
+        .tempahan-table td.td-status {
+          display: inline-block !important;
+          padding: 0 !important;
+          vertical-align: middle;
+        }
+        .tempahan-table td.td-chevron { width: 20px; }
+        .tempahan-table td.td-event { 
+          width: calc(100% - 130px);
+          padding-left: 8px !important;
+        }
+        .tempahan-table td.td-name { display: none !important; }
+        .tempahan-table td.td-status { 
+          float: right;
+          margin-top: -2px;
+        }
+        .tempahan-table tr.detail-row td {
+          display: block !important;
+          padding: 12px 12px 20px !important;
+        }
+      }
       `}</style>
     </div>
   )

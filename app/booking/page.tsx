@@ -185,12 +185,13 @@ export default function BookingPage() {
     letterSpacing: '0.07em',
   }
 
-  // ✅ FIX: padding ditambah balik
   const cardStyle = {
     background: '#161616',
     border: '1px solid #1f1f1f',
     borderRadius: '16px',
     padding: '24px',
+    height: '100%',
+    boxSizing: 'border-box' as const,
   }
 
   if (success) {
@@ -353,9 +354,7 @@ export default function BookingPage() {
 
       {/* Error */}
       {error && (
-        <div style={{
-          maxWidth: '900px', margin: '16px auto 0', padding: '0 16px',
-        }}>
+        <div style={{ maxWidth: '900px', margin: '16px auto 0', padding: '0 16px' }}>
           <div style={{
             background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.25)',
             borderRadius: '10px', padding: '12px 16px',
@@ -377,7 +376,7 @@ export default function BookingPage() {
           transition: 'all 0.6s ease 0.1s',
         }}>
 
-          {/* Top 2 cards — side by side desktop, stacked mobile */}
+          {/* Top 2 cards */}
           <div style={{ display: 'grid', gap: '16px', marginBottom: '16px' }} className="top-grid">
 
             {/* Section 1 — Personal */}
@@ -387,25 +386,45 @@ export default function BookingPage() {
                 <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'white', margin: 0 }}>Personal & Organization Details</h2>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }} className="personal-grid">
-                {[
-                  { label: 'Full Name', field: 'full_name', placeholder: 'Enter your full name', type: 'text', col: '1 / -1' },
-                  { label: 'Phone Number', field: 'phone', placeholder: 'e.g. 012-3456789', type: 'tel', col: undefined },
-                  { label: 'Organization', field: 'organization', placeholder: 'Club or organization name', type: 'text', col: undefined },
-                  { label: 'Event Name', field: 'event_name', placeholder: 'Enter the name of your event', type: 'text', col: '1 / -1' },
-                ].map((item) => (
-                  <div key={item.field} style={{ gridColumn: item.col }}>
-                    <label style={labelStyle}>{item.label} <span style={{ color: '#dc2626' }}>*</span></label>
-                    <input
-                      type={item.type}
-                      placeholder={item.placeholder}
-                      onChange={(e) => updateForm(item.field, e.target.value)}
-                      style={inputStyle}
-                      onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                      onBlur={(e) => e.target.style.borderColor = '#1f2937'}
-                    />
-                  </div>
-                ))}
+              {/* ✅ FIX: Semua field stacked 1 kolum */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+                <div>
+                  <label style={labelStyle}>Full Name <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="text" placeholder="Enter your full name"
+                    onChange={(e) => updateForm('full_name', e.target.value)}
+                    style={inputStyle}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                    onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Phone Number <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="tel" placeholder="e.g. 012-3456789"
+                    onChange={(e) => updateForm('phone', e.target.value)}
+                    style={inputStyle}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                    onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Organization <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="text" placeholder="Club or organization name"
+                    onChange={(e) => updateForm('organization', e.target.value)}
+                    style={inputStyle}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                    onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Event Name <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="text" placeholder="Enter the name of your event"
+                    onChange={(e) => updateForm('event_name', e.target.value)}
+                    style={inputStyle}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                    onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+                </div>
+
               </div>
             </div>
 
@@ -459,7 +478,7 @@ export default function BookingPage() {
             </div>
           </div>
 
-          {/* Section 3 — Upload (full width) */}
+          {/* Section 3 — Upload */}
           <div style={{ ...cardStyle, marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
               <div style={{ width: '26px', height: '26px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px', fontWeight: '700', flexShrink: 0 }}>3</div>
@@ -567,34 +586,23 @@ export default function BookingPage() {
       </footer>
 
       <style>{`
-        /* ── Top grid: 2 col desktop, 1 col mobile ── */
         .top-grid {
           grid-template-columns: 1fr 1fr;
+          align-items: stretch;
         }
         @media (max-width: 768px) {
           .top-grid { grid-template-columns: 1fr !important; }
-          .personal-grid { grid-template-columns: 1fr !important; }
-          .personal-grid > div[style*="1 / -1"] { grid-column: 1 !important; }
         }
-        @media (max-width: 480px) {
-          .top-grid { padding: 0; }
-        }
-
-        /* ── Spin animation ── */
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-
-        /* ── Date/time picker icon color ── */
         input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator {
           filter: brightness(0) invert(1);
           cursor: pointer;
           opacity: 0.6;
         }
-
-        /* ── Input placeholder color ── */
         input::placeholder { color: #374151; }
       `}</style>
     </div>
