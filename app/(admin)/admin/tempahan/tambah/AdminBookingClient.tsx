@@ -96,8 +96,16 @@ export default function AdminBookingClient() {
 
   const handleSubmit = async () => {
     if (!form.full_name || !form.phone || !form.organization || !form.event_name) {
-      showToast('Sila isi semua maklumat peribadi.', 'error'); return
+      showToast('Sila isi semua maklumat peribadi.', 'error')
+      return
     }
+
+    const phoneRegex = /^(\+?60|0)[0-9]{8,10}$/
+    if (!phoneRegex.test(form.phone.replace(/[-\s]/g, ''))) {
+      showToast('Format nombor telefon tidak sah. Contoh: 012-3456789', 'error')
+      return
+    }
+
     if (!form.booking_date || !form.start_time || !form.end_time) {
       showToast('Sila isi tarikh dan masa.', 'error'); return
     }

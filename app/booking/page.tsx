@@ -124,9 +124,16 @@ export default function BookingPage() {
   const handleSubmit = async () => {
     setError('')
     if (!form.full_name || !form.phone || !form.organization || !form.event_name) {
-      setError('Sila isi semua maklumat peribadi.')
+      setError('Sila isi semua maklumat peribadi.') 
       return
     }
+
+    const phoneRegex = /^(\+?60|0)[0-9]{8,10}$/
+    if (!phoneRegex.test(form.phone.replace(/[-\s]/g, ''))) {
+      setError('Format nombor telefon tidak sah. Contoh: 012-3456789')
+      return
+    }
+
     if (!form.booking_date || !form.start_time || !form.end_time) {
       setError('Sila isi tarikh dan masa.')
       return
@@ -396,7 +403,6 @@ export default function BookingPage() {
                 <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'white', margin: 0 }}>Personal & Organization Details</h2>
               </div>
 
-              {/* ✅ FIX: Semua field stacked 1 kolum */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
                 <div>
