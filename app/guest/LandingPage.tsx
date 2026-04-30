@@ -515,8 +515,13 @@ export default function LandingPage({
 
           {searched && (
             searchResults.length === 0 ? (
-              <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', padding: '16px', fontSize: '14px', color: '#f87171', textAlign: 'center' }}>
-                ⚠️ Tiada rekod untuk "<strong>{searchQuery}</strong>"
+              <div style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '10px', padding: '16px', fontSize: '14px', color: '#f87171', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Tiada rekod untuk "<strong>{searchQuery}</strong>"
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
