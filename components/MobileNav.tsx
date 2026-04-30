@@ -102,7 +102,10 @@ export default function MobileNav({ userName }: { userName: string }) {
           <img
             src="/logo.png"
             alt="Mini Theater"
-            style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
+            style={{
+              height: '36px', width: 'auto', objectFit: 'contain',
+              filter: 'brightness(0) invert(1)',
+            }}
           />
         </div>
 
@@ -137,15 +140,18 @@ export default function MobileNav({ userName }: { userName: string }) {
       </nav>
 
       {/* Dropdown menu */}
-      {menuOpen && (
-        <div style={{
+      <div style={{
           background: '#0a0a0a',
           borderBottom: '1px solid #1f1f1f',
           padding: '8px',
           position: 'sticky',
           top: '56px',
           zIndex: 49,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          overflow: 'hidden',
+          maxHeight: menuOpen ? '400px' : '0',
+          opacity: menuOpen ? 1 : 0,
+          transition: 'max-height 0.3s ease, opacity 0.2s ease',
         }}>
           {/* Nav label */}
           <div style={{ padding: '6px 12px 8px' }}>
@@ -255,7 +261,12 @@ export default function MobileNav({ userName }: { userName: string }) {
             Log Keluar
           </button>
         </div>
-      )}
+        <style>{`
+          @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
     </>
   )
 }
