@@ -358,7 +358,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                       {/* Event td */}
                       <td className="td-event" style={{ padding: '12px 16px', fontSize: '13px', color: '#f87171', fontWeight: '600' }}>{booking.event_name}</td>
 
-                      <td className="td-name" style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: 'white' }}>{booking.full_name}</td>
+                      <td className="td-name" style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: 'white', wordBreak: 'break-word' }}>{booking.full_name}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.organization}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
                         {new Date(booking.booking_date).toLocaleDateString('ms-MY')}
@@ -376,7 +376,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                     {expanded === booking.id && (
                       <tr className="detail-row" key={`${booking.id}-detail`}>
                         <td colSpan={7} style={{ padding: '8px 12px 20px', background: '#111111' }}>
-                          <div style={{ background: '#161616', borderRadius: '12px', border: '1px solid #1f1f1f', padding: '20px 24px', animation: 'slideDown 0.2s ease' }}>
+                          <div style={{ background: '#161616', borderRadius: '12px', border: '1px solid #1f1f1f', padding: '20px 24px', animation: 'slideDown 0.2s ease' }} className="detail-panel">
                             {/* Top */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                               <div>
@@ -407,12 +407,12 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                               {[
                                 { label: 'Event Name', value: booking.event_name, highlight: true },
                                 { label: 'Organization', value: booking.organization },
-                                { label: 'Full Name / Phone', value: `${booking.full_name} (${booking.phone})` },
+                                { label: 'Full Name / Phone', value: `${booking.full_name}\n${booking.phone}` },
                                 { label: 'Booking Date & Time', value: `${new Date(booking.booking_date + 'T00:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} | ${booking.start_time} - ${booking.end_time}` },
                               ].map((item) => (
                                 <div key={item.label}>
                                   <p style={{ fontSize: '11px', color: '#4b5563', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</p>
-                                  <p style={{ fontSize: '14px', fontWeight: '600', color: item.highlight ? '#f87171' : '#e5e7eb' }}>{item.value}</p>
+                                  <p className="detail-value" style={{ fontSize: '14px', fontWeight: '600', color: item.highlight ? '#f87171' : '#e5e7eb', wordBreak: 'break-word' }}>{item.value}</p>
                                 </div>
                               ))}
                             </div>
@@ -571,6 +571,14 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
         @media (max-width: 768px) {
         .detail-grid {
           grid-template-columns: 1fr !important;
+        }
+
+        .detail-value { 
+          white-space: pre-line; 
+        }
+
+        .detail-panel {
+          padding: 16px 12px !important;
         }
 
         .search-sort-row {
