@@ -180,7 +180,7 @@ export default function QRClient() {
               onBlur={(e) => e.target.style.borderColor = '#1f1f1f'}
             />
             <p style={{ fontSize: '11px', color: '#4b5563', marginTop: '4px' }}>
-              Tukar URL ni bila dah deploy ke Vercel
+              Upload URL khusus untuk QR ini 
             </p>
             <button
               onClick={async () => {
