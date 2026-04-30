@@ -226,7 +226,7 @@ export default function SettingsClient({
             </div>
 
             {/* Theater Info */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="settings-grid-2">
               {[
                 { label: 'Nama Theater', key: 'theater_name', col: '1 / -1', type: 'text' },
                 { label: 'Hero Title', key: 'hero_title', col: '1 / -1', type: 'text' },
@@ -323,7 +323,7 @@ export default function SettingsClient({
         {activeTab === 'equipment' && (
           <div style={{ padding: '28px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Equipment Settings</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="equipment-grid">
               {[
                 { 
                   label: 'Max Microphone', key: 'max_microphone',
@@ -370,7 +370,7 @@ export default function SettingsClient({
         {activeTab === 'contact' && (
           <div style={{ padding: '28px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Contact Us Settings</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="settings-grid-2">
               <div>
                 <label style={labelStyle}>Nama</label>
                 <input type="text" value={settings['contact_name'] ?? ''} onChange={(e) => updateSetting('contact_name', e.target.value)} style={inputStyle}
@@ -409,6 +409,13 @@ export default function SettingsClient({
           </div>
         )}
       </div>
+      <style>{`
+        @media (max-width: 600px) {
+          .equipment-grid { grid-template-columns: 1fr !important; }
+          .settings-grid-2 { grid-template-columns: 1fr !important; }
+          .settings-grid-2 > div[style*="1 / -1"] { grid-column: 1 !important; }
+        }
+      `}</style>
     </div>
   )
 }
