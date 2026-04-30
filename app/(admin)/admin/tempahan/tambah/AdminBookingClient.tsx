@@ -117,6 +117,16 @@ export default function AdminBookingClient() {
         await supabase.from('bookings').update({ attachment_url: attachmentUrl }).eq('id', inserted.id)
       }
       await syncToGoogleSheet({ ...form, id: inserted.id, status: 'approved', created_at: inserted.created_at })
+
+      await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'admin_booking',
+          booking: { ...form, id: inserted.id },
+        }),
+      })
+
       showToast('Tempahan berjaya ditambah dan diluluskan!', 'success')
       setTimeout(() => { window.location.href = '/admin/tempahan' }, 1200)
     }

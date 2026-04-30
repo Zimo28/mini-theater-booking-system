@@ -157,6 +157,16 @@ export default function BookingPage() {
         await supabase.from('bookings').update({ attachment_url: attachmentUrl }).eq('id', inserted.id)
       }
       await syncToGoogleSheet({ ...form, id: inserted.id, status: 'pending', created_at: inserted.created_at })
+
+      await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'new_booking',
+          booking: { ...form, id: inserted.id },
+        }),
+      })
+
       setLoading(false)
       setSuccess(true)
     }

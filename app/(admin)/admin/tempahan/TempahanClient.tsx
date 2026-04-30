@@ -132,6 +132,16 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
       setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b))
       const booking = bookings.find(b => b.id === id)
       if (booking) await syncToGoogleSheet({ ...booking, status })
+
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'status_changed',
+            booking: { ...booking, status },
+          }),
+        })
+
       showToast(
         status === 'approved' ? 'Tempahan telah diluluskan!' : 'Tempahan telah ditolak.',
         status === 'approved' ? 'success' : 'error'
