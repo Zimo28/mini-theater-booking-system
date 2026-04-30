@@ -3,7 +3,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import QRCode from 'qrcode'
 import { showToast } from '@/components/Toast'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 const card = {
   background: '#161616',
@@ -55,7 +60,6 @@ export default function QRClient() {
         const ctx = canvas.getContext('2d')
         if (!ctx) return resolve()
         const img = new Image()
-        img.crossOrigin = 'anonymous'
         img.src = logo
         img.onload = () => {
           const x = (canvas.width - logoSize) / 2
@@ -143,7 +147,7 @@ export default function QRClient() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px', alignItems: 'start' }} className="qr-grid">
 
         {/* Settings Panel */}
         <div style={{ ...card, padding: '24px' }}>
@@ -166,6 +170,9 @@ export default function QRClient() {
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
               onBlur={(e) => e.target.style.borderColor = '#1f1f1f'}
             />
+            <p style={{ fontSize: '11px', color: '#4b5563', marginTop: '4px' }}>
+              Tukar URL ni bila dah deploy ke Vercel
+            </p>
             <button
               onClick={async () => {
                 await saveAllSettings({ qr_url: qrUrl })
@@ -306,7 +313,7 @@ export default function QRClient() {
         </div>
 
         {/* Preview Panel */}
-        <div style={{ ...card, padding: '24px', textAlign: 'center', position: 'sticky', top: '20px' }}>
+        <div className="qr-preview" style={{ ...card, padding: '24px', textAlign: 'center', position: 'sticky', top: '20px' }}>
           <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -358,6 +365,18 @@ export default function QRClient() {
           )}
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .qr-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .qr-preview {
+            position: static !important;
+            order: -1;
+          }
+        }
+      `}</style>
     </div>
   )
 }

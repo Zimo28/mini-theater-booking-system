@@ -322,9 +322,9 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
             <p style={{ fontSize: '14px', color: '#4b5563' }}>Tiada tempahan</p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }} className="tempahan-table">
             <thead>
-              <tr style={{ borderBottom: '1px solid #1f1f1f' }}>
+              <tr className="main-row" style={{ borderBottom: '1px solid #1f1f1f' }}>
                 {['', 'Event', 'Nama Pemohon', 'Organisasi', 'Tarikh', 'Masa', 'Status'].map((h) => (
                   <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                 ))}
@@ -337,6 +337,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                   <React.Fragment key={booking.id}>
                     <tr
                       id={`booking-${booking.id}`}
+                      className="main-row"
                       onClick={() => setExpanded(expanded === booking.id ? null : booking.id)}
                       style={{
                         borderBottom: '1px solid #1a1a1a',
@@ -346,20 +347,26 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                       onMouseEnter={(e) => { if (expanded !== booking.id) e.currentTarget.style.background = '#111111' }}
                       onMouseLeave={(e) => { if (expanded !== booking.id) e.currentTarget.style.background = 'transparent' }}
                     >
-                      <td style={{ padding: '12px 8px 12px 16px', width: '24px' }}>
+                      {/* Chevron td */}
+                      <td className="td-chevron" style={{ padding: '12px 8px 12px 16px', width: '24px' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                           style={{ transition: 'transform 0.2s ease', transform: expanded === booking.id ? 'rotate(180deg)' : 'rotate(0deg)', display: 'block' }}>
                           <polyline points="6 9 12 15 18 9"/>
                         </svg>
                       </td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#f87171', fontWeight: '600' }}>{booking.event_name}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: 'white' }}>{booking.full_name}</td>
+
+                      {/* Event td */}
+                      <td className="td-event" style={{ padding: '12px 16px', fontSize: '13px', color: '#f87171', fontWeight: '600' }}>{booking.event_name}</td>
+
+                      <td className="td-name" style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: 'white' }}>{booking.full_name}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.organization}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
                         {new Date(booking.booking_date).toLocaleDateString('ms-MY')}
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.start_time} - {booking.end_time}</td>
-                      <td style={{ padding: '12px 16px' }}>
+                      
+                      {/* Status td */}
+                      <td className="td-status" style={{ padding: '12px 16px' }}>
                         <span style={{ padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
                           {statusLabel(booking.status)}
                         </span>
@@ -367,7 +374,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                     </tr>
 
                     {expanded === booking.id && (
-                      <tr key={`${booking.id}-detail`}>
+                      <tr className="detail-row" key={`${booking.id}-detail`}>
                         <td colSpan={7} style={{ padding: '0 16px 16px', background: '#111111' }}>
                           <div style={{ background: '#161616', borderRadius: '12px', border: '1px solid #1f1f1f', padding: '20px 24px', animation: 'slideDown 0.2s ease' }}>
                             {/* Top */}
@@ -554,6 +561,40 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
         @keyframes slideDown {
           from { opacity: 0; transform: translateY(-8px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+          .tempahan-table thead { display: none; }
+          .tempahan-table tbody tr.main-row { 
+            display: block !important;
+            padding: 14px 16px !important;
+            border-bottom: 1px solid #1a1a1a !important;
+          }
+          .tempahan-table td { 
+            display: none !important;
+          }
+          .tempahan-table td.td-chevron,
+          .tempahan-table td.td-event,
+          .tempahan-table td.td-name,
+          .tempahan-table td.td-status {
+            display: inline-block !important;
+            padding: 0 !important;
+            vertical-align: middle;
+          }
+          .tempahan-table td.td-chevron { width: 20px; }
+          .tempahan-table td.td-event { 
+            width: calc(100% - 130px);
+            padding-left: 8px !important;
+          }
+          .tempahan-table td.td-name { display: none !important; }
+          .tempahan-table td.td-status { 
+            float: right;
+            margin-top: -2px;
+          }
+          .tempahan-table tr.detail-row td {
+            display: block !important;
+            padding: 0 8px 12px !important;
+          }
         }
       `}</style>
     </div>
