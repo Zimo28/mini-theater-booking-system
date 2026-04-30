@@ -266,7 +266,7 @@ export default function BookingPage() {
     <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Segoe UI', system-ui, sans-serif", color: 'white', overflowX: 'hidden' }}>
 
       {/* Navbar */}
-      <nav className="booking-nav" style={{
+      <nav style={{
         background: '#111111',
         borderBottom: '1px solid #1f1f1f',
         padding: '0 24px',
@@ -281,38 +281,18 @@ export default function BookingPage() {
         <a href="/">
           <img src="/logo.png" alt="Mini Theater" style={{ height: '44px', width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
         </a>
-        <div className="booking-nav-links" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <a href="/" onClick={(e) => {
-            e.preventDefault()
-            sessionStorage.setItem('scrollTo', 'availability')
-            window.location.href = '/'
-          }}
-            style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: '500', transition: 'color 0.15s' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#9ca3af'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-          >Semak Ketersediaan</a>
-          <a href="/" onClick={(e) => {
-            e.preventDefault()
-            sessionStorage.setItem('scrollTo', 'status')
-            window.location.href = '/'
-          }}
-            style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', fontWeight: '500', transition: 'color 0.15s' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#9ca3af'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-          >Semak Status</a>
-          <a href="/" style={{
-            fontSize: '13px', color: '#6b7280', textDecoration: 'none',
-            fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px',
-            padding: '6px 10px', borderRadius: '6px', border: '1px solid #1f2937',
-            transition: 'all 0.15s',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = '#374151'; e.currentTarget.style.background = '#1a1a1a' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#1f2937'; e.currentTarget.style.background = 'transparent' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-            Kembali
-          </a>
-        </div>
+        <a href="/" style={{
+          fontSize: '13px', color: '#6b7280', textDecoration: 'none',
+          fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px',
+          padding: '6px 12px', borderRadius: '6px', border: '1px solid #1f2937',
+          transition: 'all 0.15s',
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = '#374151'; e.currentTarget.style.background = '#1a1a1a' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#1f2937'; e.currentTarget.style.background = 'transparent' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Kembali
+        </a>
       </nav>
 
       {/* Hero Strip */}
@@ -575,15 +555,12 @@ export default function BookingPage() {
         }
 
         @media (max-width: 480px) {
-          /* Fix navbar tersepit */
-          .booking-nav-links { display: none !important; }
-          .booking-nav { padding: 0 16px !important; }
-
-          /* Fix content overflow */
+          /* Jangan hide nav links, kecilkan gap je */
+          .booking-nav-links { gap: '8px' !important; }
+          .booking-nav-links a { font-size: 11px !important; }
+          
+          /* Fix content */
           .booking-content { padding: 20px 12px 40px !important; }
-          .booking-form-wrapper { padding: 0 !important; }
-
-          /* Fix submit button */
           .booking-submit { margin: 16px 0 0 !important; }
         }
 
