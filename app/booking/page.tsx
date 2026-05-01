@@ -414,7 +414,7 @@ export default function BookingPage() {
                   e.preventDefault(); setDragOver(false)
                   const dropped = e.dataTransfer.files?.[0]
                   if (dropped?.type === 'application/pdf') setFile(dropped)
-                  else setError('Hanya fail PDF dibenarkan.')
+                  else showToast('Hanya fail PDF dibenarkan.', 'error')
                 }}
                 style={{
                   border: `2px dashed ${dragOver ? '#8B0000' : '#e5e7eb'}`,
@@ -436,7 +436,7 @@ export default function BookingPage() {
                   <input type="file" accept=".pdf" style={{ display: 'none' }} onChange={(e) => {
                     const selected = e.target.files?.[0]
                     if (selected?.type === 'application/pdf') setFile(selected)
-                    else setError('Hanya fail PDF dibenarkan.')
+                    else showToast('Hanya fail PDF dibenarkan.', 'error')
                   }} />
                 </label>
               </div>
