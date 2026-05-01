@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { showToast } from '@/components/Toast'
 import { supabase } from '@/lib/supabase'
 import { syncToGoogleSheet } from '@/lib/googleSheet'
 
@@ -75,7 +76,6 @@ function EquipmentSelect({ eq, value, onChange }: {
 export default function BookingPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -109,22 +109,21 @@ export default function BookingPage() {
   }
 
   const handleSubmit = async () => {
-    setError('')
     if (!form.full_name || !form.phone || !form.organization || !form.event_name) {
-      setError('Sila isi semua maklumat peribadi.'); return
+      showToast('Sila isi semua maklumat peribadi.', 'error'); return
     }
     const phoneRegex = /^(\+?60|0)[0-9]{8,10}$/
     if (!phoneRegex.test(form.phone.replace(/[-\s]/g, ''))) {
-      setError('Format nombor telefon tidak sah. Contoh: 012-3456789'); return
+      showToast('Format nombor telefon tidak sah. Contoh: 012-3456789', 'error'); return
     }
     if (!form.booking_date || !form.start_time || !form.end_time) {
-      setError('Sila isi tarikh dan masa.'); return
+      showToast('Sila isi tarikh dan masa.', 'error'); return
     }
     if (form.start_time >= form.end_time) {
-      setError('Masa tamat mesti lebih lewat dari masa mula.'); return
+      showToast('Masa tamat mesti lebih lewat dari masa mula.', 'error'); return
     }
     if (!file) {
-      setError('Sila muat naik dokumen kelulusan (PDF) sebelum menghantar.'); return
+      showToast('Sila muat naik dokumen kelulusan (PDF) sebelum menghantar.', 'error'); return
     }
 
     setLoading(true)
@@ -132,7 +131,7 @@ export default function BookingPage() {
       .from('bookings').insert([{ ...form, status: 'pending' }]).select().single()
 
     if (error) {
-      setError('Ralat semasa menghantar. Sila cuba lagi.')
+      showToast('Ralat semasa menghantar. Sila cuba lagi.', 'error')
       setLoading(false)
     } else {
       const attachmentUrl = await uploadFile(inserted.id)
@@ -297,16 +296,6 @@ export default function BookingPage() {
           ))}
         </div>
       </div>
-
-      {/* Error */}
-      {error && (
-        <div style={{ maxWidth: '900px', margin: '16px auto 0', padding: '0 16px' }}>
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '12px 16px', color: '#dc2626', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            {error}
-          </div>
-        </div>
-      )}
 
       {/* Main Content */}
       <div style={{ padding: '24px 16px 48px' }}>
