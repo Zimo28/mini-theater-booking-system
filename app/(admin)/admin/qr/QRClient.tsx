@@ -11,9 +11,10 @@ const supabase = createClient(
 )
 
 const card = {
-  background: '#161616',
-  border: '1px solid #1f1f1f',
+  background: 'white',
+  border: '1px solid #f3f4f6',
   borderRadius: '12px',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
 }
 
 export default function QRClient() {
@@ -60,7 +61,6 @@ export default function QRClient() {
         const ctx = canvas.getContext('2d')
         if (!ctx) return resolve()
 
-        // Fetch logo dulu, convert ke blob URL — elak CORS issue
         fetch(logo)
           .then(res => res.blob())
           .then(blob => {
@@ -73,11 +73,11 @@ export default function QRClient() {
               ctx.fillStyle = bgColor
               ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12)
               ctx.drawImage(img, x, y, logoSize, logoSize)
-              URL.revokeObjectURL(blobUrl)  // cleanup
+              URL.revokeObjectURL(blobUrl)
               resolve()
             }
           })
-          .catch(() => resolve())  // kalau fetch fail, skip logo
+          .catch(() => resolve())
       })
     }
     setGenerated(true)
@@ -133,14 +133,14 @@ export default function QRClient() {
 
   const inputStyle = {
     width: '100%',
-    border: '1px solid #1f1f1f',
+    border: '1.5px solid #e5e7eb',
     borderRadius: '8px',
     padding: '10px 14px',
     fontSize: '13px',
     outline: 'none',
     boxSizing: 'border-box' as const,
-    color: '#e5e7eb',
-    background: '#111111',
+    color: '#111827',
+    background: 'white',
     transition: 'border-color 0.2s',
   }
 
@@ -148,7 +148,7 @@ export default function QRClient() {
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
       {/* Page Title */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'white', letterSpacing: '-0.5px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>
           QR Generator
         </h1>
         <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
@@ -160,8 +160,8 @@ export default function QRClient() {
 
         {/* Settings Panel */}
         <div style={{ ...card, padding: '24px' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <h2 style={{ fontSize: '14px', fontWeight: '700', color: '#111827', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
             </svg>
@@ -177,10 +177,10 @@ export default function QRClient() {
               onChange={(e) => setQrUrl(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#1f1f1f'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
-            <p style={{ fontSize: '11px', color: '#4b5563', marginTop: '4px' }}>
-              Upload URL khusus untuk QR ini 
+            <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+              Upload URL khusus untuk QR ini
             </p>
             <button
               onClick={async () => {
@@ -189,9 +189,9 @@ export default function QRClient() {
               }}
               style={{
                 marginTop: '8px',
-                background: 'rgba(74,222,128,0.1)',
-                color: '#4ade80',
-                border: '1px solid rgba(74,222,128,0.2)',
+                background: '#f0fdf4',
+                color: '#16a34a',
+                border: '1px solid #bbf7d0',
                 borderRadius: '6px',
                 padding: '5px 12px',
                 fontSize: '12px',
@@ -211,8 +211,8 @@ export default function QRClient() {
                 <label style={labelStyle}>{item.label}</label>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
-                  border: '1px solid #1f1f1f', borderRadius: '8px', padding: '8px 12px',
-                  background: '#111111',
+                  border: '1.5px solid #e5e7eb', borderRadius: '8px', padding: '8px 12px',
+                  background: '#f9fafb',
                 }}>
                   <input
                     type="color"
@@ -223,7 +223,7 @@ export default function QRClient() {
                     }}
                     style={{ width: '28px', height: '28px', borderRadius: '6px', border: 'none', cursor: 'pointer', padding: '0', background: 'none' }}
                   />
-                  <span style={{ fontSize: '13px', color: '#9ca3af', fontFamily: 'monospace' }}>{item.value}</span>
+                  <span style={{ fontSize: '13px', color: '#6b7280', fontFamily: 'monospace' }}>{item.value}</span>
                 </div>
               </div>
             ))}
@@ -233,14 +233,14 @@ export default function QRClient() {
           <div style={{ marginBottom: '20px' }}>
             <label style={labelStyle}>Logo (Optional)</label>
             {logo ? (
-              <div style={{ border: '1px solid #1f1f1f', borderRadius: '8px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111111' }}>
+              <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f9fafb' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <img src={logo} style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #1f1f1f' }} />
-                  <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: '500' }}>Logo uploaded ✓</span>
+                  <img src={logo} style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
+                  <span style={{ fontSize: '13px', color: '#374151', fontWeight: '500' }}>Logo uploaded ✓</span>
                 </div>
                 <button
                   onClick={handleRemoveLogo}
-                  style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                  style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
                 >Buang</button>
               </div>
             ) : (
@@ -248,36 +248,36 @@ export default function QRClient() {
                 onDragOver={(e) => {
                   e.preventDefault()
                   e.currentTarget.style.borderColor = '#8B0000'
-                  e.currentTarget.style.background = 'rgba(139,0,0,0.08)'
+                  e.currentTarget.style.background = '#fef2f2'
                 }}
                 onDragLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#1f2937'
-                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.borderColor = '#e5e7eb'
+                  e.currentTarget.style.background = '#fafafa'
                 }}
                 onDrop={(e) => {
                   e.preventDefault()
-                  e.currentTarget.style.borderColor = '#1f2937'
-                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.borderColor = '#e5e7eb'
+                  e.currentTarget.style.background = '#fafafa'
                   const file = e.dataTransfer.files?.[0]
                   if (!file) return
                   handleLogoUpload({ target: { files: [file] } } as any)
                 }}
-                style={{ border: '2px dashed #1f2937', borderRadius: '8px', padding: '20px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+                style={{ border: '2px dashed #e5e7eb', borderRadius: '8px', padding: '20px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', background: '#fafafa' }}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px', display: 'block' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 8px', display: 'block' }}>
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="17 8 12 3 7 8"/>
                   <line x1="12" y1="3" x2="12" y2="15"/>
                 </svg>
-                <p style={{ fontSize: '13px', color: '#4b5563', margin: 0 }}>
+                <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
                   Drag & drop logo atau{' '}
-                  <label style={{ color: '#f87171', fontWeight: '600', cursor: 'pointer' }}>
+                  <label style={{ color: '#8B0000', fontWeight: '600', cursor: 'pointer' }}>
                     browse
                     <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
                   </label>
                 </p>
-                <p style={{ fontSize: '11px', color: '#374151', marginTop: '4px' }}>PNG, JPG, SVG</p>
-                <p style={{ fontSize: '11px', color: '#374151', marginTop: '2px' }}>Saiz disyorkan: 200×200px hingga 500×500px</p>
+                <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>PNG, JPG, SVG</p>
+                <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>Saiz disyorkan: 200×200px hingga 500×500px</p>
               </div>
             )}
           </div>
@@ -294,7 +294,7 @@ export default function QRClient() {
                 onChange={(e) => setLogoSize(parseInt(e.target.value))}
                 style={{ width: '100%', accentColor: '#8B0000' }}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#4b5563', marginTop: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
                 <span>Kecil</span>
                 <span>Besar</span>
               </div>
@@ -310,8 +310,11 @@ export default function QRClient() {
               color: 'white', border: 'none', borderRadius: '10px',
               padding: '13px', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              boxShadow: '0 4px 12px rgba(139,0,0,0.3)',
+              boxShadow: '0 4px 12px rgba(139,0,0,0.2)',
+              transition: 'all 0.2s',
             }}
+            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 6px 20px rgba(139,0,0,0.3)'}
+            onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(139,0,0,0.2)'}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="23 4 23 10 17 10"/>
@@ -323,8 +326,8 @@ export default function QRClient() {
 
         {/* Preview Panel */}
         <div className="qr-preview" style={{ ...card, padding: '24px', textAlign: 'center', position: 'sticky', top: '20px' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'white', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <h2 style={{ fontSize: '14px', fontWeight: '700', color: '#111827', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
               <circle cx="12" cy="12" r="3"/>
             </svg>
@@ -333,12 +336,12 @@ export default function QRClient() {
 
           <div style={{
             display: 'inline-block', padding: '12px', borderRadius: '12px',
-            border: '1px solid #1f1f1f', background: bgColor, marginBottom: '16px',
+            border: '1px solid #e5e7eb', background: bgColor, marginBottom: '16px',
           }}>
             <canvas ref={canvasRef} style={{ display: 'block', borderRadius: '6px' }} />
           </div>
 
-          <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '16px' }}>
             Scan QR ini untuk pergi ke booking form
           </p>
 
@@ -347,9 +350,9 @@ export default function QRClient() {
               onClick={downloadQR}
               style={{
                 width: '100%',
-                background: '#1a1a1a',
-                color: 'white',
-                border: '1px solid #1f1f1f',
+                background: '#f9fafb',
+                color: '#374151',
+                border: '1.5px solid #e5e7eb',
                 borderRadius: '10px',
                 padding: '12px',
                 fontSize: '13px',
@@ -361,10 +364,10 @@ export default function QRClient() {
                 gap: '8px',
                 transition: 'all 0.15s',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#222222'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#1a1a1a'}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.borderColor = '#d1d5db' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#e5e7eb' }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
@@ -388,6 +391,7 @@ export default function QRClient() {
             grid-template-columns: 1fr !important;
           }
         }
+        input::placeholder { color: #9ca3af; }
       `}</style>
     </div>
   )

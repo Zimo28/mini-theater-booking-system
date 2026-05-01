@@ -13,12 +13,12 @@ function EquipmentSelect({ eq, value, onChange }: {
   const [open, setOpen] = useState(false)
 
   return (
-    <div style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '12px', background: '#111111', position: 'relative' }}>
+    <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '12px', background: '#f9fafb', position: 'relative' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
           {eq.icon} {eq.label}
         </span>
-        <span style={{ fontSize: '10px', color: '#93c5fd', background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', padding: '1px 6px', borderRadius: '4px', fontWeight: '600' }}>
+        <span style={{ fontSize: '10px', color: '#3b82f6', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', padding: '1px 6px', borderRadius: '4px', fontWeight: '600' }}>
           MAX {eq.max}
         </span>
       </div>
@@ -26,27 +26,27 @@ function EquipmentSelect({ eq, value, onChange }: {
         type="button"
         onClick={() => setOpen(!open)}
         style={{
-          width: '100%', background: '#0d0d0d', border: `1px solid ${open ? '#8B0000' : '#1f2937'}`,
+          width: '100%', background: 'white', border: `1.5px solid ${open ? '#8B0000' : '#e5e7eb'}`,
           borderRadius: '6px', padding: '8px 12px', fontSize: '14px', fontWeight: '600',
-          color: 'white', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          transition: 'all 0.2s', boxShadow: open ? '0 0 0 2px rgba(139,0,0,0.15)' : 'none',
+          color: '#111827', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          transition: 'all 0.2s', boxShadow: open ? '0 0 0 2px rgba(139,0,0,0.08)' : 'none',
         }}
       >
         <span>{value}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5"
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5"
           style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}>
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
       <div style={{
         position: 'absolute', left: 0, right: 0, zIndex: 50,
-        background: '#0d0d0d', border: '1px solid #1f2937', borderRadius: '8px',
+        background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px',
         marginTop: '4px', overflow: 'hidden',
         maxHeight: open ? '200px' : '0px',
         opacity: open ? 1 : 0,
         transform: open ? 'translateY(0)' : 'translateY(-8px)',
         transition: 'all 0.2s ease',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
         pointerEvents: open ? 'auto' : 'none',
       }}>
         {Array.from({ length: eq.max + 1 }, (_, i) => (
@@ -55,13 +55,13 @@ function EquipmentSelect({ eq, value, onChange }: {
             onClick={() => { onChange(i); setOpen(false) }}
             style={{
               width: '100%', padding: '10px 14px', fontSize: '14px', fontWeight: '500',
-              background: value === i ? 'rgba(139,0,0,0.2)' : 'transparent',
-              color: value === i ? '#f87171' : '#9ca3af',
+              background: value === i ? '#fef2f2' : 'transparent',
+              color: value === i ? '#8B0000' : '#6b7280',
               border: 'none', cursor: 'pointer', textAlign: 'left',
-              borderBottom: i < eq.max ? '1px solid #1a1a1a' : 'none',
+              borderBottom: i < eq.max ? '1px solid #f3f4f6' : 'none',
               transition: 'background 0.15s',
             }}
-            onMouseEnter={(e) => { if (value !== i) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+            onMouseEnter={(e) => { if (value !== i) e.currentTarget.style.background = '#f9fafb' }}
             onMouseLeave={(e) => { if (value !== i) e.currentTarget.style.background = 'transparent' }}
           >{i}</button>
         ))}
@@ -142,20 +142,23 @@ export default function AdminBookingClient() {
   }
 
   const inputStyle = {
-    width: '100%', background: '#1a1a1a', border: '1.5px solid #1f2937',
+    width: '100%', background: 'white', border: '1.5px solid #e5e7eb',
     borderRadius: '8px', padding: '10px 14px', fontSize: '14px', outline: 'none',
-    boxSizing: 'border-box' as const, color: 'white', transition: 'border-color 0.2s',
+    boxSizing: 'border-box' as const, color: '#111827', transition: 'border-color 0.2s',
   }
 
   const labelStyle = {
     display: 'block', fontSize: '12px', fontWeight: '600' as const,
-    color: '#9ca3af', marginBottom: '6px',
+    color: '#6b7280', marginBottom: '6px',
     textTransform: 'uppercase' as const, letterSpacing: '0.06em',
   }
 
   const cardStyle = {
-    background: '#161616', border: '1px solid #1f1f1f',
-    borderRadius: '16px', padding: '28px',
+    background: 'white',
+    border: '1px solid #f3f4f6',
+    borderRadius: '14px',
+    padding: '28px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   }
 
   return (
@@ -166,11 +169,11 @@ export default function AdminBookingClient() {
           <a href="/admin/tempahan" style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             fontSize: '13px', color: '#6b7280', textDecoration: 'none',
-            padding: '5px 10px', borderRadius: '6px', border: '1px solid #1f2937',
+            padding: '5px 10px', borderRadius: '6px', border: '1px solid #e5e7eb',
             transition: 'all 0.15s',
           }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = '#374151'; e.currentTarget.style.background = '#1a1a1a' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#1f2937'; e.currentTarget.style.background = 'transparent' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#374151'; e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.background = '#f9fafb' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = 'transparent' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
@@ -178,10 +181,10 @@ export default function AdminBookingClient() {
             Kembali
           </a>
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'white', letterSpacing: '-0.5px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>
           Admin: Add Booking
         </h1>
-        <p style={{ color: '#4b5563', fontSize: '14px', marginTop: '4px' }}>
+        <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
           Bypass advance rules & auto-approve new bookings.
         </p>
       </div>
@@ -192,7 +195,7 @@ export default function AdminBookingClient() {
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
             <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>1</div>
-            <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>Personal & Organization Details</h2>
+            <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#111827' }}>Personal & Organization Details</h2>
           </div>
           {[
             { label: 'Full Name', field: 'full_name', placeholder: 'Enter full name', type: 'text' },
@@ -205,7 +208,7 @@ export default function AdminBookingClient() {
               <input type={item.type} placeholder={item.placeholder}
                 onChange={(e) => updateForm(item.field, e.target.value)} style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
             </div>
           ))}
         </div>
@@ -214,15 +217,15 @@ export default function AdminBookingClient() {
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
             <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>2</div>
-            <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>Schedule & Equipment</h2>
+            <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#111827' }}>Schedule & Equipment</h2>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Booking Date <span style={{ color: '#dc2626' }}>*</span></label>
             <input type="date" onChange={(e) => updateForm('booking_date', e.target.value)}
-              style={{ ...inputStyle, colorScheme: 'dark' }}
+              style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
@@ -230,9 +233,9 @@ export default function AdminBookingClient() {
               <div key={t.field}>
                 <label style={labelStyle}>{t.label} <span style={{ color: '#dc2626' }}>*</span></label>
                 <input type="time" onChange={(e) => updateForm(t.field, e.target.value)}
-                  style={{ ...inputStyle, colorScheme: 'dark' }}
+                  style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                  onBlur={(e) => e.target.style.borderColor = '#1f2937'} />
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
             ))}
           </div>
@@ -249,7 +252,7 @@ export default function AdminBookingClient() {
             ))}
           </div>
 
-          <div style={{ marginTop: '14px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#93c5fd', display: 'flex', gap: '6px' }}>
+          <div style={{ marginTop: '14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#2563eb', display: 'flex', gap: '6px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}>
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
@@ -262,28 +265,28 @@ export default function AdminBookingClient() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
             <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>3</div>
             <div>
-              <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'white', margin: 0 }}>Upload Approval Paperwork</h2>
-              <p style={{ fontSize: '12px', color: '#4b5563', margin: '2px 0 0' }}>Optional — upload if physical approval document is available</p>
+              <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', margin: 0 }}>Upload Approval Paperwork</h2>
+              <p style={{ fontSize: '12px', color: '#9ca3af', margin: '2px 0 0' }}>Optional — upload if physical approval document is available</p>
             </div>
           </div>
 
           {file ? (
-            <div style={{ border: '1px solid #1f2937', borderRadius: '10px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#111111' }}>
+            <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f9fafb' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '40px', height: '40px', background: 'rgba(139,0,0,0.15)', border: '1px solid rgba(139,0,0,0.25)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2">
+                <div style={{ width: '40px', height: '40px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                     <polyline points="14 2 14 8 20 8"/>
                   </svg>
                 </div>
                 <div>
-                  <p style={{ fontSize: '13px', fontWeight: '600', color: 'white', margin: 0 }}>{file.name}</p>
-                  <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>{(file.size / 1024).toFixed(1)} KB</p>
+                  <p style={{ fontSize: '13px', fontWeight: '600', color: '#111827', margin: 0 }}>{file.name}</p>
+                  <p style={{ fontSize: '11px', color: '#9ca3af', margin: 0 }}>{(file.size / 1024).toFixed(1)} KB</p>
                 </div>
               </div>
               <button
                 onClick={() => setFile(null)}
-                style={{ background: 'rgba(220,38,38,0.1)', color: '#f87171', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
               >Buang</button>
             </div>
           ) : (
@@ -297,30 +300,30 @@ export default function AdminBookingClient() {
                 else showToast('Hanya fail PDF dibenarkan.', 'error')
               }}
               style={{
-                border: `2px dashed ${dragOver ? '#8B0000' : '#1f2937'}`,
+                border: `2px dashed ${dragOver ? '#8B0000' : '#e5e7eb'}`,
                 borderRadius: '12px', padding: '40px',
                 textAlign: 'center',
-                background: dragOver ? 'rgba(139,0,0,0.08)' : '#111111',
+                background: dragOver ? '#fef2f2' : '#fafafa',
                 transition: 'all 0.2s', cursor: 'pointer',
               }}
             >
               <label style={{ cursor: 'pointer', display: 'block' }}>
                 <div style={{
                   width: '48px', height: '48px',
-                  background: 'rgba(139,0,0,0.12)', border: '1px solid rgba(139,0,0,0.2)',
+                  background: '#fef2f2', border: '1px solid #fecaca',
                   borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 16px',
                 }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="17 8 12 3 7 8"/>
                     <line x1="12" y1="3" x2="12" y2="15"/>
                   </svg>
                 </div>
-                <p style={{ fontSize: '14px', fontWeight: '600', color: 'white', marginBottom: '4px' }}>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '4px' }}>
                   Click to upload or drag and drop
                 </p>
-                <p style={{ fontSize: '12px', color: '#4b5563' }}>Only PDF files are accepted</p>
+                <p style={{ fontSize: '12px', color: '#9ca3af' }}>Only PDF files are accepted</p>
                 <input type="file" accept=".pdf" style={{ display: 'none' }} onChange={(e) => {
                   const selected = e.target.files?.[0]
                   if (selected?.type === 'application/pdf') setFile(selected)
@@ -338,17 +341,17 @@ export default function AdminBookingClient() {
         disabled={loading}
         style={{
           width: '100%',
-          background: loading ? '#1f1f1f' : 'linear-gradient(135deg, #8B0000, #a50000)',
-          color: loading ? '#6b7280' : 'white',
-          border: loading ? '1px solid #2d2d2d' : 'none',
+          background: loading ? '#f3f4f6' : 'linear-gradient(135deg, #8B0000, #a50000)',
+          color: loading ? '#9ca3af' : 'white',
+          border: loading ? '1px solid #e5e7eb' : 'none',
           borderRadius: '12px', padding: '16px', fontSize: '16px', fontWeight: '700',
           cursor: loading ? 'not-allowed' : 'pointer',
-          boxShadow: loading ? 'none' : '0 4px 20px rgba(139,0,0,0.35)',
+          boxShadow: loading ? 'none' : '0 4px 20px rgba(139,0,0,0.25)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
           transition: 'all 0.2s',
         }}
-        onMouseEnter={(e) => { if (!loading) e.currentTarget.style.boxShadow = '0 6px 28px rgba(139,0,0,0.5)' }}
-        onMouseLeave={(e) => { if (!loading) e.currentTarget.style.boxShadow = '0 4px 20px rgba(139,0,0,0.35)' }}
+        onMouseEnter={(e) => { if (!loading) e.currentTarget.style.boxShadow = '0 6px 28px rgba(139,0,0,0.35)' }}
+        onMouseLeave={(e) => { if (!loading) e.currentTarget.style.boxShadow = '0 4px 20px rgba(139,0,0,0.25)' }}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -362,9 +365,9 @@ export default function AdminBookingClient() {
         }
         input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator {
-          filter: brightness(0) invert(1);
-          cursor: pointer; opacity: 1;
+          cursor: pointer; opacity: 0.5;
         }
+        input::placeholder { color: #9ca3af; }
       `}</style>
     </div>
   )

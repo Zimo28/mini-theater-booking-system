@@ -139,16 +139,17 @@ export default function DashboardClient({
   }
 
   const card = {
-    background: '#161616',
-    border: '1px solid #1f1f1f',
+    background: 'white',
+    border: '1px solid #f3f4f6',
     borderRadius: '14px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   }
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
       {/* Page Title */}
       <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'white', letterSpacing: '-0.5px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>
           Admin Dashboard
         </h1>
         <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
@@ -165,16 +166,16 @@ export default function DashboardClient({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '12px',        // ← tambah gap
+            gap: '12px',
           }}>
-            <div style={{ minWidth: 0 }}>   {/* ← tambah minWidth: 0 supaya text tak overflow */}
+            <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>{stat.label}</p>
-              <p style={{ fontSize: '32px', fontWeight: '700', color: 'white', lineHeight: 1 }}>{stat.value}</p>
+              <p style={{ fontSize: '32px', fontWeight: '700', color: '#111827', lineHeight: 1 }}>{stat.value}</p>
             </div>
             <div style={{
               width: '52px', height: '52px', borderRadius: '14px',
               background: stat.bg, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', flexShrink: 0,   // ← pastikan ada flexShrink: 0
+              justifyContent: 'center', flexShrink: 0,
             }}>
               <stat.Icon />
             </div>
@@ -186,22 +187,21 @@ export default function DashboardClient({
       {upcoming.length > 0 && (
         <div style={{ ...card, overflow: 'hidden', marginBottom: '20px' }}>
           <div style={{
-              padding: '16px 24px', borderBottom: '1px solid #1f1f1f',
-              display: 'flex', alignItems: 'flex-start',  
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',   
-              gap: '8px',       
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            padding: '16px 24px', borderBottom: '1px solid #f3f4f6',
+            display: 'flex', alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap', gap: '8px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
               </svg>
-              <h2 style={{ fontSize: '15px', fontWeight: '600', color: 'white' }}>Upcoming Events</h2>
-              <span style={{ background: 'rgba(139,0,0,0.2)', color: '#f87171', fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '999px', border: '1px solid rgba(139,0,0,0.3)' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: '600', color: '#111827' }}>Upcoming Events</h2>
+              <span style={{ background: '#fef2f2', color: '#8B0000', fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '999px', border: '1px solid #fecaca' }}>
                 7 hari akan datang
               </span>
             </div>
-            <a href="/admin/upcoming" style={{ fontSize: '13px', color: '#f87171', fontWeight: '500', textDecoration: 'none' }}>
+            <a href="/admin/upcoming" style={{ fontSize: '13px', color: '#8B0000', fontWeight: '500', textDecoration: 'none' }}>
               Lihat semua →
             </a>
           </div>
@@ -219,32 +219,32 @@ export default function DashboardClient({
                 <div key={event.id} style={{
                   display: 'flex', alignItems: 'center', gap: '16px',
                   padding: '12px 16px', borderRadius: '10px', marginBottom: '8px',
-                  background: isToday ? 'rgba(139,0,0,0.15)' : '#111111',
-                  border: `1px solid ${isToday ? 'rgba(139,0,0,0.3)' : '#1f1f1f'}`,
+                  background: isToday ? '#fef2f2' : '#fafafa',
+                  border: `1px solid ${isToday ? '#fecaca' : '#f3f4f6'}`,
                   transition: 'all 0.15s',
                 }}>
                   <div style={{
                     flexShrink: 0, width: '48px', textAlign: 'center',
-                    background: isToday ? '#8B0000' : '#1a1a1a',
-                    border: `1px solid ${isToday ? '#8B0000' : '#6b7280'}`,
+                    background: isToday ? '#8B0000' : 'white',
+                    border: `1px solid ${isToday ? '#8B0000' : '#e5e7eb'}`,
                     borderRadius: '10px', padding: '6px 4px',
                   }}>
-                    <p style={{ fontSize: '18px', fontWeight: '800', color: 'white', lineHeight: 1 }}>{date.getDate()}</p>
-                    <p style={{ fontSize: '10px', fontWeight: '600', color: isToday ? 'rgba(255,255,255,0.7)' : '#6b7280', textTransform: 'uppercase' }}>
+                    <p style={{ fontSize: '18px', fontWeight: '800', color: isToday ? 'white' : '#111827', lineHeight: 1 }}>{date.getDate()}</p>
+                    <p style={{ fontSize: '10px', fontWeight: '600', color: isToday ? 'rgba(255,255,255,0.7)' : '#9ca3af', textTransform: 'uppercase' }}>
                       {date.toLocaleDateString('en', { month: 'short' })}
                     </p>
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '14px', fontWeight: '600', color: 'white', marginBottom: '2px' }}>{event.event_name}</p>
+                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '2px' }}>{event.event_name}</p>
                     <p style={{ fontSize: '12px', color: '#6b7280' }}>{event.organization} · {event.start_time} - {event.end_time}</p>
                   </div>
 
                   <span style={{
                     flexShrink: 0, padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '700',
-                    background: isToday ? '#8B0000' : isTomorrow ? 'rgba(217,119,6,0.15)' : '#1f1f1f',
-                    color: isToday ? 'white' : isTomorrow ? '#fbbf24' : '#6b7280',
-                    border: `1px solid ${isToday ? '#8B0000' : isTomorrow ? 'rgba(217,119,6,0.25)' : '#2d2d2d'}`,
+                    background: isToday ? '#8B0000' : isTomorrow ? '#fffbeb' : '#f3f4f6',
+                    color: isToday ? 'white' : isTomorrow ? '#d97706' : '#6b7280',
+                    border: `1px solid ${isToday ? '#8B0000' : isTomorrow ? '#fde68a' : '#e5e7eb'}`,
                   }}>
                     {isToday ? 'Hari Ini' : isTomorrow ? 'Esok' : `${diffDays} hari lagi`}
                   </span>
@@ -257,32 +257,32 @@ export default function DashboardClient({
 
       {/* Calendar Section */}
       <div style={{ ...card, overflow: 'hidden' }}>
-        <div style={{ padding: '18px 24px', borderBottom: '1px solid #1f1f1f', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div style={{ padding: '18px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/>
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <h2 style={{ fontSize: '15px', fontWeight: '600', color: 'white' }}>Mini Theater Availability</h2>
+          <h2 style={{ fontSize: '15px', fontWeight: '600', color: '#111827' }}>Mini Theater Availability</h2>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr' }} className="calendar-grid">
           {/* Calendar */}
-          <div style={{ padding: '20px', borderRight: '1px solid #1f1f1f' }}>
+          <div style={{ padding: '20px', borderRight: '1px solid #f3f4f6' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <button onClick={prevMonth} style={{ background: '#1a1a1a', border: '1px solid #1f2937', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: '16px' }}>‹</button>
-              <span style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>{monthNames[currentMonth]} {currentYear}</span>
-              <button onClick={nextMonth} style={{ background: '#1a1a1a', border: '1px solid #1f2937', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: '16px' }}>›</button>
+              <button onClick={prevMonth} style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: '16px' }}>‹</button>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{monthNames[currentMonth]} {currentYear}</span>
+              <button onClick={nextMonth} style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: '16px' }}>›</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: '8px' }}>
-              {dayNames.map(d => <div key={d} style={{ textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#6b7280', padding: '4px 0' }}>{d}</div>)}
+              {dayNames.map(d => <div key={d} style={{ textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#9ca3af', padding: '4px 0' }}>{d}</div>)}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
               {Array.from({ length: firstDay }).map((_, i) => (
-                <div key={`prev-${i}`} style={{ aspectRatio: '1', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#6b7280' }}>
+                <div key={`prev-${i}`} style={{ aspectRatio: '1', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#d1d5db' }}>
                   {prevDays - firstDay + i + 1}
                 </div>
               ))}
@@ -301,20 +301,20 @@ export default function DashboardClient({
                     onMouseEnter={(e) => {
                       if (!isSelected) {
                         e.currentTarget.style.background = status === 'booked'
-                          ? 'rgba(220,38,38,0.25)'
+                          ? '#fecaca'
                           : status === 'pending'
-                          ? 'rgba(217,119,6,0.25)'
-                          : 'rgba(255,255,255,0.08)'
+                          ? '#fde68a'
+                          : '#f3f4f6'
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
                         e.currentTarget.style.background = isToday
-                          ? 'rgba(255,255,255,0.06)'
+                          ? '#f3f4f6'
                           : status === 'booked'
-                          ? 'rgba(220,38,38,0.15)'
+                          ? '#fee2e2'
                           : status === 'pending'
-                          ? 'rgba(217,119,6,0.15)'
+                          ? '#fef9c3'
                           : 'transparent'
                       }
                     }}
@@ -324,21 +324,21 @@ export default function DashboardClient({
                       position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.15s ease',
                       background: isSelected
-                        ? '#8B0000'
+                        ? '#111827'
                         : isToday
-                        ? 'rgba(255,255,255,0.06)'
+                        ? '#f3f4f6'
                         : status === 'booked'
-                        ? 'rgba(220,38,38,0.15)'
+                        ? '#fee2e2'
                         : status === 'pending'
-                        ? 'rgba(217,119,6,0.15)'
+                        ? '#fef9c3'
                         : 'transparent',
                       color: isSelected
                         ? 'white'
                         : status === 'booked'
-                        ? '#f87171'
+                        ? '#dc2626'
                         : status === 'pending'
-                        ? '#fbbf24'
-                        : '#6b7280',
+                        ? '#d97706'
+                        : '#374151',
                       fontWeight: isSelected ? '600' : isToday ? '700' : '400',
                     }}
                   >
@@ -360,7 +360,7 @@ export default function DashboardClient({
           {/* Right Panel */}
           <div style={{ display: 'flex', flexDirection: 'column', minHeight: '420px' }}>
             <div style={{ padding: '24px 28px 16px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'white' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#111827' }}>
                 {selectedDate ? formatSelectedDate(selectedDate) : 'Select a date'}
               </h3>
             </div>
@@ -368,89 +368,94 @@ export default function DashboardClient({
             <div style={{ flex: 1, padding: '0 28px 24px' }}>
               {!selectedDate ? (
                 <div style={{ padding: '40px 0', textAlign: 'center' }}>
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#1f2937" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px', display: 'block' }}>
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px', display: 'block' }}>
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                     <line x1="16" y1="2" x2="16" y2="6"/>
                     <line x1="8" y1="2" x2="8" y2="6"/>
                     <line x1="3" y1="10" x2="21" y2="10"/>
                   </svg>
-                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>Select a date</p>
-                  <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>Click pada tarikh untuk lihat tempahan</p>
+                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#9ca3af' }}>Select a date</p>
+                  <p style={{ fontSize: '13px', color: '#d1d5db', marginTop: '4px' }}>Click pada tarikh untuk lihat tempahan</p>
                 </div>
               ) : selectedBookings.length === 0 ? (
                 <div style={{ padding: '40px 0', textAlign: 'center' }}>
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(74,222,128,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 12px', display: 'block' }}>
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                  </svg>
-                  <p style={{ fontSize: '16px', fontWeight: '600', color: 'white', marginBottom: '4px' }}>Slot Available</p>
-                  <p style={{ fontSize: '13px', color: '#6b7280' }}>No approved bookings for this date.</p>
+                  <div style={{ width: '48px', height: '48px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </div>
+                  <p style={{ fontSize: '16px', fontWeight: '600', color: '#111827', marginBottom: '4px' }}>Slot Available</p>
+                  <p style={{ fontSize: '13px', color: '#9ca3af' }}>No approved bookings for this date.</p>
                 </div>
               ) : (
                 <div>
                   <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
                     {selectedBookings.some(b => b.status === 'approved') ? 'Scheduled approved events:' : 'Pending approval:'}
                   </p>
-                  {selectedBookings.map((booking) => (
-                    <a
-                      key={booking.id}
-                      href={`/admin/tempahan?id=${booking.id}`}
-                      style={{
-                        display: 'block',
-                        border: `1px solid ${booking.status === 'approved' ? 'rgba(220,38,38,0.25)' : 'rgba(217,119,6,0.25)'}`,
-                        borderRadius: '10px', padding: '14px 16px', marginBottom: '10px',
-                        background: booking.status === 'approved' ? 'rgba(220,38,38,0.08)' : 'rgba(217,119,6,0.08)',
-                        textDecoration: 'none', cursor: 'pointer', transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = booking.status === 'approved' ? 'rgba(220,38,38,0.15)' : 'rgba(217,119,6,0.15)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = booking.status === 'approved' ? 'rgba(220,38,38,0.08)' : 'rgba(217,119,6,0.08)'}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '700', color: 'white' }}>
-                          {booking.start_time} – {booking.end_time}
-                        </span>
-                        <span style={{
-                          padding: '3px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700',
-                          background: booking.status === 'approved' ? '#dc2626' : '#d97706', color: 'white',
-                        }}>
-                          {booking.status === 'approved' ? 'Booked' : 'Pending'}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '13px', fontWeight: '600', color: booking.status === 'approved' ? '#f87171' : '#fbbf24', marginBottom: '10px' }}>
-                        {booking.event_name}
-                      </p>
-                      <div style={{ display: 'flex', gap: '8px', fontSize: '13px', color: '#6b7280', alignItems: 'center' }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                        </svg>
-                        <span>{booking.full_name}</span>
-                        <span>·</span>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                        </svg>
-                        <span>{booking.organization}</span>
-                      </div>
-                    </a>
-                  ))}
+                  {selectedBookings.map((booking) => {
+                    const isApproved = booking.status === 'approved'
+                    return (
+                      <a
+                        key={booking.id}
+                        href={`/admin/tempahan?id=${booking.id}`}
+                        style={{
+                          display: 'block',
+                          border: `1px solid ${isApproved ? '#fecaca' : '#fde68a'}`,
+                          borderRadius: '10px', padding: '14px 16px', marginBottom: '10px',
+                          background: isApproved ? '#fef2f2' : '#fffbeb',
+                          textDecoration: 'none', cursor: 'pointer', transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = isApproved ? '#fee2e2' : '#fef9c3'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = isApproved ? '#fef2f2' : '#fffbeb'}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '700', color: '#111827' }}>
+                            {booking.start_time} – {booking.end_time}
+                          </span>
+                          <span style={{
+                            padding: '3px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700',
+                            background: isApproved ? '#dc2626' : '#d97706', color: 'white',
+                          }}>
+                            {isApproved ? 'Booked' : 'Pending'}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '13px', fontWeight: '600', color: isApproved ? '#8B0000' : '#d97706', marginBottom: '10px' }}>
+                          {booking.event_name}
+                        </p>
+                        <div style={{ display: 'flex', gap: '8px', fontSize: '13px', color: '#6b7280', alignItems: 'center' }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                          </svg>
+                          <span>{booking.full_name}</span>
+                          <span>·</span>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                          </svg>
+                          <span>{booking.organization}</span>
+                        </div>
+                      </a>
+                    )
+                  })}
                 </div>
               )}
             </div>
 
             {/* Operating Hours */}
-            <div style={{ padding: '16px 28px', borderTop: '1px solid #1f1f1f', background: '#111111' }}>
+            <div style={{ padding: '16px 28px', borderTop: '1px solid #f3f4f6', background: '#fafafa' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af' }}>Operating Hours</span>
+                <span style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Operating Hours</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
                 <span style={{ color: '#6b7280' }}>Everyday:</span>
-                <span style={{ color: '#e5e7eb', fontWeight: '500' }}>7:00 AM - 10:30 PM</span>
+                <span style={{ color: '#111827', fontWeight: '500' }}>7:00 AM - 10:30 PM</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', gap: '16px' }}>
                 <span style={{ color: '#6b7280' }}>Special Holidays / Semester Break / Study Week:</span>
-                <span style={{ color: '#f87171', fontWeight: '600', flexShrink: 0 }}>Closed</span>
+                <span style={{ color: '#dc2626', fontWeight: '600', flexShrink: 0 }}>Closed</span>
               </div>
             </div>
           </div>
@@ -466,10 +471,7 @@ export default function DashboardClient({
           .stats-grid { grid-template-columns: 1fr 1fr !important; }
         }
         @media (max-width: 480px) {
-          /* Stats card — kecilkan font dan icon */
           .stats-grid > div { padding: 14px 16px !important; }
-          .stats-grid p:first-child { font-size: 11px !important; }
-          .stats-grid p:last-child { font-size: 24px !important; }
         }
       `}</style>
     </div>

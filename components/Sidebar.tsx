@@ -4,10 +4,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
+import { useSidebar } from '@/components/SidebarContext'
 
 export default function Sidebar() {
   const pathname = usePathname()
   const [pendingCount, setPendingCount] = useState(0)
+  const { collapsed, setCollapsed } = useSidebar()
 
   useEffect(() => {
     const fetchPending = async () => {
@@ -59,29 +61,57 @@ export default function Sidebar() {
 
   return (
     <aside style={{
-      width: '240px',
+      width: collapsed ? '64px' : '240px',
       height: '100vh',
       position: 'sticky',
       top: 0,
-      background: '#0a0a0a',
+      background: 'white',
       display: 'flex',
       flexDirection: 'column',
-      borderRight: '1px solid #1f1f1f',
+      borderRight: '1px solid #f3f4f6',
       flexShrink: 0,
       overflowY: 'auto',
+      overflowX: 'hidden',
+      transition: 'width 0.25s ease',
     }}>
+      {/* Logo */}
       <Link href="/admin/dashboard" style={{ textDecoration: 'none' }}>
-        <div style={{ padding: '16px', borderBottom: '1px solid #1f1f1f', cursor: 'pointer' }}>
-          <img src="/logo.png" alt="Mini Theater" style={{ width: '100%', maxHeight: '80px', objectFit: 'contain', display: 'block', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+        <div style={{
+          padding: '16px',
+          borderBottom: '1px solid #f3f4f6',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          minHeight: '80px',
+          overflow: 'hidden',
+        }}>
+          {collapsed ? (
+            <div style={{
+              width: '36px', height: '36px',
+              borderRadius: '8px',
+              border: '1px solid #f3f4f6',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden', flexShrink: 0,
+            }}>
+              <img src="/logo.png" alt="Mini Theater" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+            </div>
+          ) : (
+            <img src="/logo.png" alt="Mini Theater" style={{ width: '100%', maxHeight: '60px', objectFit: 'contain', display: 'block' }} />
+          )}
         </div>
       </Link>
 
-      <div style={{ padding: '16px 16px 6px' }}>
-        <span style={{ fontSize: '10px', fontWeight: '700', color: '#374151', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          Menu
-        </span>
-      </div>
+      {/* Menu label */}
+      {!collapsed && (
+        <div style={{ padding: '16px 16px 6px' }}>
+          <span style={{ fontSize: '10px', fontWeight: '700', color: '#9ca3af', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            Menu
+          </span>
+        </div>
+      )}
 
+      {/* Nav */}
       <nav style={{ flex: 1, padding: '4px 8px' }}>
         {navItems.map((item) => {
           const isActive = item.href === '/admin/tempahan'
@@ -92,43 +122,56 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              title={collapsed ? item.label : undefined}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
+                justifyContent: collapsed ? 'center' : 'space-between',
                 gap: '10px',
-                padding: '9px 12px',
+                padding: collapsed ? '10px' : '9px 12px',
                 borderRadius: '8px',
                 marginBottom: '2px',
                 fontSize: '13.5px',
                 fontWeight: isActive ? '600' : '400',
-                color: isActive ? '#f87171' : '#6b7280',
-                background: isActive ? 'rgba(139,0,0,0.2)' : 'transparent',
-                borderLeft: isActive ? '3px solid #8B0000' : '3px solid transparent',
+                color: isActive ? '#8B0000' : '#6b7280',
+                background: isActive ? '#fef2f2' : 'transparent',
+                borderLeft: collapsed ? 'none' : isActive ? '3px solid #8B0000' : '3px solid transparent',
                 transition: 'all 0.15s',
                 textDecoration: 'none',
+                position: 'relative',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.background = 'rgba(139,0,0,0.1)'
-                  e.currentTarget.style.color = '#f87171'
-                  e.currentTarget.style.borderLeft = '3px solid rgba(139,0,0,0.3)'
+                  e.currentTarget.style.background = '#fef2f2'
+                  e.currentTarget.style.color = '#8B0000'
+                  if (!collapsed) e.currentTarget.style.borderLeft = '3px solid #fecaca'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
                   e.currentTarget.style.background = 'transparent'
                   e.currentTarget.style.color = '#6b7280'
-                  e.currentTarget.style.borderLeft = '3px solid transparent'
+                  if (!collapsed) e.currentTarget.style.borderLeft = '3px solid transparent'
                 }
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ opacity: isActive ? 1 : 0.5 }}>{item.icon}</span>
-                {item.label}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                <span style={{ opacity: isActive ? 1 : 0.5, flexShrink: 0 }}>{item.icon}</span>
+                {!collapsed && item.label}
               </div>
-              {item.badge !== null && (
+              {!collapsed && item.badge !== null && (
                 <span style={{ background: '#dc2626', color: 'white', fontSize: '10px', fontWeight: '700', padding: '2px 6px', borderRadius: '999px', minWidth: '18px', textAlign: 'center' }}>
+                  {item.badge}
+                </span>
+              )}
+              {collapsed && item.badge !== null && (
+                <span style={{
+                  position: 'absolute', top: '4px', right: '4px',
+                  background: '#dc2626', color: 'white',
+                  fontSize: '9px', fontWeight: '700',
+                  width: '14px', height: '14px',
+                  borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
                   {item.badge}
                 </span>
               )}
@@ -137,19 +180,28 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div style={{ padding: '8px', borderTop: '1px solid #1f1f1f' }}>
+      {/* Logout */}
+      <div style={{ padding: '8px', borderTop: '1px solid #f3f4f6' }}>
         <button
           onClick={handleLogout}
-          style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: 'none', background: 'transparent', color: '#4b5563', fontSize: '13.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.15s' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139,0,0,0.1)'; e.currentTarget.style.color = '#f87171' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4b5563' }}
+          title={collapsed ? 'Log Keluar' : undefined}
+          style={{
+            width: '100%', padding: collapsed ? '10px' : '9px 12px',
+            borderRadius: '8px', border: 'none', background: 'transparent',
+            color: '#9ca3af', fontSize: '13.5px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            gap: '10px', transition: 'all 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#8B0000' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9ca3af' }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
-          Log Keluar
+          {!collapsed && 'Log Keluar'}
         </button>
       </div>
     </aside>

@@ -3,6 +3,7 @@ import Header from '@/components/Header'
 import MobileNav from '@/components/MobileNav'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { SidebarProvider } from '@/components/SidebarContext'
 
 export default async function AdminLayout({
   children,
@@ -23,24 +24,26 @@ export default async function AdminLayout({
   const userName = profile?.full_name ?? user?.email ?? 'Admin'
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#0a0a0a' }}>
-      <div className="sidebar-wrapper">
-        <Sidebar />
-      </div>
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        <div className="mobile-nav-wrapper">
-          <MobileNav userName={userName} />
+    <SidebarProvider>
+      <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f9fafb' }}>
+        <div className="sidebar-wrapper">
+          <Sidebar />
         </div>
 
-        <div className="desktop-header-wrapper">
-          <Header />
-        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+          <div className="mobile-nav-wrapper">
+            <MobileNav userName={userName} />
+          </div>
 
-        <main style={{ flex: 1, padding: '32px', background: '#0a0a0a', overflowY: 'auto' }}>
-          {children}
-        </main>
+          <div className="desktop-header-wrapper">
+            <Header />
+          </div>
+
+          <main style={{ flex: 1, padding: '32px', background: '#f9fafb', overflowY: 'auto' }}>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }

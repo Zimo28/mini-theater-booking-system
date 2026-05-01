@@ -89,14 +89,14 @@ export default function SettingsClient({
 
   const inputStyle = {
     width: '100%',
-    border: '1px solid #1f1f1f',
+    border: '1.5px solid #e5e7eb',
     borderRadius: '8px',
     padding: '10px 14px',
     fontSize: '13px',
     outline: 'none',
     boxSizing: 'border-box' as const,
-    color: '#e5e7eb',
-    background: '#111111',
+    color: '#111827',
+    background: 'white',
     transition: 'border-color 0.2s',
   }
 
@@ -111,10 +111,11 @@ export default function SettingsClient({
   }
 
   const card = {
-    background: '#161616',
-    border: '1px solid #1f1f1f',
+    background: 'white',
+    border: '1px solid #f3f4f6',
     borderRadius: '12px',
     overflow: 'hidden' as const,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   }
 
   return (
@@ -122,7 +123,7 @@ export default function SettingsClient({
       {/* Page Title */}
       <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'white', letterSpacing: '-0.5px' }}>Settings</h1>
+          <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>Settings</h1>
           <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>Manage system configurations</p>
         </div>
         {activeTab !== 'admin' && (
@@ -136,7 +137,7 @@ export default function SettingsClient({
               cursor: saving ? 'not-allowed' : 'pointer',
               opacity: saving ? 0.7 : 1,
               display: 'flex', alignItems: 'center', gap: '8px',
-              boxShadow: '0 4px 12px rgba(139,0,0,0.3)',
+              boxShadow: '0 4px 12px rgba(139,0,0,0.2)',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -152,8 +153,8 @@ export default function SettingsClient({
       {/* Tabs */}
       <div style={{
         display: 'flex', gap: '2px', marginBottom: '24px',
-        background: '#161616', padding: '4px', borderRadius: '10px',
-        border: '1px solid #1f1f1f', overflowX: 'auto',
+        background: '#f3f4f6', padding: '4px', borderRadius: '10px',
+        border: '1px solid #e5e7eb', overflowX: 'auto',
       }}>
         {tabs.map((tab) => (
           <button
@@ -164,21 +165,21 @@ export default function SettingsClient({
               fontSize: '13px', fontWeight: activeTab === tab.id ? '600' : '400',
               cursor: 'pointer',
               background: activeTab === tab.id ? '#8B0000' : 'transparent',
-              color: activeTab === tab.id ? 'white' : '#4b5563',
+              color: activeTab === tab.id ? 'white' : '#6b7280',
               transition: 'all 0.15s', whiteSpace: 'nowrap',
               display: 'flex', alignItems: 'center', gap: '7px',
               flex: 1, justifyContent: 'center',
             }}
             onMouseEnter={(e) => {
               if (activeTab !== tab.id) {
-                e.currentTarget.style.background = 'rgba(139,0,0,0.15)'
-                e.currentTarget.style.color = '#f87171'
+                e.currentTarget.style.background = '#fef2f2'
+                e.currentTarget.style.color = '#8B0000'
               }
             }}
             onMouseLeave={(e) => {
               if (activeTab !== tab.id) {
                 e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.color = '#4b5563'
+                e.currentTarget.style.color = '#6b7280'
               }
             }}
           >
@@ -194,10 +195,10 @@ export default function SettingsClient({
         {/* General Tab */}
         {activeTab === 'general' && (
           <div style={{ padding: '28px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>System Settings</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '20px' }}>System Settings</h3>
 
             {/* Google Sheet */}
-            <div style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #1f1f1f' }}>
+            <div style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #f3f4f6' }}>
               <label style={labelStyle}>Google Sheet URL</label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <input
@@ -207,12 +208,14 @@ export default function SettingsClient({
                   onChange={(e) => updateSetting('google_sheet_url', e.target.value)}
                   style={{ ...inputStyle, flex: 1 }}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                  onBlur={(e) => e.target.style.borderColor = '#1f1f1f'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 />
                 {settings['google_sheet_url'] && (
                   <a
                     href={settings['google_sheet_url']} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '8px', border: '1px solid #1f2937', background: '#1a1a1a', fontSize: '13px', fontWeight: '600', color: '#9ca3af', textDecoration: 'none', flexShrink: 0 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#f9fafb', fontSize: '13px', fontWeight: '600', color: '#6b7280', textDecoration: 'none', flexShrink: 0, transition: 'all 0.15s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.color = '#374151' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280' }}
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -234,7 +237,7 @@ export default function SettingsClient({
                 <div key={item.key} style={{ gridColumn: item.col }}>
                   <label style={labelStyle}>{item.label}</label>
                   <input type={item.type} value={settings[item.key] ?? ''} onChange={(e) => updateSetting(item.key, e.target.value)} style={inputStyle}
-                    onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
                 </div>
               ))}
 
@@ -242,53 +245,53 @@ export default function SettingsClient({
                 <label style={labelStyle}>Hero Subtitle</label>
                 <textarea value={settings['hero_subtitle'] ?? ''} onChange={(e) => updateSetting('hero_subtitle', e.target.value)} rows={2}
                   style={{ ...inputStyle, resize: 'vertical' }}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
 
               <div>
                 <label style={labelStyle}>Masa Buka</label>
-                <input type="time" value={settings['operating_hours_start'] ?? '07:00'} onChange={(e) => updateSetting('operating_hours_start', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                <input type="time" value={settings['operating_hours_start'] ?? '07:00'} onChange={(e) => updateSetting('operating_hours_start', e.target.value)} style={inputStyle}
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
                 <label style={labelStyle}>Masa Tutup</label>
-                <input type="time" value={settings['operating_hours_end'] ?? '22:30'} onChange={(e) => updateSetting('operating_hours_end', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                <input type="time" value={settings['operating_hours_end'] ?? '22:30'} onChange={(e) => updateSetting('operating_hours_end', e.target.value)} style={inputStyle}
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
                 <label style={labelStyle}>Min Hari Tempah Awal</label>
                 <input type="number" min="1" max="30" value={settings['min_advance_days'] ?? '5'} onChange={(e) => updateSetting('min_advance_days', e.target.value)} style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
                 <label style={labelStyle}>Max Jam Tempahan</label>
                 <input type="number" min="1" max="16" value={settings['max_booking_hours'] ?? '8'} onChange={(e) => updateSetting('max_booking_hours', e.target.value)} style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
 
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>Warning Message (Booking Form)</label>
                 <textarea value={settings['warning_message'] ?? ''} onChange={(e) => updateSetting('warning_message', e.target.value)} rows={3}
                   style={{ ...inputStyle, resize: 'vertical' }}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
             </div>
 
             {/* Facilities */}
-            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #1f1f1f' }}>
+            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #f3f4f6' }}>
               <label style={{ ...labelStyle, marginBottom: '12px' }}>Mini Theater Facilities</label>
               {facilities.map((facility) => (
                 <div key={facility.id} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '10px 14px', borderRadius: '8px', border: '1px solid #1f1f1f',
-                  marginBottom: '6px', background: '#111111',
+                  padding: '10px 14px', borderRadius: '8px', border: '1px solid #f3f4f6',
+                  marginBottom: '6px', background: '#f9fafb',
                 }}>
-                  <span style={{ fontSize: '13px', color: '#9ca3af' }}>{facility.name}</span>
+                  <span style={{ fontSize: '13px', color: '#374151' }}>{facility.name}</span>
                   <button
                     onClick={() => deleteFacility(facility.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#374151', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#f87171'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#374151'}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6"/>
@@ -308,7 +311,7 @@ export default function SettingsClient({
                   onKeyDown={(e) => e.key === 'Enter' && addFacility()}
                   style={{ ...inputStyle, flex: 1 }}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                  onBlur={(e) => e.target.style.borderColor = '#1f1f1f'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 />
                 <button
                   onClick={addFacility}
@@ -322,7 +325,7 @@ export default function SettingsClient({
         {/* Equipment Tab */}
         {activeTab === 'equipment' && (
           <div style={{ padding: '28px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Equipment Settings</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '20px' }}>Equipment Settings</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="equipment-grid">
               {[
                 { 
@@ -348,7 +351,7 @@ export default function SettingsClient({
                     {item.label}
                   </label>
                   <input type="number" min="0" max="10" value={settings[item.key] ?? '1'} onChange={(e) => updateSetting(item.key, e.target.value)} style={inputStyle}
-                    onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
                 </div>
               ))}
             </div>
@@ -358,44 +361,44 @@ export default function SettingsClient({
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
           <div style={{ padding: '28px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Notification Settings</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '20px' }}>Notification Settings</h3>
             <label style={labelStyle}>Admin Email</label>
             <input type="email" value={settings['admin_email'] ?? ''} onChange={(e) => updateSetting('admin_email', e.target.value)} style={inputStyle}
-              onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
-            <p style={{ fontSize: '11px', color: '#4b5563', marginTop: '4px' }}>Email ini akan menerima notifikasi tempahan baru</p>
+              onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+            <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>Email ini akan menerima notifikasi tempahan baru</p>
           </div>
         )}
 
         {/* Contact Tab */}
         {activeTab === 'contact' && (
           <div style={{ padding: '28px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Contact Us Settings</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '20px' }}>Contact Us Settings</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="settings-grid-2">
               <div>
                 <label style={labelStyle}>Nama</label>
                 <input type="text" value={settings['contact_name'] ?? ''} onChange={(e) => updateSetting('contact_name', e.target.value)} style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
                 <label style={labelStyle}>Phone</label>
                 <input type="text" value={settings['contact_phone'] ?? ''} onChange={(e) => updateSetting('contact_phone', e.target.value)} style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
                 <label style={labelStyle}>Email</label>
                 <input type="email" value={settings['contact_email'] ?? ''} onChange={(e) => updateSetting('contact_email', e.target.value)} style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
                 <label style={labelStyle}>Operating Hours</label>
                 <input type="text" value={settings['contact_hours'] ?? ''} placeholder="e.g. 7:00 AM – 10:30 PM" onChange={(e) => updateSetting('contact_hours', e.target.value)} style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>Address</label>
                 <textarea value={settings['contact_address'] ?? ''} onChange={(e) => updateSetting('contact_address', e.target.value)} rows={2}
                   style={{ ...inputStyle, resize: 'vertical' }}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#1f1f1f'} />
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
             </div>
           </div>
@@ -404,17 +407,19 @@ export default function SettingsClient({
         {/* Admin Account Tab */}
         {activeTab === 'admin' && (
           <div style={{ padding: '28px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '20px' }}>Admin Account</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '20px' }}>Admin Account</h3>
             <AdminAccountSection />
           </div>
         )}
       </div>
+
       <style>{`
         @media (max-width: 600px) {
           .equipment-grid { grid-template-columns: 1fr !important; }
           .settings-grid-2 { grid-template-columns: 1fr !important; }
           .settings-grid-2 > div[style*="1 / -1"] { grid-column: 1 !important; }
         }
+        input::placeholder, textarea::placeholder { color: #9ca3af; }
       `}</style>
     </div>
   )

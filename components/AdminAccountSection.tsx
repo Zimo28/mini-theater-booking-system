@@ -15,14 +15,14 @@ export default function AdminAccountSection() {
 
   const inputStyle = {
     width: '100%',
-    border: '1.5px solid #1f2937',
+    border: '1.5px solid #e5e7eb',
     borderRadius: '8px',
     padding: '10px 14px',
     fontSize: '13px',
     outline: 'none',
     boxSizing: 'border-box' as const,
-    color: 'white',
-    background: '#1a1a1a',
+    color: '#111827',
+    background: 'white',
     transition: 'border-color 0.2s',
   }
 
@@ -30,7 +30,7 @@ export default function AdminAccountSection() {
     display: 'block',
     fontSize: '12px',
     fontWeight: '600' as const,
-    color: '#9ca3af',
+    color: '#6b7280',
     marginBottom: '6px',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
@@ -44,7 +44,6 @@ export default function AdminAccountSection() {
 
     setLoadingProfile(true)
 
-    // Update email
     if (email) {
       const { error } = await supabase.auth.updateUser({ email })
       if (error) {
@@ -54,7 +53,6 @@ export default function AdminAccountSection() {
       }
     }
 
-    // Update nama dalam profiles table
     if (fullName) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
@@ -110,7 +108,7 @@ export default function AdminAccountSection() {
     <div>
       {/* Update Profile */}
       <div style={{ marginBottom: '28px' }}>
-        <p style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af', marginBottom: '16px' }}>
+        <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
           Kemaskini Profil
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
@@ -123,7 +121,7 @@ export default function AdminAccountSection() {
               onChange={(e) => setFullName(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
           <div>
@@ -135,7 +133,7 @@ export default function AdminAccountSection() {
               onChange={(e) => setEmail(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
         </div>
@@ -170,11 +168,11 @@ export default function AdminAccountSection() {
         </button>
       </div>
 
-      <hr style={{ border: 'none', borderTop: '1px solid #1f1f1f', marginBottom: '28px' }} />
+      <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', marginBottom: '28px' }} />
 
       {/* Update Password */}
       <div>
-        <p style={{ fontSize: '13px', fontWeight: '600', color: '#9ca3af', marginBottom: '16px' }}>
+        <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
           Tukar Password
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
@@ -187,7 +185,7 @@ export default function AdminAccountSection() {
               onChange={(e) => setNewPassword(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
           <div>
@@ -199,7 +197,7 @@ export default function AdminAccountSection() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#1f2937'}
+              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           </div>
         </div>
@@ -207,9 +205,9 @@ export default function AdminAccountSection() {
           onClick={updatePassword}
           disabled={loadingPassword}
           style={{
-            background: loadingPassword ? '#1f1f1f' : '#161616',
-            border: loadingPassword ? '1px solid #2d2d2d' : '1px solid #374151',
-            color: 'white',
+            background: loadingPassword ? '#f3f4f6' : 'white',
+            border: loadingPassword ? '1px solid #e5e7eb' : '1px solid #d1d5db',
+            color: loadingPassword ? '#9ca3af' : '#374151',
             borderRadius: '8px',
             padding: '10px 20px',
             fontSize: '13px',
@@ -218,15 +216,15 @@ export default function AdminAccountSection() {
           }}
           onMouseEnter={(e) => {
             if (!loadingPassword) {
-              e.currentTarget.style.background = '#1f1f1f'
-              e.currentTarget.style.borderColor = '#6b7280'
-              e.currentTarget.style.boxShadow = '0 0 0 2px rgba(107,114,128,0.15)'
+              e.currentTarget.style.background = '#f9fafb'
+              e.currentTarget.style.borderColor = '#9ca3af'
+              e.currentTarget.style.boxShadow = '0 0 0 2px rgba(107,114,128,0.1)'
             }
           }}
           onMouseLeave={(e) => {
             if (!loadingPassword) {
-              e.currentTarget.style.background = '#161616'
-              e.currentTarget.style.borderColor = '#374151'
+              e.currentTarget.style.background = 'white'
+              e.currentTarget.style.borderColor = '#d1d5db'
               e.currentTarget.style.boxShadow = 'none'
             }
           }}
