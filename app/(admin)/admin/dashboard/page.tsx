@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const todayStr = now.toISOString().split('T')[0]
 
   const [{ data: bookings }, { count: total }, { count: pending }, { count: approved }, { count: thisMonth }] = await Promise.all([
-    supabase.from('bookings').select('*').neq('status', 'rejected').order('booking_date'),
+    supabase.from('bookings').select('*').order('booking_date'),
     supabase.from('bookings').select('*', { count: 'exact', head: true }),
     supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'approved'),

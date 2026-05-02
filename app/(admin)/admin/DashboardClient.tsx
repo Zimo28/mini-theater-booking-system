@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
 
 type Booking = {
   id: string
@@ -62,6 +63,171 @@ const IconCalendar = () => (
     <line x1="3" y1="10" x2="21" y2="10"/>
   </svg>
 )
+
+function MonthlyTrendChart({ bookings }: { bookings: Booking[] }) {
+  const today = new Date()
+  const months: { label: string; year: number; month: number }[] = []
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1)
+    months.push({
+      label: d.toLocaleDateString('en', { month: 'short' }),
+      year: d.getFullYear(),
+      month: d.getMonth(),
+    })
+  }
+
+  const data = months.map(m => {
+    const total = bookings.filter(b => {
+      const d = new Date(b.booking_date + 'T00:00:00')
+      return d.getFullYear() === m.year && d.getMonth() === m.month
+    })
+    return {
+      name: m.label,
+      Total: total.length,
+      Approved: total.filter(b => b.status === 'approved').length,
+      Pending: total.filter(b => b.status === 'pending').length,
+      Rejected: total.filter(b => b.status === 'rejected').length,
+    }
+  })
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={{
+          background: 'white', border: '1px solid #f3f4f6',
+          borderRadius: '10px', padding: '12px 16px',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+          fontSize: '13px',
+        }}>
+          <p style={{ fontWeight: '700', color: '#111827', marginBottom: '8px' }}>{label}</p>
+          {payload.map((entry: any) => (
+            <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color }} />
+              <span style={{ color: '#6b7280' }}>{entry.name}:</span>
+              <span style={{ fontWeight: '600', color: '#111827' }}>{entry.value}</span>
+            </div>
+          ))}
+        </div>
+      )
+    }
+    return null
+  }
+
+  const totalBookings = bookings.length
+  const approvedCount = bookings.filter(b => b.status === 'approved').length
+  const maxMonth = Math.max(...data.map(d => d.Total))
+
+  return (
+    <div style={{ padding: '24px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Trend Tempahan
+          </h2>
+          <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>12 bulan lepas</p>
+        </div>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          {[
+            { color: '#8B0000', label: 'Total' },
+            { color: '#16a34a', label: 'Approved' },
+            { color: '#f59e0b', label: 'Pending' },
+            { color: '#f87171', label: 'Rejected' },
+          ].map(item => (
+            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: item.color }} />
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Chart */}
+      <ResponsiveContainer width="100%" height={200}>
+        <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8B0000" stopOpacity={0.15} />
+              <stop offset="100%" stopColor="#8B0000" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="approvedGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#16a34a" stopOpacity={0.12} />
+              <stop offset="100%" stopColor="#16a34a" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+          <XAxis
+            dataKey="name"
+            tick={{ fontSize: 11, fill: '#9ca3af' }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fontSize: 11, fill: '#9ca3af' }}
+            axisLine={false}
+            tickLine={false}
+            allowDecimals={false}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Area
+            type="monotone"
+            dataKey="Total"
+            stroke="#8B0000"
+            strokeWidth={2}
+            fill="url(#totalGrad)"
+            dot={{ fill: 'white', stroke: '#8B0000', strokeWidth: 2, r: 3 }}
+            activeDot={{ r: 5, fill: '#8B0000' }}
+          />
+          <Area
+            type="monotone"
+            dataKey="Approved"
+            stroke="#16a34a"
+            strokeWidth={1.5}
+            strokeDasharray="4 2"
+            fill="url(#approvedGrad)"
+            dot={{ fill: 'white', stroke: '#16a34a', strokeWidth: 2, r: 3 }}
+            activeDot={{ r: 5, fill: '#16a34a' }}
+          />
+          <Area
+            type="monotone"
+            dataKey="Pending"
+            stroke="#f59e0b"
+            strokeWidth={1.5}
+            fill="none"
+            dot={false}
+            activeDot={{ r: 4, fill: '#f59e0b' }}
+          />
+          <Area
+            type="monotone"
+            dataKey="Rejected"
+            stroke="#f87171"
+            strokeWidth={1.5}
+            fill="none"
+            dot={false}
+            activeDot={{ r: 4, fill: '#f87171' }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+
+      {/* Summary */}
+      <div style={{ display: 'flex', gap: '24px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f3f4f6', flexWrap: 'wrap' }}>
+        {[
+          { label: 'Purata / bulan', value: (totalBookings / 12).toFixed(1) },
+          { label: 'Bulan tertinggi', value: maxMonth },
+          { label: 'Approval rate', value: totalBookings > 0 ? `${Math.round((approvedCount / totalBookings) * 100)}%` : '0%' },
+        ].map(item => (
+          <div key={item.label}>
+            <p style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '2px' }}>{item.label}</p>
+            <p style={{ fontSize: '16px', fontWeight: '700', color: '#111827' }}>{item.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function DashboardClient({
   bookings,
@@ -158,7 +324,7 @@ export default function DashboardClient({
       </div>
 
       {/* Stats Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }} className="stats-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }} className="stats-grid">
         {statsConfig.map((stat) => (
           <div key={stat.label} style={{
             ...card,
@@ -181,6 +347,11 @@ export default function DashboardClient({
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ── Trend Chart ── */}
+      <div style={{ ...card, overflow: 'hidden', marginBottom: '20px' }}>
+        <MonthlyTrendChart bookings={bookings} />
       </div>
 
       {/* Upcoming Events */}
