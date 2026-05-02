@@ -126,12 +126,37 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
       return 0
     })
 
+  const checkConflictForApprove = async (booking: Booking) => {
+    const { data } = await supabase
+      .from('bookings')
+      .select('id, start_time, end_time')
+      .eq('booking_date', booking.booking_date)
+      .eq('status', 'approved')
+      .neq('id', booking.id)
+
+    if (!data) return false
+    return data.some(b =>
+      booking.start_time < b.end_time && booking.end_time > b.start_time
+    )
+  }
+
   const updateStatus = async (id: string, status: string) => {
     setLoading(true)
+
+    const booking = bookings.find(b => b.id === id)
+
+    if (status === 'approved' && booking) {
+      const hasConflict = await checkConflictForApprove(booking)
+      if (hasConflict) {
+        showToast('Conflict! Ada tempahan lain yang approved pada masa yang sama.', 'error')
+        setLoading(false)
+        return
+      }
+    }
+
     const { error } = await supabase.from('bookings').update({ status }).eq('id', id)
     if (!error) {
       setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b))
-      const booking = bookings.find(b => b.id === id)
       if (booking) await syncToGoogleSheet({ ...booking, status })
       await fetch('/api/notify', {
         method: 'POST',
@@ -154,8 +179,8 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
     const { error } = await supabase.from('bookings').delete().eq('id', id)
     if (!error) {
       await deleteFromGoogleSheet(id)
-      setBookings(prev => prev.filter(b => b.id !== id))
       setExpanded(null)
+      setBookings(prev => prev.filter(b => b.id !== id))
       showToast('Tempahan berjaya dipadam.', 'success')
     } else {
       showToast('Ralat semasa memadam.', 'error')

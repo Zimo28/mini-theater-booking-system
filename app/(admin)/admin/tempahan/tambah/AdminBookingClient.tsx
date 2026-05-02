@@ -94,6 +94,19 @@ export default function AdminBookingClient() {
     return urlData.publicUrl
   }
 
+  const checkConflict = async () => {
+    const { data } = await supabase
+      .from('bookings')
+      .select('id, start_time, end_time')
+      .eq('booking_date', form.booking_date)
+      .in('status', ['approved', 'pending'])
+
+    if (!data) return false
+    return data.some(b =>
+      form.start_time < b.end_time && form.end_time > b.start_time
+    )
+  }
+
   const handleSubmit = async () => {
     if (!form.full_name || !form.phone || !form.organization || !form.event_name) {
       showToast('Sila isi semua maklumat peribadi.', 'error')
@@ -111,6 +124,12 @@ export default function AdminBookingClient() {
     }
     if (form.start_time >= form.end_time) {
       showToast('Masa tamat mesti lebih lewat dari masa mula.', 'error'); return
+    }
+
+    const hasConflict = await checkConflict()
+    if (hasConflict) {
+      const confirm = window.confirm('⚠️ Ada conflict masa dengan tempahan lain. Teruskan sebagai admin?')
+      if (!confirm) { setLoading(false); return }
     }
 
     setLoading(true)

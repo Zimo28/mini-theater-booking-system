@@ -5,8 +5,7 @@ export const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   {
     auth: {
-      //persistSession: true,  // kekal login walaupun tutup browser
-      persistSession: false, // logout bila close browser
+      persistSession: true,
       storageKey: 'mini-theater-admin',
     }
   }

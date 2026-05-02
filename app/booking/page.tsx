@@ -79,6 +79,7 @@ export default function BookingPage() {
   const [file, setFile] = useState<File | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => { setTimeout(() => setMounted(true), 50) }, [])
 
@@ -108,6 +109,20 @@ export default function BookingPage() {
     return urlData.publicUrl
   }
 
+  const checkConflict = async () => {
+    const { data } = await supabase
+      .from('bookings')
+      .select('id, start_time, end_time, event_name')
+      .eq('booking_date', form.booking_date)
+      .in('status', ['approved', 'pending'])
+
+    if (!data) return false
+
+    return data.some(b =>
+      form.start_time < b.end_time && form.end_time > b.start_time
+    )
+  }
+
   const handleSubmit = async () => {
     if (!form.full_name || !form.phone || !form.organization || !form.event_name) {
       showToast('Sila isi semua maklumat peribadi.', 'error'); return
@@ -124,6 +139,12 @@ export default function BookingPage() {
     }
     if (!file) {
       showToast('Sila muat naik dokumen kelulusan (PDF) sebelum menghantar.', 'error'); return
+    }
+
+    const hasConflict = await checkConflict()
+    if (hasConflict) {
+      showToast('Tarikh dan masa ini telah ditempah atau dalam semakan. Sila pilih masa lain.', 'error')
+      return
     }
 
     setLoading(true)
