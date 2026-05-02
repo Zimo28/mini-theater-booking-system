@@ -51,6 +51,17 @@ export default function LandingPage({
   const [scrolled, setScrolled] = useState(false)
   const [activeNav, setActiveNav] = useState('hero')
   const [mounted, setMounted] = useState(false)
+  const [splashDone, setSplashDone] = useState(false)
+  const [splashExit, setSplashExit] = useState(false)
+
+  useEffect(() => {
+    const exitTimer = setTimeout(() => setSplashExit(true), 2200)
+    const doneTimer = setTimeout(() => setSplashDone(true), 2800)
+    return () => {
+      clearTimeout(exitTimer)
+      clearTimeout(doneTimer)
+    }
+  }, [])
 
   useEffect(() => {
     window.history.scrollRestoration = 'manual'
@@ -147,6 +158,92 @@ export default function LandingPage({
 
   return (
     <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", color: '#111827', background: '#f9fafb', minHeight: '100vh' }}>
+
+      {/* ── SPLASH SCREEN ── */}
+      {!splashDone && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          pointerEvents: splashExit ? 'none' : 'all',
+          overflow: 'hidden',
+        }}>
+          {/* Left curtain */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0,
+            width: '50%', height: '100%',
+            background: 'white',
+            transform: splashExit ? 'translateX(-100%)' : 'translateX(0)',
+            transition: 'transform 0.7s cubic-bezier(0.76, 0, 0.24, 1)',
+            zIndex: 2,
+          }} />
+
+          {/* Right curtain */}
+          <div style={{
+            position: 'absolute', top: 0, right: 0,
+            width: '50%', height: '100%',
+            background: 'white',
+            transform: splashExit ? 'translateX(100%)' : 'translateX(0)',
+            transition: 'transform 0.7s cubic-bezier(0.76, 0, 0.24, 1)',
+            zIndex: 2,
+          }} />
+
+          {/* Content — above curtain */}
+          <div style={{
+            position: 'relative', zIndex: 3,
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            opacity: splashExit ? 0 : 1,
+            transition: 'opacity 0.4s ease',
+          }}>
+            {/* Logo */}
+            <div style={{
+              opacity: mounted ? 1 : 0,
+              transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'all 0.7s ease',
+              marginBottom: '20px',
+            }}>
+              <img
+                src="/logo.png"
+                alt="Mini Theater"
+                style={{
+                  height: '80px', width: 'auto', objectFit: 'contain',
+                  filter: 'drop-shadow(0 4px 24px rgba(139,0,0,0.15))',
+                }}
+              />
+            </div>
+
+            {/* Tagline */}
+            <div style={{
+              opacity: mounted ? 1 : 0,
+              transform: mounted ? 'translateY(0)' : 'translateY(12px)',
+              transition: 'all 0.7s ease 0.2s',
+              textAlign: 'center', marginBottom: '32px',
+            }}>
+              <p style={{
+                fontSize: '12px', fontWeight: '600', color: '#9ca3af',
+                letterSpacing: '0.2em', textTransform: 'uppercase',
+              }}>
+                UiTM Cawangan Kelantan
+              </p>
+            </div>
+
+            {/* Progress bar container */}
+            <div style={{
+              width: '120px', height: '2px',
+              background: '#f3f4f6', borderRadius: '999px', overflow: 'hidden',
+              opacity: mounted ? 1 : 0,
+              transition: 'opacity 0.5s ease 0.3s',
+            }}>
+              <div style={{
+                height: '100%',
+                background: 'linear-gradient(90deg, #8B0000, #a50000)',
+                borderRadius: '999px',
+                animation: 'splashProgress 1.8s ease forwards',
+              }} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── NAVBAR ── */}
       <nav style={{
@@ -792,6 +889,10 @@ export default function LandingPage({
         @keyframes menuItemFade {
           from { opacity: 0; transform: translateX(-8px); }
           to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes splashProgress {
+          from { width: 0%; }
+          to { width: 100%; }
         }
         @media (max-width: 768px) {
           .desktop-nav { display: none !important; }
