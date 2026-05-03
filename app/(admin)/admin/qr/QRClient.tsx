@@ -21,7 +21,7 @@ export default function QRClient() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [qrUrl, setQrUrl] = useState('https://mini-theater-booking-system.vercel.app/booking')
   const [logo, setLogo] = useState<string | null>(null)
-  const [logoSize, setLogoSize] = useState(80)
+  const [logoSize, setLogoSize] = useState(60)
   const [fgColor, setFgColor] = useState('#000000')
   const [bgColor, setBgColor] = useState('#ffffff')
   const [generated, setGenerated] = useState(false)
@@ -51,7 +51,7 @@ export default function QRClient() {
     const canvas = canvasRef.current
     if (!canvas) return
     await QRCode.toCanvas(canvas, qrUrl, {
-      width: 400,
+      width: 240,
       margin: 2,
       errorCorrectionLevel: 'H',
       color: { dark: fgColor, light: bgColor },
@@ -289,7 +289,7 @@ export default function QRClient() {
               <input
                 type="range"
                 min="30"
-                max="80"
+                max="60"
                 value={logoSize}
                 onChange={(e) => setLogoSize(parseInt(e.target.value))}
                 style={{ width: '100%', accentColor: '#8B0000' }}
