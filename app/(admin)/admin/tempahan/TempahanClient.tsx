@@ -198,6 +198,145 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
   const formatSubmitted = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })
 
+  const printSlip = (booking: Booking) => {
+  const eq = [
+    booking.microphone > 0 ? `Mikrofon (${booking.microphone})` : null,
+    booking.aircond > 0 ? `Penghawa Dingin (${booking.aircond})` : null,
+    booking.pa_system > 0 ? `Sistem PA (${booking.pa_system})` : null,
+    booking.lcd_projector > 0 ? `Projektor LCD (${booking.lcd_projector})` : null,
+  ].filter(Boolean)
+
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr + 'T00:00:00').toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  const slipHTML = `<!DOCTYPE html>
+    <html lang="ms">
+    <head>
+      <meta charset="UTF-8"/>
+      <title>Slip Kelulusan - ${booking.full_name}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: white; color: #1a1a1a; padding: 48px; }
+        .watermark {
+          position: fixed; top: 50%; left: 50%;
+          transform: translate(-50%, -50%) rotate(-30deg);
+          font-size: 90px; font-weight: 900;
+          color: rgba(22,163,74,0.07); letter-spacing: 8px;
+          pointer-events: none; z-index: 0; white-space: nowrap;
+        }
+        .content { position: relative; z-index: 1; }
+        .header { text-align: center; border-bottom: 3px solid #8B0000; padding-bottom: 20px; margin-bottom: 24px; }
+        .header h1 { font-size: 20px; font-weight: 800; color: #8B0000; letter-spacing: 1px; }
+        .header p { font-size: 12px; color: #6b7280; margin-top: 4px; }
+        .slip-title { text-align: center; margin-bottom: 16px; }
+        .slip-title h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #374151; }
+        .slip-title .ref { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+        .badge {
+          display: block; width: fit-content; margin: 0 auto 24px;
+          background: #dcfce7; color: #166534; border: 1.5px solid #86efac;
+          padding: 5px 20px; border-radius: 999px; font-size: 13px; font-weight: 700;
+        }
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 10px; font-weight: 700; color: #8B0000; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; margin-bottom: 12px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .field label { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 2px; }
+        .field p { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+        .eq-list { display: flex; gap: 8px; flex-wrap: wrap; }
+        .eq-tag { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+        .footer { margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .footer .note { font-size: 10px; color: #9ca3af; line-height: 1.7; max-width: 55%; }
+        .sign .line { width: 160px; border-top: 1px solid #374151; margin-bottom: 6px; }
+        .sign p { font-size: 10px; color: #6b7280; text-align: center; }
+        .sign .name { color: #8B0000; font-weight: 700; margin-top: 2px; }
+        .generated { text-align: center; margin-top: 16px; font-size: 10px; color: #d1d5db; }
+        @media print {
+          .print-bar { display: none !important; }
+          body { padding: 40px; }
+          .watermark, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="watermark">DILULUSKAN</div>
+      <div class="content">
+        <div class="header">
+          <img src="https://mini-theater-booking-system.vercel.app/logo.png"
+            alt="Logo"
+            style="height: 56px; width: auto; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;"
+            onerror="this.style.display='none'"
+          />
+          <h1>MINI THEATER</h1>
+          <p>UiTM Cawangan Kelantan, Kampus Machang</p>
+        </div>
+        <div class="slip-title">
+          <h2>Slip Pengesahan Tempahan</h2>
+          <p class="ref">No. Rujukan: MT-${booking.id.slice(0, 8).toUpperCase()}</p>
+        </div>
+        <span class="badge">✓ DILULUSKAN</span>
+        <div class="section">
+          <p class="section-title">Maklumat Pemohon</p>
+          <div class="grid">
+            <div class="field"><label>Nama Penuh</label><p>${booking.full_name}</p></div>
+            <div class="field"><label>No. Telefon</label><p>${booking.phone}</p></div>
+            <div class="field"><label>Organisasi / Kelab</label><p>${booking.organization}</p></div>
+            <div class="field"><label>Nama Program / Event</label><p>${booking.event_name}</p></div>
+          </div>
+        </div>
+        <div class="section">
+          <p class="section-title">Maklumat Tempahan</p>
+          <div class="grid">
+            <div class="field"><label>Tarikh Program</label><p>${formatDate(booking.booking_date)}</p></div>
+            <div class="field"><label>Masa</label><p>${booking.start_time} - ${booking.end_time}</p></div>
+            <div class="field"><label>Tempat</label><p>Mini Theater, UiTM Cawangan Kelantan</p></div>
+            <div class="field"><label>Tarikh Permohonan</label><p>${formatDate(booking.created_at.split('T')[0])}</p></div>
+          </div>
+        </div>
+        <div class="section">
+          <p class="section-title">Peralatan Dipohon</p>
+          ${eq.length > 0
+            ? `<div class="eq-list">${eq.map(e => `<span class="eq-tag">${e}</span>`).join('')}</div>`
+            : '<p style="font-size:12px;color:#9ca3af;font-style:italic;">Tiada peralatan tambahan</p>'
+          }
+        </div>
+        <div class="footer">
+          <div class="note">
+            * Slip ini adalah pengesahan rasmi tempahan Mini Theater.<br/>
+            * Sila bawa slip ini semasa program berlangsung.<br/>
+            * Sebarang pertanyaan, hubungi pihak pengurusan.
+          </div>
+          <div class="sign">
+            <div class="line"></div>
+            <p>Tandatangan & Cop Rasmi</p>
+            <p class="name">Pengurusan Mini Theater</p>
+          </div>
+        </div>
+        <p class="generated">Dijana pada: ${new Date().toLocaleString('ms-MY')}</p>
+
+        <div class="print-bar" style="text-align:center; margin-top: 32px; padding-top: 20px; border-top: 1px solid #f3f4f6;">
+          <button onclick="window.print()" style="
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 11px 28px; background: linear-gradient(135deg, #8B0000, #a50000);
+            color: white; border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(139,0,0,0.3); letter-spacing: 0.3px;
+          ">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9"/>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Cetak / Simpan sebagai PDF
+          </button>
+        </div>
+      </div>
+    </body>
+    </html>`
+
+    const blob = new Blob([slipHTML], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+  }
+
   function renderDetail(booking: Booking) {
     const eq = equipment(booking)
     return (
@@ -360,6 +499,31 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
             </p>
           )}
         </div>
+
+        {/* Cetak Slip */}
+        {booking.status === 'approved' && (
+          <div style={{ marginTop: '16px' }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); printSlip(booking) }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '9px 20px', borderRadius: '8px',
+                border: '1px solid #bfdbfe', background: '#eff6ff',
+                color: '#1d4ed8', fontSize: '13px', fontWeight: '600',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#dbeafe'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#eff6ff'}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+              </svg>
+              Cetak Slip Kelulusan
+            </button>
+          </div>
+        )}
 
         {/* Approve / Reject */}
         {booking.status === 'pending' && (
