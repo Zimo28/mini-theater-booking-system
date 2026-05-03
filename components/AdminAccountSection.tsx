@@ -111,7 +111,7 @@ export default function AdminAccountSection() {
         <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
           Kemaskini Profil
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+        <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
             <label style={labelStyle}>Nama Penuh</label>
             <input
@@ -175,7 +175,7 @@ export default function AdminAccountSection() {
         <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
           Tukar Password
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+        <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
             <label style={labelStyle}>Password Baru</label>
             <input
@@ -232,6 +232,13 @@ export default function AdminAccountSection() {
           {loadingPassword ? 'Menyimpan...' : 'Tukar Password'}
         </button>
       </div>
+      <style>{`
+        @media (max-width: 640px) {
+          .settings-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
