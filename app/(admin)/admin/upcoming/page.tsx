@@ -2,10 +2,8 @@ import { supabase } from '@/lib/supabase'
 import UpcomingClient from './UpcomingClient'
 
 export default async function UpcomingPage() {
-  const today = new Date()
-  
-  // Format date as YYYY-MM-DD in LOCAL time zone
-  const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }))
+  const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   const { data } = await supabase
     .from('bookings')
