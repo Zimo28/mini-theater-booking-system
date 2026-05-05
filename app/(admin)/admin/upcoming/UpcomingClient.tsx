@@ -20,7 +20,14 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const grouped = events.reduce((acc, event) => {
+  // Declare todayStr once at the top
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+  // Filter out past events
+  const filteredEvents = events.filter(e => e.booking_date >= todayStr)
+
+  // Group using filteredEvents
+  const grouped = filteredEvents.reduce((acc, event) => {
     const date = new Date(event.booking_date + 'T00:00:00')
     const key = `${date.getFullYear()}-${date.getMonth()}`
     if (!acc[key]) acc[key] = { label: `${monthNames[date.getMonth()]} ${date.getFullYear()}`, events: [] }
@@ -52,12 +59,14 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
         <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>
           Upcoming Events
         </h1>
+        {/* Use filteredEvents.length for accurate count */}
         <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-          {events.length} event akan datang
+          {filteredEvents.length} event akan datang
         </p>
       </div>
 
-      {events.length === 0 ? (
+      {/* Use filteredEvents for empty check */}
+      {filteredEvents.length === 0 ? (
         <div style={{
           background: 'white', border: '1px solid #f3f4f6', borderRadius: '14px',
           padding: '60px', textAlign: 'center',
@@ -97,7 +106,10 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {group.events.map((event) => {
                   const date = new Date(event.booking_date + 'T00:00:00')
-                  const diffDays = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                  // Use todayStr from outer scope — no duplicate declaration
+                  const diffDays = Math.round(
+                    (new Date(event.booking_date).setHours(12) - new Date(todayStr).setHours(12)) / (1000 * 60 * 60 * 24)
+                  )
                   const isToday = diffDays === 0
                   const isTomorrow = diffDays === 1
 

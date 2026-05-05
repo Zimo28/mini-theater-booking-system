@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 type Booking = {
   id: string
@@ -64,6 +64,19 @@ const IconCalendar = () => (
   </svg>
 )
 
+// Helper: get todayStr in local time
+function getTodayStr() {
+  const t = new Date()
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+}
+
+// Helper: diff in days between two YYYY-MM-DD strings (positive = future)
+function diffDaysFromToday(dateStr: string, todayStr: string) {
+  return Math.round(
+    (new Date(dateStr).setHours(12) - new Date(todayStr).setHours(12)) / (1000 * 60 * 60 * 24)
+  )
+}
+
 function MonthlyTrendChart({ bookings }: { bookings: Booking[] }) {
   const today = new Date()
   const months: { label: string; year: number; month: number }[] = []
@@ -119,7 +132,6 @@ function MonthlyTrendChart({ bookings }: { bookings: Booking[] }) {
 
   return (
     <div style={{ padding: '24px' }}>
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -145,7 +157,6 @@ function MonthlyTrendChart({ bookings }: { bookings: Booking[] }) {
         </div>
       </div>
 
-      {/* Chart */}
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
           <defs>
@@ -159,60 +170,20 @@ function MonthlyTrendChart({ bookings }: { bookings: Booking[] }) {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-          <XAxis
-            dataKey="name"
-            tick={{ fontSize: 11, fill: '#9ca3af' }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fontSize: 11, fill: '#9ca3af' }}
-            axisLine={false}
-            tickLine={false}
-            allowDecimals={false}
-          />
+          <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} allowDecimals={false} />
           <Tooltip content={<CustomTooltip />} />
-          <Area
-            type="monotone"
-            dataKey="Total"
-            stroke="#8B0000"
-            strokeWidth={2}
-            fill="url(#totalGrad)"
-            dot={{ fill: 'white', stroke: '#8B0000', strokeWidth: 2, r: 3 }}
-            activeDot={{ r: 5, fill: '#8B0000' }}
-          />
-          <Area
-            type="monotone"
-            dataKey="Approved"
-            stroke="#16a34a"
-            strokeWidth={1.5}
-            strokeDasharray="4 2"
-            fill="url(#approvedGrad)"
-            dot={{ fill: 'white', stroke: '#16a34a', strokeWidth: 2, r: 3 }}
-            activeDot={{ r: 5, fill: '#16a34a' }}
-          />
-          <Area
-            type="monotone"
-            dataKey="Pending"
-            stroke="#f59e0b"
-            strokeWidth={1.5}
-            fill="none"
-            dot={false}
-            activeDot={{ r: 4, fill: '#f59e0b' }}
-          />
-          <Area
-            type="monotone"
-            dataKey="Rejected"
-            stroke="#f87171"
-            strokeWidth={1.5}
-            fill="none"
-            dot={false}
-            activeDot={{ r: 4, fill: '#f87171' }}
-          />
+          <Area type="monotone" dataKey="Total" stroke="#8B0000" strokeWidth={2} fill="url(#totalGrad)"
+            dot={{ fill: 'white', stroke: '#8B0000', strokeWidth: 2, r: 3 }} activeDot={{ r: 5, fill: '#8B0000' }} />
+          <Area type="monotone" dataKey="Approved" stroke="#16a34a" strokeWidth={1.5} strokeDasharray="4 2"
+            fill="url(#approvedGrad)" dot={{ fill: 'white', stroke: '#16a34a', strokeWidth: 2, r: 3 }} activeDot={{ r: 5, fill: '#16a34a' }} />
+          <Area type="monotone" dataKey="Pending" stroke="#f59e0b" strokeWidth={1.5} fill="none"
+            dot={false} activeDot={{ r: 4, fill: '#f59e0b' }} />
+          <Area type="monotone" dataKey="Rejected" stroke="#f87171" strokeWidth={1.5} fill="none"
+            dot={false} activeDot={{ r: 4, fill: '#f87171' }} />
         </AreaChart>
       </ResponsiveContainer>
 
-      {/* Summary */}
       <div style={{ display: 'flex', gap: '24px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f3f4f6', flexWrap: 'wrap' }}>
         {[
           { label: 'Purata / bulan', value: (totalBookings / 12).toFixed(1) },
@@ -239,11 +210,13 @@ export default function DashboardClient({
   stats: Stats
 }) {
   const today = new Date()
+
+  // Declare todayStr once — used everywhere in this component
+  const todayStr = getTodayStr()
+
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
-  const [selectedDate, setSelectedDate] = useState<string | null>(
-    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  )
+  const [selectedDate, setSelectedDate] = useState<string | null>(todayStr)
 
   const statsConfig = [
     { label: 'Total Bookings', value: stats.total, Icon: IconDocument, bg: '#3b82f6' },
@@ -294,7 +267,6 @@ export default function DashboardClient({
     return `${currentYear}-${month}-${d}`
   }
 
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   const selectedBookings = selectedDate ? getBookingsForDate(selectedDate) : []
 
   const formatSelectedDate = (dateStr: string) => {
@@ -349,7 +321,7 @@ export default function DashboardClient({
         ))}
       </div>
 
-      {/* ── Trend Chart ── */}
+      {/* Trend Chart */}
       <div style={{ ...card, overflow: 'hidden', marginBottom: '20px' }}>
         <MonthlyTrendChart bookings={bookings} />
       </div>
@@ -380,11 +352,10 @@ export default function DashboardClient({
           <div style={{ padding: '16px' }}>
             {upcoming.map((event) => {
               const date = new Date(event.booking_date + 'T00:00:00')
-              const todayDate = new Date()
-              todayDate.setHours(0, 0, 0, 0)
-              const diffDays = Math.ceil((date.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24))
-              const isToday = diffDays === 0
-              const isTomorrow = diffDays === 1
+              // Use shared todayStr and helper — no duplicate calculation
+              const diff = diffDaysFromToday(event.booking_date, todayStr)
+              const isToday = diff === 0
+              const isTomorrow = diff === 1
 
               return (
                 <div key={event.id} style={{
@@ -417,7 +388,7 @@ export default function DashboardClient({
                     color: isToday ? 'white' : isTomorrow ? '#d97706' : '#6b7280',
                     border: `1px solid ${isToday ? '#8B0000' : isTomorrow ? '#fde68a' : '#e5e7eb'}`,
                   }}>
-                    {isToday ? 'Hari Ini' : isTomorrow ? 'Esok' : `${diffDays} hari lagi`}
+                    {isToday ? 'Hari Ini' : isTomorrow ? 'Esok' : `${diff} hari lagi`}
                   </span>
                 </div>
               )

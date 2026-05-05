@@ -9,8 +9,9 @@ export default async function DashboardPage() {
 
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-  const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  const todayStr = now.toISOString().split('T')[0]
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const later = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7)
+  const sevenDaysLater = `${later.getFullYear()}-${String(later.getMonth() + 1).padStart(2, '0')}-${String(later.getDate()).padStart(2, '0')}`
 
   const [{ data: bookings }, { count: total }, { count: pending }, { count: approved }, { count: thisMonth }] = await Promise.all([
     supabase.from('bookings').select('*').order('booking_date'),
