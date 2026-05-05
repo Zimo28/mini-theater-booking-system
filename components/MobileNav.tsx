@@ -219,6 +219,29 @@ export default function MobileNav({ userName }: { userName: string }) {
         {/* Divider */}
         <div style={{ borderTop: '1px solid #f3f4f6', margin: '6px 0' }} />
 
+        {/* Profile */}
+        <Link
+          href="/admin/profile"
+          onClick={() => setMenuOpen(false)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '9px 12px', borderRadius: '8px',
+            fontSize: '13.5px', fontWeight: '400',
+            color: '#4b5563', textDecoration: 'none',
+            borderLeft: '3px solid transparent',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#8B0000' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4b5563' }}
+        >
+          <span style={{ opacity: 0.5 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          </span>
+          Profile
+        </Link>
+
         {/* Logout */}
         <button
           onClick={handleLogout}

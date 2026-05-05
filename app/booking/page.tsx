@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { showToast } from '@/components/Toast'
 import { supabase } from '@/lib/supabase'
 import { syncToGoogleSheet } from '@/lib/googleSheet'
+import BlackoutCalendar from '@/components/BlackoutCalendar'
 
 function EquipmentSelect({ eq, value, onChange }: {
   eq: { label: string; field: string; icon: React.ReactNode; max: number }
@@ -144,6 +145,18 @@ export default function BookingPage() {
     const hasConflict = await checkConflict()
     if (hasConflict) {
       showToast('Tarikh dan masa ini telah ditempah atau dalam semakan. Sila pilih masa lain.', 'error')
+      return
+    }
+
+    // Check blackout date
+    const { data: blackout } = await supabase
+      .from('blackout_dates')
+      .select('date, reason')
+      .eq('date', form.booking_date)
+      .single()
+
+    if (blackout) {
+      showToast(`Tarikh ini tidak tersedia${blackout.reason ? ` — ${blackout.reason}` : ''}.`, 'error')
       return
     }
 
@@ -367,10 +380,13 @@ export default function BookingPage() {
                   Booking Date <span style={{ color: '#dc2626' }}>*</span>{' '}
                   <span style={{ fontWeight: '400', color: '#9ca3af', fontSize: '12px' }}>(Min. 5 days)</span>
                 </label>
-                <input type="date" min={getMinDate()} onChange={(e) => updateForm('booking_date', e.target.value)}
-                  style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+                <BlackoutCalendar
+                  value={form.booking_date}
+                  onChange={(date) => updateForm('booking_date', date)}
+                  minDate={getMinDate()}
+                  placeholder="Pilih tarikh tempahan"
+                  isAdmin={false}
+                />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>

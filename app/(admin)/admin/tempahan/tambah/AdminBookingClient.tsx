@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { showToast } from '@/components/Toast'
 import { syncToGoogleSheet } from '@/lib/googleSheet'
+import BlackoutCalendar from '@/components/BlackoutCalendar'
 
 function EquipmentSelect({ eq, value, onChange }: { 
   eq: { label: string; field: string; icon: React.ReactNode; max: number }
@@ -132,6 +133,20 @@ export default function AdminBookingClient() {
       if (!confirm) { setLoading(false); return }
     }
 
+    // Blackout date check — admin boleh override dengan confirm
+    const { data: blackout } = await supabase
+      .from('blackout_dates')
+      .select('date, reason')
+      .eq('date', form.booking_date)
+      .single()
+
+    if (blackout) {
+      const confirmBlackout = window.confirm(
+        `⚠️ Tarikh ini adalah blackout date${blackout.reason ? ` (${blackout.reason})` : ''}.\nTeruskan sebagai admin?`
+      )
+      if (!confirmBlackout) { setLoading(false); return }
+    }
+
     setLoading(true)
     const { data: inserted, error } = await supabase
       .from('bookings').insert([{ ...form, status: 'approved' }]).select().single()
@@ -241,10 +256,12 @@ export default function AdminBookingClient() {
 
           <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Booking Date <span style={{ color: '#dc2626' }}>*</span></label>
-            <input type="date" onChange={(e) => updateForm('booking_date', e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+            <BlackoutCalendar
+              value={form.booking_date}
+              onChange={(date) => updateForm('booking_date', date)}
+              placeholder="Pilih tarikh tempahan"
+              isAdmin={true}
+            />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
@@ -382,7 +399,6 @@ export default function AdminBookingClient() {
         @media (max-width: 768px) {
           .booking-grid { grid-template-columns: 1fr !important; }
         }
-        input[type="date"]::-webkit-calendar-picker-indicator,
         input[type="time"]::-webkit-calendar-picker-indicator {
           cursor: pointer; opacity: 0.5;
         }

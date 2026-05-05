@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { showToast } from '@/components/Toast'
-import AdminAccountSection from '@/components/AdminAccountSection'
 
 type Facility = {
   id: string
   name: string
 }
+
+type BlackoutDate = { id: string; date: string; reason: string }
 
 const tabs = [
   {
@@ -28,8 +29,8 @@ const tabs = [
     icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.09a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg>
   },
   {
-    id: 'admin', label: 'Admin Account',
-    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    id: 'blackout', label: 'Blackout Dates',
+    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="15" x2="12" y2="19"/><line x1="10" y1="17" x2="14" y2="17"/></svg>
   },
 ]
 
@@ -45,6 +46,9 @@ export default function SettingsClient({
   const [newFacility, setNewFacility] = useState('')
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
+  const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>([])
+  const [newBlackout, setNewBlackout] = useState({ date: '', reason: '' })
+  const [loadingBlackout, setLoadingBlackout] = useState(false)
 
   const updateSetting = (key: string, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -87,6 +91,31 @@ export default function SettingsClient({
     }
   }
 
+  const addBlackoutDate = async () => {
+    if (!newBlackout.date) { showToast('Sila pilih tarikh.', 'error'); return }
+    setLoadingBlackout(true)
+    const { data, error } = await supabase
+      .from('blackout_dates')
+      .insert([{ date: newBlackout.date, reason: newBlackout.reason }])
+      .select().single()
+    if (!error && data) {
+      setBlackoutDates(prev => [...prev, data].sort((a, b) => a.date.localeCompare(b.date)))
+      setNewBlackout({ date: '', reason: '' })
+      showToast('Blackout date berjaya ditambah!', 'success')
+    } else {
+      showToast('Ralat atau tarikh sudah wujud.', 'error')
+    }
+    setLoadingBlackout(false)
+  }
+
+  const deleteBlackoutDate = async (id: string) => {
+    const { error } = await supabase.from('blackout_dates').delete().eq('id', id)
+    if (!error) {
+      setBlackoutDates(prev => prev.filter(b => b.id !== id))
+      showToast('Blackout date dipadam.', 'success')
+    }
+  }
+
   const inputStyle = {
     width: '100%',
     border: '1.5px solid #e5e7eb',
@@ -117,6 +146,17 @@ export default function SettingsClient({
     overflow: 'hidden' as const,
     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   }
+
+  useEffect(() => {
+    const fetchBlackout = async () => {
+      const { data } = await supabase
+        .from('blackout_dates')
+        .select('*')
+        .order('date', { ascending: true })
+      if (data) setBlackoutDates(data)
+    }
+    fetchBlackout()
+  }, [])
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -421,11 +461,112 @@ export default function SettingsClient({
           </div>
         )}
 
-        {/* Admin Account Tab */}
-        {activeTab === 'admin' && (
+        {/* Blackout Dates Tab */}
+        {activeTab === 'blackout' && (
           <div style={{ padding: '28px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '20px' }}>Admin Account</h3>
-            <AdminAccountSection />
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>Blackout Dates</h3>
+              <p style={{ fontSize: '13px', color: '#6b7280' }}>Tetapkan tarikh yang tidak boleh ditempah — cuti semester, study week, dll.</p>
+            </div>
+
+            {/* Add form */}
+            <div style={{ background: '#f9fafb', border: '1px solid #f3f4f6', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
+              <p style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Tambah Tarikh Baru</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', alignItems: 'end' }} className="blackout-grid">
+                <div>
+                  <label style={labelStyle}>Tarikh</label>
+                  <input
+                    type="date"
+                    value={newBlackout.date}
+                    onChange={(e) => setNewBlackout(prev => ({ ...prev, date: e.target.value }))}
+                    style={inputStyle}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Sebab (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Cuti Semester, Study Week"
+                    value={newBlackout.reason}
+                    onChange={(e) => setNewBlackout(prev => ({ ...prev, reason: e.target.value }))}
+                    onKeyDown={(e) => e.key === 'Enter' && addBlackoutDate()}
+                    style={inputStyle}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  />
+                </div>
+                <button
+                  onClick={addBlackoutDate}
+                  disabled={loadingBlackout}
+                  style={{
+                    background: 'linear-gradient(135deg, #8B0000, #a50000)',
+                    color: 'white', border: 'none', borderRadius: '8px',
+                    padding: '10px 16px', fontSize: '13px', fontWeight: '600',
+                    cursor: loadingBlackout ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    whiteSpace: 'nowrap', height: '42px',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Tambah
+                </button>
+              </div>
+            </div>
+
+            {/* List */}
+            {blackoutDates.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', fontSize: '13px', border: '2px dashed #f3f4f6', borderRadius: '10px' }}>
+                Tiada blackout dates. Tambah tarikh yang tidak tersedia di atas.
+              </div>
+            ) : (
+              <div>
+                <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '10px' }}>{blackoutDates.length} tarikh diblock</p>
+                {blackoutDates.map((b) => (
+                  <div key={b.id} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '12px 14px', borderRadius: '8px', border: '1px solid #f3f4f6',
+                    marginBottom: '6px', background: 'white', gap: '12px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '36px', height: '36px', borderRadius: '8px',
+                        background: '#fef2f2', border: '1px solid #fecaca',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                          <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: '13px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                          {new Date(b.date + 'T00:00:00').toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                        {b.reason && <p style={{ fontSize: '12px', color: '#6b7280', margin: '2px 0 0' }}>{b.reason}</p>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteBlackoutDate(b.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -435,6 +576,7 @@ export default function SettingsClient({
           .equipment-grid { grid-template-columns: 1fr !important; }
           .settings-grid-2 { grid-template-columns: 1fr !important; }
           .settings-grid-2 > div[style*="1 / -1"] { grid-column: 1 !important; }
+          .blackout-grid { grid-template-columns: 1fr !important; }
         }
         input::placeholder, textarea::placeholder { color: #9ca3af; }
       `}</style>

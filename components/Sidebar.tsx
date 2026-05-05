@@ -54,11 +54,6 @@ export default function Sidebar() {
     ), badge: null },
   ]
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/login'
-  }
-
   return (
     <aside style={{
       width: collapsed ? '64px' : '240px',
@@ -179,31 +174,6 @@ export default function Sidebar() {
           )
         })}
       </nav>
-
-      {/* Logout */}
-      <div style={{ padding: '8px', borderTop: '1px solid #f3f4f6' }}>
-        <button
-          onClick={handleLogout}
-          title={collapsed ? 'Log Keluar' : undefined}
-          style={{
-            width: '100%', padding: collapsed ? '10px' : '9px 12px',
-            borderRadius: '8px', border: 'none', background: 'transparent',
-            color: '#9ca3af', fontSize: '13.5px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center',
-            justifyContent: collapsed ? 'center' : 'flex-start',
-            gap: '10px', transition: 'all 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#8B0000' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9ca3af' }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-          {!collapsed && 'Log Keluar'}
-        </button>
-      </div>
     </aside>
   )
 }
