@@ -38,7 +38,7 @@ export default function AdminAccountSection() {
 
   const updateProfile = async () => {
     if (!fullName && !email) {
-      showToast('Sila isi sekurang-kurangnya satu field.', 'error')
+      showToast('Please fill in at least one field.', 'error')
       return
     }
 
@@ -47,7 +47,7 @@ export default function AdminAccountSection() {
     if (email) {
       const { error } = await supabase.auth.updateUser({ email })
       if (error) {
-        showToast('Ralat semasa update email: ' + error.message, 'error')
+        showToast('Error occurred while updating email: ' + error.message, 'error')
         setLoadingProfile(false)
         return
       }
@@ -61,14 +61,14 @@ export default function AdminAccountSection() {
           .update({ full_name: fullName })
           .eq('id', user.id)
         if (error) {
-          showToast('Ralat semasa update nama.', 'error')
+          showToast('Error occurred while updating name.', 'error')
           setLoadingProfile(false)
           return
         }
       }
     }
 
-    showToast('Profil berjaya dikemaskini!', 'success')
+    showToast('Profile updated successfully!', 'success')
     setFullName('')
     setEmail('')
     setLoadingProfile(false)
@@ -76,15 +76,15 @@ export default function AdminAccountSection() {
 
   const updatePassword = async () => {
     if (!newPassword || !confirmPassword) {
-      showToast('Sila isi semua field password.', 'error')
+      showToast('Please fill in all password fields.', 'error')
       return
     }
     if (newPassword !== confirmPassword) {
-      showToast('Password baru tidak sepadan.', 'error')
+      showToast('New passwords do not match.', 'error')
       return
     }
     if (newPassword.length < 6) {
-      showToast('Password mesti sekurang-kurangnya 6 aksara.', 'error')
+      showToast('Password must be at least 6 characters long.', 'error')
       return
     }
 
@@ -93,9 +93,9 @@ export default function AdminAccountSection() {
     const { error } = await supabase.auth.updateUser({ password: newPassword })
 
     if (error) {
-      showToast('Ralat semasa update password: ' + error.message, 'error')
+      showToast('Error occurred while updating password: ' + error.message, 'error')
     } else {
-      showToast('Password berjaya dikemaskini!', 'success')
+      showToast('Password updated successfully!', 'success')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
@@ -109,14 +109,14 @@ export default function AdminAccountSection() {
       {/* Update Profile */}
       <div style={{ marginBottom: '28px' }}>
         <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
-          Kemaskini Profil
+          Update Profile
         </p>
         <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
-            <label style={labelStyle}>Nama Penuh</label>
+            <label style={labelStyle}>Full Name</label>
             <input
               type="text"
-              placeholder="Nama baru..."
+              placeholder="New name..."
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               style={inputStyle}
@@ -128,7 +128,7 @@ export default function AdminAccountSection() {
             <label style={labelStyle}>Email</label>
             <input
               type="email"
-              placeholder="Email baru..."
+              placeholder="New email..."
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={inputStyle}
@@ -164,7 +164,7 @@ export default function AdminAccountSection() {
             }
           }}
         >
-          {loadingProfile ? 'Menyimpan...' : 'Kemaskini Profil'}
+          {loadingProfile ? 'Saving...' : 'Update Profile'}
         </button>
       </div>
 
@@ -173,11 +173,11 @@ export default function AdminAccountSection() {
       {/* Update Password */}
       <div>
         <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '16px' }}>
-          Tukar Password
+          Change Password
         </p>
         <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
           <div>
-            <label style={labelStyle}>Password Baru</label>
+            <label style={labelStyle}>New Password</label>
             <input
               type="password"
               placeholder="••••••••"
@@ -229,7 +229,7 @@ export default function AdminAccountSection() {
             }
           }}
         >
-          {loadingPassword ? 'Menyimpan...' : 'Tukar Password'}
+          {loadingPassword ? 'Saving...' : 'Change Password'}
         </button>
       </div>
       <style>{`

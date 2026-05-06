@@ -60,8 +60,8 @@ export default function SettingsClient({
       id, value, updated_at: new Date().toISOString()
     }))
     const { error } = await supabase.from('settings').upsert(entries)
-    if (!error) showToast('Tetapan berjaya disimpan!', 'success')
-    else showToast('Ralat semasa menyimpan.', 'error')
+    if (!error) showToast('Settings saved successfully!', 'success')
+    else showToast('Error occurred while saving settings.', 'error')
     setSaving(false)
   }
 
@@ -92,7 +92,7 @@ export default function SettingsClient({
   }
 
   const addBlackoutDate = async () => {
-    if (!newBlackout.date) { showToast('Sila pilih tarikh.', 'error'); return }
+    if (!newBlackout.date) { showToast('Please select a date.', 'error'); return }
     setLoadingBlackout(true)
     const { data, error } = await supabase
       .from('blackout_dates')
@@ -101,9 +101,9 @@ export default function SettingsClient({
     if (!error && data) {
       setBlackoutDates(prev => [...prev, data].sort((a, b) => a.date.localeCompare(b.date)))
       setNewBlackout({ date: '', reason: '' })
-      showToast('Blackout date berjaya ditambah!', 'success')
+      showToast('Blackout date successfully added!', 'success')
     } else {
-      showToast('Ralat atau tarikh sudah wujud.', 'error')
+      showToast('Error or date already exists.', 'error')
     }
     setLoadingBlackout(false)
   }
@@ -112,7 +112,7 @@ export default function SettingsClient({
     const { error } = await supabase.from('blackout_dates').delete().eq('id', id)
     if (!error) {
       setBlackoutDates(prev => prev.filter(b => b.id !== id))
-      showToast('Blackout date dipadam.', 'success')
+      showToast('Blackout date deleted.', 'success')
     }
   }
 
@@ -185,7 +185,7 @@ export default function SettingsClient({
               <polyline points="17 21 17 13 7 13 7 21"/>
               <polyline points="7 3 7 8 15 8"/>
             </svg>
-            {saving ? 'Menyimpan...' : 'Simpan'}
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         )}
       </div>
@@ -262,7 +262,7 @@ export default function SettingsClient({
                       <polyline points="15 3 21 3 21 9"/>
                       <line x1="10" y1="14" x2="21" y2="3"/>
                     </svg>
-                    Buka
+                    Open
                   </a>
                 )}
               </div>
@@ -271,7 +271,7 @@ export default function SettingsClient({
             {/* Theater Info */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="settings-grid-2">
               {[
-                { label: 'Nama Theater', key: 'theater_name', col: '1 / -1', type: 'text' },
+                { label: 'Theater Name', key: 'theater_name', col: '1 / -1', type: 'text' },
                 { label: 'Hero Title', key: 'hero_title', col: '1 / -1', type: 'text' },
               ].map(item => (
                 <div key={item.key} style={{ gridColumn: item.col }}>
@@ -289,22 +289,22 @@ export default function SettingsClient({
               </div>
 
               <div>
-                <label style={labelStyle}>Masa Buka</label>
+                <label style={labelStyle}>Opening Hours</label>
                 <input type="time" value={settings['operating_hours_start'] ?? '07:00'} onChange={(e) => updateSetting('operating_hours_start', e.target.value)} style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
-                <label style={labelStyle}>Masa Tutup</label>
+                <label style={labelStyle}>Closing Time</label>
                 <input type="time" value={settings['operating_hours_end'] ?? '22:30'} onChange={(e) => updateSetting('operating_hours_end', e.target.value)} style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
-                <label style={labelStyle}>Min Hari Tempah Awal</label>
+                <label style={labelStyle}>Min Days to Book in Advance</label>
                 <input type="number" min="1" max="30" value={settings['min_advance_days'] ?? '5'} onChange={(e) => updateSetting('min_advance_days', e.target.value)} style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
               <div>
-                <label style={labelStyle}>Max Jam Tempahan</label>
+                <label style={labelStyle}>Max Booking Hours</label>
                 <input type="number" min="1" max="16" value={settings['max_booking_hours'] ?? '8'} onChange={(e) => updateSetting('max_booking_hours', e.target.value)} style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
@@ -422,7 +422,7 @@ export default function SettingsClient({
             <label style={labelStyle}>Admin Email</label>
             <input type="email" value={settings['admin_email'] ?? ''} onChange={(e) => updateSetting('admin_email', e.target.value)} style={inputStyle}
               onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
-            <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>Email ini akan menerima notifikasi tempahan baru</p>
+            <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>This email will receive notifications for new bookings</p>
           </div>
         )}
 
@@ -432,7 +432,7 @@ export default function SettingsClient({
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '20px' }}>Contact Us Settings</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="settings-grid-2">
               <div>
-                <label style={labelStyle}>Nama</label>
+                <label style={labelStyle}>Name</label>
                 <input type="text" value={settings['contact_name'] ?? ''} onChange={(e) => updateSetting('contact_name', e.target.value)} style={inputStyle}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
@@ -466,15 +466,15 @@ export default function SettingsClient({
           <div style={{ padding: '28px' }}>
             <div style={{ marginBottom: '20px' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>Blackout Dates</h3>
-              <p style={{ fontSize: '13px', color: '#6b7280' }}>Tetapkan tarikh yang tidak boleh ditempah — cuti semester, study week, dll.</p>
+              <p style={{ fontSize: '13px', color: '#6b7280' }}>Set dates that cannot be booked — semester breaks, study weeks, etc.</p>
             </div>
 
             {/* Add form */}
             <div style={{ background: '#f9fafb', border: '1px solid #f3f4f6', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
-              <p style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Tambah Tarikh Baru</p>
+              <p style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Add New Date</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', alignItems: 'end' }} className="blackout-grid">
                 <div>
-                  <label style={labelStyle}>Tarikh</label>
+                  <label style={labelStyle}>Date</label>
                   <input
                     type="date"
                     value={newBlackout.date}
@@ -485,10 +485,10 @@ export default function SettingsClient({
                   />
                 </div>
                 <div>
-                  <label style={labelStyle}>Sebab (Optional)</label>
+                  <label style={labelStyle}>Reason (Optional)</label>
                   <input
                     type="text"
-                    placeholder="e.g. Cuti Semester, Study Week"
+                    placeholder="e.g. Semester Break, Study Week"
                     value={newBlackout.reason}
                     onChange={(e) => setNewBlackout(prev => ({ ...prev, reason: e.target.value }))}
                     onKeyDown={(e) => e.key === 'Enter' && addBlackoutDate()}
@@ -512,7 +512,7 @@ export default function SettingsClient({
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                   </svg>
-                  Tambah
+                  Add Date
                 </button>
               </div>
             </div>
@@ -520,11 +520,11 @@ export default function SettingsClient({
             {/* List */}
             {blackoutDates.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', fontSize: '13px', border: '2px dashed #f3f4f6', borderRadius: '10px' }}>
-                Tiada blackout dates. Tambah tarikh yang tidak tersedia di atas.
+                No blackout dates. Add dates that are not available above.
               </div>
             ) : (
               <div>
-                <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '10px' }}>{blackoutDates.length} tarikh diblock</p>
+                <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '10px' }}>{blackoutDates.length} dates blocked</p>
                 {blackoutDates.map((b) => (
                   <div key={b.id} style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',

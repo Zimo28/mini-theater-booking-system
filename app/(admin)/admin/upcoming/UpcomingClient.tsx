@@ -61,7 +61,7 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
         </h1>
         {/* Use filteredEvents.length for accurate count */}
         <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-          {filteredEvents.length} event akan datang
+          {filteredEvents.length} upcoming events
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <p style={{ color: '#9ca3af', fontSize: '14px' }}>Tiada upcoming events</p>
+          <p style={{ color: '#9ca3af', fontSize: '14px' }}>No upcoming events</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -98,7 +98,7 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
                   background: 'white', border: '1px solid #f3f4f6',
                   padding: '2px 8px', borderRadius: '999px',
                 }}>
-                  {group.events.length} event
+                  {group.events.length} events
                 </span>
               </div>
 
@@ -180,7 +180,7 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
                           color: isToday ? 'white' : isTomorrow ? '#d97706' : '#6b7280',
                           border: `1px solid ${isToday ? '#8B0000' : isTomorrow ? '#fde68a' : '#e5e7eb'}`,
                         }}>
-                          {isToday ? 'Hari Ini' : isTomorrow ? 'Esok' : `${diffDays} hari lagi`}
+                          {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : `${diffDays} days left`}
                         </span>
                       </div>
                     </a>

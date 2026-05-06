@@ -147,7 +147,7 @@ export default function QRClient() {
           QR Generator
         </h1>
         <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-          Jana QR kod untuk booking form
+          Generate QR code for booking form
         </p>
       </div>
 
@@ -160,7 +160,7 @@ export default function QRClient() {
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
             </svg>
-            Tetapan QR
+            QR Settings
           </h2>
 
           {/* URL */}
@@ -175,12 +175,12 @@ export default function QRClient() {
               onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
             <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
-              Upload URL khusus untuk QR ini
+              Upload a specific URL for this QR code
             </p>
             <button
               onClick={async () => {
                 await saveAllSettings({ qr_url: qrUrl })
-                showToast('URL berjaya disimpan!', 'success')
+                showToast('URL saved successfully!', 'success')
               }}
               style={{
                 marginTop: '8px',
@@ -193,14 +193,14 @@ export default function QRClient() {
                 fontWeight: '600',
                 cursor: 'pointer',
               }}
-            >Simpan URL</button>
+            >Save URL</button>
           </div>
 
           {/* Colors */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }} className="qr-colors">
             {[
-              { label: 'Warna QR', value: fgColor, onChange: setFgColor, key: 'fg_color' },
-              { label: 'Warna Background', value: bgColor, onChange: setBgColor, key: 'bg_color' },
+              { label: 'QR Color', value: fgColor, onChange: setFgColor, key: 'fg_color' },
+              { label: 'Background Color', value: bgColor, onChange: setBgColor, key: 'bg_color' },
             ].map((item) => (
               <div key={item.label}>
                 <label style={labelStyle}>{item.label}</label>
@@ -236,7 +236,7 @@ export default function QRClient() {
                 <button
                   onClick={handleRemoveLogo}
                   style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '6px', padding: '4px 10px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                >Buang</button>
+                >Remove</button>
               </div>
             ) : (
               <div
@@ -272,7 +272,7 @@ export default function QRClient() {
                   </label>
                 </p>
                 <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>PNG, JPG, SVG</p>
-                <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>Saiz disyorkan: 200×200px hingga 500×500px</p>
+                <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>Recommended size: 200×200px to 500×500px</p>
               </div>
             )}
           </div>
@@ -280,7 +280,7 @@ export default function QRClient() {
           {/* Logo Size */}
           {logo && (
             <div style={{ marginBottom: '20px' }}>
-              <label style={labelStyle}>Saiz Logo: {logoSize}px</label>
+              <label style={labelStyle}>Logo Size: {logoSize}px</label>
               <input
                 type="range"
                 min="30"
@@ -290,15 +290,15 @@ export default function QRClient() {
                 style={{ width: '100%', accentColor: '#8B0000' }}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
-                <span>Kecil</span>
-                <span>Besar</span>
+                <span>Small</span>
+                <span>Large</span>
               </div>
             </div>
           )}
 
           {/* Generate Button */}
           <button
-            onClick={() => { generateQR(); showToast('QR kod berjaya dijana!', 'success') }}
+            onClick={() => { generateQR(); showToast('QR code generated successfully!', 'success') }}
             style={{
               width: '100%',
               background: 'linear-gradient(135deg, #8B0000, #a50000)',
@@ -337,7 +337,7 @@ export default function QRClient() {
           </div>
 
           <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '16px' }}>
-            Scan QR ini untuk pergi ke booking form
+            Scan this QR code to go to the booking form
           </p>
 
           {generated && (

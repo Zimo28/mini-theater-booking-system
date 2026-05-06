@@ -495,7 +495,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
               </button>
             </div>
           ) : (
-            <span style={{ fontSize: '12px', color: '#9ca3af' }}>Tiada fail</span>
+            <span style={{ fontSize: '12px', color: '#9ca3af' }}>No attachment</span>
           )}
         </div>
 
@@ -515,12 +515,12 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                 <button
                   onClick={(e) => { e.stopPropagation(); setEditingNote(null) }}
                   style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
-                >Batal</button>
+                >Cancel</button>
                 <button
                   onClick={(e) => { e.stopPropagation(); saveNote(booking.id) }}
                   disabled={savingNote}
                   style={{ fontSize: '12px', color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer', fontWeight: '600' }}
-                >{savingNote ? '...' : 'Simpan'}</button>
+                >{savingNote ? '...' : 'Save'}</button>
               </div>
             )}
           </div>
@@ -530,7 +530,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
               value={noteValues[booking.id] ?? ''}
               onChange={(e) => setNoteValues(prev => ({ ...prev, [booking.id]: e.target.value }))}
               onClick={(e) => e.stopPropagation()}
-              placeholder="Tambah note untuk tempahan ini..."
+              placeholder="Add note for this booking..."
               rows={3}
               style={{
                 width: '100%', background: 'white', border: '1.5px solid #e5e7eb',
@@ -543,7 +543,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
             />
           ) : (
             <p style={{ fontSize: '13px', color: noteValues[booking.id] ? '#374151' : '#d1d5db', fontStyle: noteValues[booking.id] ? 'normal' : 'italic' }}>
-              {noteValues[booking.id] || 'Tiada note. Klik Edit untuk tambah.'}
+              {noteValues[booking.id] || 'No note. Click Edit to add.'}
             </p>
           )}
         </div>
@@ -569,10 +569,10 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
                 <rect x="6" y="14" width="12" height="8"/>
               </svg>
-              Cetak Slip Kelulusan
+              Print Approval Slip
             </button>
 
-            {/* Tangguh Program */}
+            {/* Postpone Program */}
             {new Date(booking.booking_date) >= new Date(new Date().toDateString()) && (
               postponingId !== booking.id ? (
                 <button
@@ -599,7 +599,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                   </svg>
-                  Tangguh Program
+                  Postpone Program
                 </button>
               ) : (
                 <div
@@ -610,26 +610,26 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                     </svg>
-                    Tangguh Program
+                    Postpone Program
                   </p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }} className="postpone-grid">
                     <div>
-                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tarikh Baru</label>
+                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Date</label>
                       <input type="date" value={postponeForm.date} min={new Date().toISOString().split('T')[0]}
                         onChange={(e) => setPostponeForm(prev => ({ ...prev, date: e.target.value }))}
                         style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '8px', padding: '9px 10px', fontSize: '13px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }}
                         onFocus={(e) => e.target.style.borderColor = '#7c3aed'} onBlur={(e) => e.target.style.borderColor = '#c4b5fd'} />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Masa Mula</label>
+                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Start Time</label>
                       <input type="time" value={postponeForm.start_time}
                         onChange={(e) => setPostponeForm(prev => ({ ...prev, start_time: e.target.value }))}
                         style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '8px', padding: '9px 10px', fontSize: '13px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }}
                         onFocus={(e) => e.target.style.borderColor = '#7c3aed'} onBlur={(e) => e.target.style.borderColor = '#c4b5fd'} />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Masa Tamat</label>
+                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New End Time</label>
                       <input type="time" value={postponeForm.end_time}
                         onChange={(e) => setPostponeForm(prev => ({ ...prev, end_time: e.target.value }))}
                         style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '8px', padding: '9px 10px', fontSize: '13px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }}
@@ -639,11 +639,11 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
 
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Sebab Tangguhan <span style={{ color: '#9ca3af', fontWeight: '400', textTransform: 'none' }}>(wajib)</span>
+                      Reason for Postponement <span style={{ color: '#9ca3af', fontWeight: '400', textTransform: 'none' }}>(required)</span>
                     </label>
                     <textarea value={postponeForm.reason}
                       onChange={(e) => setPostponeForm(prev => ({ ...prev, reason: e.target.value }))}
-                      placeholder="Contoh: Konflik jadual dewan, kemudahan tidak tersedia..."
+                      placeholder="e.g., Conflict with venue schedule, facility unavailable..."
                       rows={3}
                       style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', outline: 'none', background: 'white', color: '#111827', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' as const }}
                       onFocus={(e) => e.target.style.borderColor = '#7c3aed'} onBlur={(e) => e.target.style.borderColor = '#c4b5fd'} />
@@ -652,11 +652,11 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => { setPostponingId(null); setPostponeForm({ date: '', start_time: '', end_time: '', reason: '' }) }}
                       style={{ padding: '9px 18px', borderRadius: '8px', border: '1px solid #c4b5fd', background: 'white', color: '#7c3aed', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-                      Batal
+                      Cancel
                     </button>
                     <button onClick={() => savePostpone(booking.id)} disabled={savingPostpone}
                       style={{ padding: '9px 20px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: 'white', fontSize: '13px', fontWeight: '600', cursor: savingPostpone ? 'not-allowed' : 'pointer', opacity: savingPostpone ? 0.7 : 1 }}>
-                      {savingPostpone ? 'Menyimpan...' : 'Simpan Tangguhan'}
+                      {savingPostpone ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                 </div>
@@ -673,20 +673,20 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
               <div>
-                <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>Tarikh Baru</p>
+                <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>New Date</p>
                 <p style={{ color: '#7c3aed', fontWeight: '600' }}>
                   {new Date(booking.postponed_date + 'T00:00:00').toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
               </div>
               <div>
-                <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>Masa Baru</p>
+                <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>New Start Time</p>
                 <p style={{ color: '#7c3aed', fontWeight: '600' }}>
                   {booking.postponed_time_start} – {booking.postponed_time_end}
                 </p>
               </div>
               {booking.postpone_reason && (
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>Sebab</p>
+                  <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>Reason for Postponement</p>
                   <p style={{ color: '#374151', fontWeight: '500' }}>{booking.postpone_reason}</p>
                 </div>
               )}
@@ -721,15 +721,15 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
     <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
       {/* Page Title */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>Tempahan</h1>
-        <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>Semak dan urus semua tempahan</p>
+        <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>Bookings</h1>
+        <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>Check and manage all bookings</p>
       </div>
 
       {/* Filter Tabs + Action Buttons */}
       <div className="filter-action-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
         <div className="filter-tabs" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
-            { label: 'Semua', value: 'all' },
+            { label: 'All', value: 'all' },
             { label: 'Pending', value: 'pending' },
             { label: 'Approved', value: 'approved' },
             { label: 'Rejected', value: 'rejected' },
@@ -822,7 +822,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
           </svg>
           <input
             type="text"
-            placeholder="Cari nama, event atau organisasi..."
+            placeholder="Find name, event or organization..."
             onChange={(e) => setSearch(e.target.value)}
             style={{
               width: '100%', border: '1.5px solid #e5e7eb', borderRadius: '8px',
@@ -852,10 +852,10 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
               cursor: 'pointer', fontWeight: '500', appearance: 'none', WebkitAppearance: 'none',
             }}
           >
-            <option value="newest">Terbaru dahulu</option>
-            <option value="oldest">Terlama dahulu</option>
-            <option value="date_asc">Tarikh acara ↑</option>
-            <option value="date_desc">Tarikh acara ↓</option>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="date_asc">Event date ↑</option>
+            <option value="date_desc">Event date ↓</option>
           </select>
         </div>
       </div>
@@ -868,7 +868,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
               <polyline points="14 2 14 8 20 8"/>
             </svg>
-            <p style={{ fontSize: '14px', color: '#9ca3af' }}>Tiada tempahan</p>
+            <p style={{ fontSize: '14px', color: '#9ca3af' }}>No bookings</p>
           </div>
         ) : (
           <>
@@ -876,7 +876,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
             <table className="desktop-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
-                  {['', 'Event', 'Nama Pemohon', 'Organisasi', 'Tarikh', 'Masa', 'Status'].map((h) => (
+                  {['', 'Event', 'Booker Name', 'Organization', 'Date', 'Time', 'Status'].map((h) => (
                     <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                   ))}
                 </tr>

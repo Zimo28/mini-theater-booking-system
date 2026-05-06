@@ -138,9 +138,9 @@ function MonthlyTrendChart({ bookings }: { bookings: Booking[] }) {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
             </svg>
-            Trend Tempahan
+            Booking Trends
           </h2>
-          <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>12 bulan lepas</p>
+          <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '2px' }}>12 months ago</p>
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           {[
@@ -186,8 +186,8 @@ function MonthlyTrendChart({ bookings }: { bookings: Booking[] }) {
 
       <div style={{ display: 'flex', gap: '24px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f3f4f6', flexWrap: 'wrap' }}>
         {[
-          { label: 'Purata / bulan', value: (totalBookings / 12).toFixed(1) },
-          { label: 'Bulan tertinggi', value: maxMonth },
+          { label: 'Average / month', value: (totalBookings / 12).toFixed(1) },
+          { label: 'Highest month', value: maxMonth },
           { label: 'Approval rate', value: totalBookings > 0 ? `${Math.round((approvedCount / totalBookings) * 100)}%` : '0%' },
         ].map(item => (
           <div key={item.label}>
@@ -345,7 +345,7 @@ export default function DashboardClient({
               </span>
             </div>
             <a href="/admin/upcoming" style={{ fontSize: '13px', color: '#8B0000', fontWeight: '500', textDecoration: 'none' }}>
-              Lihat semua →
+              See all →
             </a>
           </div>
 
@@ -388,7 +388,7 @@ export default function DashboardClient({
                     color: isToday ? 'white' : isTomorrow ? '#d97706' : '#6b7280',
                     border: `1px solid ${isToday ? '#8B0000' : isTomorrow ? '#fde68a' : '#e5e7eb'}`,
                   }}>
-                    {isToday ? 'Hari Ini' : isTomorrow ? 'Esok' : `${diff} hari lagi`}
+                    {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : `${diff} days left`}
                   </span>
                 </div>
               )
