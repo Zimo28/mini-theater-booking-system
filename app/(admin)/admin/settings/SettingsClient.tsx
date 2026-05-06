@@ -161,33 +161,11 @@ export default function SettingsClient({
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       {/* Page Title */}
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>Settings</h1>
           <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>Manage system configurations</p>
         </div>
-        {activeTab !== 'admin' && (
-          <button
-            onClick={saveAllSettings}
-            disabled={saving}
-            style={{
-              background: 'linear-gradient(135deg, #8B0000, #a50000)',
-              color: 'white', border: 'none', borderRadius: '10px',
-              padding: '10px 20px', fontSize: '13px', fontWeight: '600',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.7 : 1,
-              display: 'flex', alignItems: 'center', gap: '8px',
-              boxShadow: '0 4px 12px rgba(139,0,0,0.2)',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-              <polyline points="17 21 17 13 7 13 7 21"/>
-              <polyline points="7 3 7 8 15 8"/>
-            </svg>
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        )}
       </div>
 
       {/* Tabs */}
@@ -571,8 +549,40 @@ export default function SettingsClient({
         )}
       </div>
 
+      {/* Save Button */}
+      {activeTab !== 'admin' && activeTab !== 'blackout' && (
+        <button
+          onClick={saveAllSettings}
+          disabled={saving}
+          style={{
+            width: '100%',
+            marginTop: '16px',
+            background: saving ? '#f3f4f6' : 'linear-gradient(135deg, #8B0000, #a50000)',
+            color: saving ? '#9ca3af' : 'white',
+            border: saving ? '1px solid #e5e7eb' : 'none',
+            borderRadius: '12px',
+            padding: '14px',
+            fontSize: '14px', fontWeight: '700',
+            cursor: saving ? 'not-allowed' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            boxShadow: saving ? 'none' : '0 4px 16px rgba(139,0,0,0.25)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => { if (!saving) e.currentTarget.style.boxShadow = '0 6px 24px rgba(139,0,0,0.35)' }}
+          onMouseLeave={(e) => { if (!saving) e.currentTarget.style.boxShadow = '0 4px 16px rgba(139,0,0,0.25)' }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      )}
+
       <style>{`
         @media (max-width: 600px) {
+          .save-btn { width: 100% !important; justify-content: center !important; }
           .equipment-grid { grid-template-columns: 1fr !important; }
           .settings-grid-2 { grid-template-columns: 1fr !important; }
           .settings-grid-2 > div[style*="1 / -1"] { grid-column: 1 !important; }
