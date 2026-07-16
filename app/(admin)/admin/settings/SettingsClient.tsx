@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { showToast } from '@/components/Toast'
 
-type Facility = {
-  id: string
-  name: string
+type Facility = { 
+  id: string; 
+  name: string; 
+  position?: number 
 }
 
-type BlackoutDate = { id: string; date: string; reason: string }
+type BlackoutDate = { 
+  id: string; 
+  date: string; 
+  reason: string 
+}
 
 const tabs = [
   {
@@ -44,6 +49,9 @@ export default function SettingsClient({
   const [settings, setSettings] = useState(initialSettings)
   const [facilities, setFacilities] = useState(initialFacilities)
   const [newFacility, setNewFacility] = useState('')
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
   const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>([])
@@ -69,7 +77,7 @@ export default function SettingsClient({
     if (!newFacility.trim()) return
     const { data, error } = await supabase
       .from('facilities')
-      .insert([{ name: newFacility.trim() }])
+      .insert([{ name: newFacility.trim(), position: facilities.length }])
       .select()
       .single()
     if (!error && data) {
@@ -88,6 +96,71 @@ export default function SettingsClient({
       showToast('Kemudahan berjaya dipadam.', 'success')
     } else {
       showToast('Ralat semasa memadam.', 'error')
+    }
+  }
+
+  const startEditFacility = (facility: Facility) => {
+    setEditingId(facility.id)
+    setEditValue(facility.name)
+  }
+
+  const cancelEditFacility = () => {
+    setEditingId(null)
+    setEditValue('')
+  }
+
+  const saveEditFacility = async (id: string) => {
+    const trimmed = editValue.trim()
+    if (!trimmed) { cancelEditFacility(); return }
+
+    const original = facilities.find(f => f.id === id)
+    if (original?.name === trimmed) { cancelEditFacility(); return }
+
+    const { error } = await supabase
+      .from('facilities')
+      .update({ name: trimmed })
+      .eq('id', id)
+
+    if (!error) {
+      setFacilities(prev => prev.map(f => f.id === id ? { ...f, name: trimmed } : f))
+      showToast('Kemudahan berjaya dikemaskini!', 'success')
+    } else {
+      showToast('Ralat semasa mengemaskini.', 'error')
+    }
+    setEditingId(null)
+    setEditValue('')
+  }
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index)
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+
+    const reordered = [...facilities]
+    const [moved] = reordered.splice(draggedIndex, 1)
+    reordered.splice(index, 0, moved)
+
+    setDraggedIndex(index)
+    setFacilities(reordered)
+  }
+
+  const handleDragEnd = async () => {
+    setDraggedIndex(null)
+
+    const updates = facilities.map((f, index) => ({
+      id: f.id,
+      name: f.name,
+      position: index,
+    }))
+
+    const { error } = await supabase.from('facilities').upsert(updates)
+    if (error) {
+      showToast('Ralat semasa kemaskini susunan.', 'error')
+    } else {
+      showToast('Susunan berjaya dikemaskini!', 'success')
     }
   }
 
@@ -298,26 +371,80 @@ export default function SettingsClient({
             {/* Facilities */}
             <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #f3f4f6' }}>
               <label style={{ ...labelStyle, marginBottom: '12px' }}>Mini Theater Facilities</label>
-              {facilities.map((facility) => (
-                <div key={facility.id} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '10px 14px', borderRadius: '8px', border: '1px solid #f3f4f6',
-                  marginBottom: '6px', background: '#f9fafb',
-                }}>
-                  <span style={{ fontSize: '13px', color: '#374151' }}>{facility.name}</span>
-                  <button
-                    onClick={() => deleteFacility(facility.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                      <path d="M10 11v6M14 11v6"/>
-                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+              {facilities.map((facility, index) => (
+                <div
+                  key={facility.id}
+                  draggable={editingId !== facility.id}
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 14px', borderRadius: '8px', border: '1px solid #f3f4f6',
+                    marginBottom: '6px',
+                    background: draggedIndex === index ? '#fef2f2' : '#f9fafb',
+                    cursor: editingId === facility.id ? 'default' : 'grab',
+                    opacity: draggedIndex === index ? 0.6 : 1,
+                    transition: 'background 0.15s, opacity 0.15s',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                      <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+                      <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                      <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
                     </svg>
-                  </button>
+
+                    {editingId === facility.id ? (
+                      <input
+                        autoFocus
+                        type="text"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEditFacility(facility.id)
+                          if (e.key === 'Escape') cancelEditFacility()
+                        }}
+                        onBlur={() => saveEditFacility(facility.id)}
+                        style={{
+                          fontSize: '13px', color: '#374151', flex: 1,
+                          border: '1.5px solid #8B0000', borderRadius: '6px',
+                          padding: '4px 8px', outline: 'none',
+                        }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: '13px', color: '#374151' }}>{facility.name}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                    {editingId !== facility.id && (
+                      <button
+                        onClick={() => startEditFacility(facility)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#8B0000'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteFacility(facility.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               ))}
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
