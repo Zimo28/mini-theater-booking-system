@@ -116,7 +116,7 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
                   return (
                     <a
                       key={event.id}
-                      href={`/admin/tempahan?id=${event.id}`}
+                      href={`/admin/bookings?id=${event.id}`}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '16px',
                         padding: '16px 20px', borderRadius: '12px',

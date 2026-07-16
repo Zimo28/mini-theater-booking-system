@@ -1,5 +1,5 @@
 import AdminBookingClient from './AdminBookingClient'
 
-export default function TambahTempahanPage() {
+export default function AddBookingPage() {
   return <AdminBookingClient />
 }

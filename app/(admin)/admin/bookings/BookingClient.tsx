@@ -51,7 +51,7 @@ const card = {
   boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
 }
 
-export default function TempahanClient({ bookings: initial }: { bookings: Booking[] }) {
+export default function BookingClient({ bookings: initial }: { bookings: Booking[] }) {
   const [bookings, setBookings] = useState(initial)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [filter, setFilter] = useState('all')
@@ -802,7 +802,7 @@ export default function TempahanClient({ bookings: initial }: { bookings: Bookin
             Export CSV
           </button>
           <a
-            href="/admin/tempahan/tambah"
+            href="/admin/bookings/add"
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 14px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #8B0000, #a50000)', color: 'white', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(139,0,0,0.2)' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

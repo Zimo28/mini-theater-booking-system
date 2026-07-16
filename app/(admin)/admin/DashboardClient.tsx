@@ -540,7 +540,7 @@ export default function DashboardClient({
                     return (
                       <a
                         key={booking.id}
-                        href={`/admin/tempahan?id=${booking.id}`}
+                        href={`/admin/bookings?id=${booking.id}`}
                         style={{
                           display: 'block',
                           border: `1px solid ${isApproved ? '#fecaca' : '#fde68a'}`,

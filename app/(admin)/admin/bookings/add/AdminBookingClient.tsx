@@ -170,7 +170,7 @@ export default function AdminBookingClient() {
       })
 
       showToast('Tempahan berjaya ditambah dan diluluskan!', 'success')
-      setTimeout(() => { window.location.href = '/admin/tempahan' }, 1200)
+      setTimeout(() => { window.location.href = '/admin/bookings' }, 1200)
     }
     setLoading(false)
   }
@@ -200,7 +200,7 @@ export default function AdminBookingClient() {
       {/* Page Title */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-          <a href="/admin/tempahan" style={{
+          <a href="/admin/bookings" style={{
             display: 'flex', alignItems: 'center', gap: '4px',
             fontSize: '13px', color: '#6b7280', textDecoration: 'none',
             padding: '5px 10px', borderRadius: '6px', border: '1px solid #e5e7eb',

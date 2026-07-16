@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-import TempahanClient from './TempahanClient'
+import BookingClient from './BookingClient'
 
-export default async function TempahanPage() {
+export default async function BookingPage() {
   const supabase = await createSupabaseServerClient()
 
   const { data: bookings } = await supabase
@@ -12,7 +12,7 @@ export default async function TempahanPage() {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <TempahanClient bookings={bookings ?? []} />
+      <BookingClient bookings={bookings ?? []} />
     </Suspense>
   )
 }

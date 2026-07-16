@@ -95,7 +95,7 @@ export default function HeaderClient({ userName, role }: { userName: string; rol
   const handleNotifClick = (notif: Notification) => {
     if (!notif.read) markOneRead(notif.id)
     if (notif.booking_id) {
-      window.location.href = `/admin/tempahan?id=${notif.booking_id}`
+      window.location.href = `/admin/bookings?id=${notif.booking_id}`
     }
   }
 
