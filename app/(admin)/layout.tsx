@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { SidebarProvider } from '@/components/SidebarContext'
 import LoadingBar from '@/components/LoadingBar'
+import IdleTimeout from '@/components/IdleTimeout'
 
 export default async function AdminLayout({
   children,
@@ -26,6 +27,7 @@ export default async function AdminLayout({
 
   return (
     <SidebarProvider>
+      <IdleTimeout />
       <LoadingBar />
       <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f9fafb' }}>
         <div className="sidebar-wrapper">
