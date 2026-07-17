@@ -6,6 +6,21 @@ import { supabase } from '@/lib/supabase'
 import { syncToGoogleSheet } from '@/lib/googleSheet'
 import BlackoutCalendar from '@/components/BlackoutCalendar'
 
+type Slot = {
+  booking_date: string
+  start_time: string
+  end_time: string
+  microphone: number
+  aircond: number
+  pa_system: number
+  lcd_projector: number
+}
+
+const emptySlot = (): Slot => ({
+  booking_date: '', start_time: '', end_time: '',
+  microphone: 0, aircond: 0, pa_system: 0, lcd_projector: 0,
+})
+
 function EquipmentSelect({ eq, value, onChange }: {
   eq: { label: string; field: string; icon: React.ReactNode; max: number }
   value: number
@@ -80,18 +95,32 @@ export default function BookingPage() {
   const [file, setFile] = useState<File | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [error, setError] = useState('')
+  const [conflictIndexes, setConflictIndexes] = useState<number[]>([])
 
   useEffect(() => { setTimeout(() => setMounted(true), 50) }, [])
 
   const [form, setForm] = useState({
     full_name: '', phone: '', organization: '', event_name: '',
-    booking_date: '', start_time: '', end_time: '',
-    microphone: 0, aircond: 0, pa_system: 0, lcd_projector: 0,
   })
 
-  const updateForm = (field: string, value: string | number) => {
+  const [slots, setSlots] = useState<Slot[]>([emptySlot()])
+
+  const updateForm = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const updateSlot = (index: number, field: keyof Slot, value: string | number) => {
+    setSlots(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s))
+    setConflictIndexes(prev => prev.filter(i => i !== index)) // clear error bila user edit slot tu
+  }
+
+  const addSlot = () => {
+    setSlots(prev => [...prev, emptySlot()])
+  }
+
+  const removeSlot = (index: number) => {
+    setSlots(prev => prev.filter((_, i) => i !== index))
+    setConflictIndexes(prev => prev.filter(i => i !== index).map(i => i > index ? i - 1 : i))
   }
 
   const getMinDate = () => {
@@ -110,18 +139,53 @@ export default function BookingPage() {
     return urlData.publicUrl
   }
 
-  const checkConflict = async () => {
-    const { data } = await supabase
-      .from('bookings')
-      .select('id, start_time, end_time, event_name')
-      .eq('booking_date', form.booking_date)
-      .in('status', ['approved', 'pending'])
+  // Check setiap slot secara berasingan terhadap booking sedia ada (approved/pending)
+  // DAN terhadap slot-slot lain dalam submission yang sama (elak double-book diri sendiri)
+  const checkAllSlotsForConflict = async (): Promise<{ index: number; reason: string }[]> => {
+    const problems: { index: number; reason: string }[] = []
 
-    if (!data) return false
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i]
 
-    return data.some(b =>
-      form.start_time < b.end_time && form.end_time > b.start_time
-    )
+      // Clash dengan booking lain dalam DB
+      const { data } = await supabase
+        .from('bookings')
+        .select('start_time, end_time')
+        .eq('booking_date', slot.booking_date)
+        .in('status', ['approved', 'pending'])
+
+      const hasDbConflict = data?.some(b =>
+        slot.start_time < b.end_time && slot.end_time > b.start_time
+      )
+      if (hasDbConflict) {
+        problems.push({ index: i, reason: 'Bertindih dengan tempahan lain yang sedia ada' })
+        continue
+      }
+
+      // Clash dengan slot lain dalam submission yang sama
+      const clashesWithOwnSlot = slots.some((other, j) =>
+        j !== i &&
+        other.booking_date === slot.booking_date &&
+        slot.start_time < other.end_time && slot.end_time > other.start_time
+      )
+      if (clashesWithOwnSlot) {
+        problems.push({ index: i, reason: 'Bertindih dengan slot lain dalam tempahan ini' })
+        continue
+      }
+
+      // Blackout date check
+      const { data: blackout } = await supabase
+        .from('blackout_dates')
+        .select('reason')
+        .eq('date', slot.booking_date)
+        .single()
+
+      if (blackout) {
+        problems.push({ index: i, reason: `Tarikh blackout${blackout.reason ? ` — ${blackout.reason}` : ''}` })
+      }
+    }
+
+    return problems
   }
 
   const handleSubmit = async () => {
@@ -132,55 +196,71 @@ export default function BookingPage() {
     if (!phoneRegex.test(form.phone.replace(/[-\s]/g, ''))) {
       showToast('Format nombor telefon tidak sah. Contoh: 012-3456789', 'error'); return
     }
-    if (!form.booking_date || !form.start_time || !form.end_time) {
-      showToast('Sila isi tarikh dan masa.', 'error'); return
+
+    for (const slot of slots) {
+      if (!slot.booking_date || !slot.start_time || !slot.end_time) {
+        showToast('Sila isi tarikh dan masa untuk semua slot.', 'error'); return
+      }
+      if (slot.start_time >= slot.end_time) {
+        showToast('Masa tamat mesti lebih lewat dari masa mula untuk setiap slot.', 'error'); return
+      }
     }
-    if (form.start_time >= form.end_time) {
-      showToast('Masa tamat mesti lebih lewat dari masa mula.', 'error'); return
-    }
+
     if (!file) {
       showToast('Sila muat naik dokumen kelulusan (PDF) sebelum menghantar.', 'error'); return
     }
 
-    const hasConflict = await checkConflict()
-    if (hasConflict) {
-      showToast('Tarikh dan masa ini telah ditempah atau dalam semakan. Sila pilih masa lain.', 'error')
-      return
-    }
-
-    // Check blackout date
-    const { data: blackout } = await supabase
-      .from('blackout_dates')
-      .select('date, reason')
-      .eq('date', form.booking_date)
-      .single()
-
-    if (blackout) {
-      showToast(`Tarikh ini tidak tersedia${blackout.reason ? ` — ${blackout.reason}` : ''}.`, 'error')
-      return
-    }
-
     setLoading(true)
+
+    const problems = await checkAllSlotsForConflict()
+    if (problems.length > 0) {
+      setConflictIndexes(problems.map(p => p.index))
+      const firstProblem = problems[0]
+      const slotDate = slots[firstProblem.index].booking_date
+      showToast(
+        `Slot ${firstProblem.index + 1} (${slotDate}): ${firstProblem.reason}. Sila semak slot yang ditanda merah.`,
+        'error'
+      )
+      setLoading(false)
+      return
+    }
+
+    const groupId = crypto.randomUUID()
+    const rowsToInsert = slots.map(slot => ({
+      ...form,
+      ...slot,
+      status: 'pending',
+      booking_group_id: groupId,
+    }))
+
     const { data: inserted, error } = await supabase
-      .from('bookings').insert([{ ...form, status: 'pending' }]).select().single()
+      .from('bookings').insert(rowsToInsert).select()
 
     if (error) {
       showToast('Ralat semasa menghantar. Sila cuba lagi.', 'error')
       setLoading(false)
-    } else {
-      const attachmentUrl = await uploadFile(inserted.id)
-      if (attachmentUrl) {
-        await supabase.from('bookings').update({ attachment_url: attachmentUrl }).eq('id', inserted.id)
-      }
-      await syncToGoogleSheet({ ...form, id: inserted.id, status: 'pending', created_at: inserted.created_at })
-      await fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'new_booking', booking: { ...form, id: inserted.id } }),
-      })
-      setLoading(false)
-      setSuccess(true)
+      return
     }
+
+    if (inserted?.[0]) {
+      const attachmentUrl = await uploadFile(inserted[0].id)
+      if (attachmentUrl) {
+        await supabase.from('bookings').update({ attachment_url: attachmentUrl }).eq('booking_group_id', groupId)
+      }
+    }
+
+    for (const row of inserted ?? []) {
+      await syncToGoogleSheet({ ...row })
+    }
+
+    await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'new_booking', booking: { ...form, slots, groupId } }),
+    })
+
+    setLoading(false)
+    setSuccess(true)
   }
 
   const inputStyle = {
@@ -221,6 +301,13 @@ export default function BookingPage() {
     color: 'white', fontSize: '12px', fontWeight: '700' as const, flexShrink: 0,
   })
 
+  const equipmentDefs = [
+    { label: 'Microphone', field: 'microphone' as const, icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>, max: 2 },
+    { label: 'Air-cond', field: 'aircond' as const, icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>, max: 1 },
+    { label: 'PA System', field: 'pa_system' as const, icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>, max: 1 },
+    { label: 'LCD Projector', field: 'lcd_projector' as const, icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>, max: 1 },
+  ]
+
   if (success) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f5f5f5 0%, #fef2f2 100%)', display: 'flex', flexDirection: 'column', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
@@ -241,13 +328,14 @@ export default function BookingPage() {
             </div>
             <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#111827', marginBottom: '10px' }}>Tempahan Dihantar!</h2>
             <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.7' }}>
-              Tempahan anda sedang menunggu kelulusan admin. Anda akan dihubungi sekiranya ada pertanyaan.
+              Tempahan anda ({slots.length} slot) sedang menunggu kelulusan admin. Anda akan dihubungi sekiranya ada pertanyaan.
             </p>
             <div style={{ display: 'flex', gap: '10px', marginTop: '28px', flexDirection: 'column' }}>
               <button
                 onClick={() => {
-                  setSuccess(false); setFile(null)
-                  setForm({ full_name: '', phone: '', organization: '', event_name: '', booking_date: '', start_time: '', end_time: '', microphone: 0, aircond: 0, pa_system: 0, lcd_projector: 0 })
+                  setSuccess(false); setFile(null); setConflictIndexes([])
+                  setForm({ full_name: '', phone: '', organization: '', event_name: '' })
+                  setSlots([emptySlot()])
                 }}
                 style={{ background: 'linear-gradient(135deg, #8B0000, #a50000)', color: 'white', border: 'none', borderRadius: '10px', padding: '12px 32px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 12px rgba(139,0,0,0.25)' }}
               >Buat Tempahan Baru</button>
@@ -368,51 +456,107 @@ export default function BookingPage() {
               </div>
             </div>
 
-            {/* Section 2 */}
+            {/* Section 2 — sekarang loop ikut slot */}
             <div style={cardStyle}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                <div style={sectionBadge('2')}>2</div>
-                <h2 style={{ fontSize: '14px', fontWeight: '700', color: '#111827', margin: 0 }}>Schedule & Equipment</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={sectionBadge('2')}>2</div>
+                  <h2 style={{ fontSize: '14px', fontWeight: '700', color: '#111827', margin: 0 }}>Schedule & Equipment</h2>
+                </div>
+                {slots.length > 1 && (
+                  <span style={{ fontSize: '11px', background: '#eff6ff', color: '#2563eb', border: '1px solid #dbeafe', padding: '2px 8px', borderRadius: '999px', fontWeight: '600' }}>
+                    {slots.length} slot
+                  </span>
+                )}
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <label style={labelStyle}>
-                  Booking Date <span style={{ color: '#dc2626' }}>*</span>{' '}
-                  <span style={{ fontWeight: '400', color: '#9ca3af', fontSize: '12px' }}>(Min. 5 days)</span>
-                </label>
-                <BlackoutCalendar
-                  value={form.booking_date}
-                  onChange={(date) => updateForm('booking_date', date)}
-                  minDate={getMinDate()}
-                  placeholder="Pilih tarikh tempahan"
-                  isAdmin={false}
-                />
-              </div>
+              {slots.map((slot, index) => {
+                const hasConflict = conflictIndexes.includes(index)
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      border: hasConflict ? '1.5px solid #fca5a5' : '1.5px solid #f3f4f6',
+                      borderRadius: '10px', padding: '14px', marginBottom: '14px',
+                      background: hasConflict ? '#fef2f2' : '#fafafa',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: '700', color: hasConflict ? '#dc2626' : '#8B0000' }}>
+                        Slot {index + 1} {hasConflict && '⚠️ Bertindih'}
+                      </span>
+                      {slots.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSlot(index)}
+                          style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}
+                        >
+                          Buang Slot
+                        </button>
+                      )}
+                    </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-                {[{ label: 'Start Time', field: 'start_time' }, { label: 'End Time', field: 'end_time' }].map((t) => (
-                  <div key={t.field}>
-                    <label style={labelStyle}>{t.label} <span style={{ color: '#dc2626' }}>*</span></label>
-                    <input type="time" min="07:00" max="22:30"
-                      onChange={(e) => updateForm(t.field, e.target.value)}
-                      style={inputStyle}
-                      onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                      onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={labelStyle}>
+                        Booking Date <span style={{ color: '#dc2626' }}>*</span>{' '}
+                        <span style={{ fontWeight: '400', color: '#9ca3af', fontSize: '12px' }}>(Min. 5 days)</span>
+                      </label>
+                      <BlackoutCalendar
+                        value={slot.booking_date}
+                        onChange={(date) => updateSlot(index, 'booking_date', date)}
+                        minDate={getMinDate()}
+                        placeholder="Pilih tarikh tempahan"
+                        isAdmin={false}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      <div>
+                        <label style={labelStyle}>Start Time <span style={{ color: '#dc2626' }}>*</span></label>
+                        <input type="time" min="07:00" max="22:30" value={slot.start_time}
+                          onChange={(e) => updateSlot(index, 'start_time', e.target.value)}
+                          style={inputStyle}
+                          onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>End Time <span style={{ color: '#dc2626' }}>*</span></label>
+                        <input type="time" min="07:00" max="22:30" value={slot.end_time}
+                          onChange={(e) => updateSlot(index, 'end_time', e.target.value)}
+                          style={inputStyle}
+                          onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                          onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+                      </div>
+                    </div>
+
+                    <label style={{ ...labelStyle, marginBottom: '8px', display: 'block' }}>Additional Equipment</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      {equipmentDefs.map((eq) => (
+                        <EquipmentSelect
+                          key={eq.field}
+                          eq={eq}
+                          value={slot[eq.field]}
+                          onChange={(val) => updateSlot(index, eq.field, val)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                )
+              })}
 
-              <label style={{ ...labelStyle, marginBottom: '10px', display: 'block' }}>Additional Equipment</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
-                {[
-                  { label: 'Microphone', field: 'microphone', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>, max: 2 },
-                  { label: 'Air-cond', field: 'aircond', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>, max: 1 },
-                  { label: 'PA System', field: 'pa_system', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>, max: 1 },
-                  { label: 'LCD Projector', field: 'lcd_projector', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>, max: 1 },
-                ].map((eq) => (
-                  <EquipmentSelect key={eq.field} eq={eq} value={form[eq.field as keyof typeof form] as number} onChange={(val) => updateForm(eq.field, val)} />
-                ))}
-              </div>
+              <button
+                type="button"
+                onClick={addSlot}
+                style={{
+                  width: '100%', padding: '10px', borderRadius: '8px',
+                  border: '1.5px dashed #d1d5db', background: 'transparent',
+                  color: '#6b7280', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+                  marginBottom: '12px',
+                }}
+              >
+                + Tambah Hari / Slot Lain
+              </button>
 
               <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: '#92400e', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
                 <span style={{ flexShrink: 0 }}>⚠️</span>
@@ -503,7 +647,7 @@ export default function BookingPage() {
                 </svg>
                 Menghantar...
               </>
-            ) : 'Hantar Tempahan →'}
+            ) : `Hantar Tempahan${slots.length > 1 ? ` (${slots.length} slot)` : ''} →`}
           </button>
         </div>
       </div>

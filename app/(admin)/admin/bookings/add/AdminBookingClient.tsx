@@ -6,6 +6,21 @@ import { showToast } from '@/components/Toast'
 import { syncToGoogleSheet } from '@/lib/googleSheet'
 import BlackoutCalendar from '@/components/BlackoutCalendar'
 
+type Slot = {
+  booking_date: string
+  start_time: string
+  end_time: string
+  microphone: number
+  aircond: number
+  pa_system: number
+  lcd_projector: number
+}
+
+const emptySlot = (): Slot => ({
+  booking_date: '', start_time: '', end_time: '',
+  microphone: 0, aircond: 0, pa_system: 0, lcd_projector: 0,
+})
+
 function EquipmentSelect({ eq, value, onChange }: { 
   eq: { label: string; field: string; icon: React.ReactNode; max: number }
   value: number
@@ -77,12 +92,23 @@ export default function AdminBookingClient() {
   const [dragOver, setDragOver] = useState(false)
   const [form, setForm] = useState({
     full_name: '', phone: '', organization: '', event_name: '',
-    booking_date: '', start_time: '', end_time: '',
-    microphone: 0, aircond: 0, pa_system: 0, lcd_projector: 0,
   })
+  const [slots, setSlots] = useState<Slot[]>([emptySlot()])
 
-  const updateForm = (field: string, value: string | number) => {
+  const updateForm = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const updateSlot = (index: number, field: keyof Slot, value: string | number) => {
+    setSlots(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s))
+  }
+
+  const addSlot = () => {
+    setSlots(prev => [...prev, emptySlot()])
+  }
+
+  const removeSlot = (index: number) => {
+    setSlots(prev => prev.filter((_, i) => i !== index))
   }
 
   const uploadFile = async (bookingId: string) => {
@@ -95,16 +121,16 @@ export default function AdminBookingClient() {
     return urlData.publicUrl
   }
 
-  const checkConflict = async () => {
+  const checkConflictForSlot = async (slot: Slot) => {
     const { data } = await supabase
       .from('bookings')
       .select('id, start_time, end_time')
-      .eq('booking_date', form.booking_date)
+      .eq('booking_date', slot.booking_date)
       .in('status', ['approved', 'pending'])
 
     if (!data) return false
     return data.some(b =>
-      form.start_time < b.end_time && form.end_time > b.start_time
+      slot.start_time < b.end_time && slot.end_time > b.start_time
     )
   }
 
@@ -120,58 +146,81 @@ export default function AdminBookingClient() {
       return
     }
 
-    if (!form.booking_date || !form.start_time || !form.end_time) {
-      showToast('Sila isi tarikh dan masa.', 'error'); return
-    }
-    if (form.start_time >= form.end_time) {
-      showToast('Masa tamat mesti lebih lewat dari masa mula.', 'error'); return
-    }
-
-    const hasConflict = await checkConflict()
-    if (hasConflict) {
-      const confirm = window.confirm('⚠️ Ada conflict masa dengan tempahan lain. Teruskan sebagai admin?')
-      if (!confirm) { setLoading(false); return }
+    for (const slot of slots) {
+      if (!slot.booking_date || !slot.start_time || !slot.end_time) {
+        showToast('Sila isi tarikh dan masa untuk semua slot.', 'error'); return
+      }
+      if (slot.start_time >= slot.end_time) {
+        showToast('Masa tamat mesti lebih lewat dari masa mula untuk setiap slot.', 'error'); return
+      }
     }
 
-    // Blackout date check — admin boleh override dengan confirm
-    const { data: blackout } = await supabase
-      .from('blackout_dates')
-      .select('date, reason')
-      .eq('date', form.booking_date)
-      .single()
+    // Check conflict + blackout untuk SETIAP slot — admin boleh override satu-satu dengan confirm
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i]
 
-    if (blackout) {
-      const confirmBlackout = window.confirm(
-        `⚠️ Tarikh ini adalah blackout date${blackout.reason ? ` (${blackout.reason})` : ''}.\nTeruskan sebagai admin?`
-      )
-      if (!confirmBlackout) { setLoading(false); return }
+      const hasConflict = await checkConflictForSlot(slot)
+      if (hasConflict) {
+        const proceed = window.confirm(
+          `⚠️ Slot ${i + 1} (${slot.booking_date}, ${slot.start_time}-${slot.end_time}) ada conflict masa dengan tempahan lain.\nTeruskan sebagai admin?`
+        )
+        if (!proceed) return
+      }
+
+      const { data: blackout } = await supabase
+        .from('blackout_dates')
+        .select('date, reason')
+        .eq('date', slot.booking_date)
+        .single()
+
+      if (blackout) {
+        const proceedBlackout = window.confirm(
+          `⚠️ Slot ${i + 1}: Tarikh ${slot.booking_date} adalah blackout date${blackout.reason ? ` (${blackout.reason})` : ''}.\nTeruskan sebagai admin?`
+        )
+        if (!proceedBlackout) return
+      }
     }
 
     setLoading(true)
+    const groupId = crypto.randomUUID()
+    const rowsToInsert = slots.map(slot => ({
+      ...form,
+      ...slot,
+      status: 'approved',
+      booking_group_id: groupId,
+    }))
+
     const { data: inserted, error } = await supabase
-      .from('bookings').insert([{ ...form, status: 'approved' }]).select().single()
+      .from('bookings').insert(rowsToInsert).select()
 
     if (error) {
       showToast('Ralat semasa menambah tempahan.', 'error')
-    } else {
-      const attachmentUrl = await uploadFile(inserted.id)
-      if (attachmentUrl) {
-        await supabase.from('bookings').update({ attachment_url: attachmentUrl }).eq('id', inserted.id)
-      }
-      await syncToGoogleSheet({ ...form, id: inserted.id, status: 'approved', created_at: inserted.created_at })
-
-      await fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'admin_booking',
-          booking: { ...form, id: inserted.id },
-        }),
-      })
-
-      showToast('Tempahan berjaya ditambah dan diluluskan!', 'success')
-      setTimeout(() => { window.location.href = '/admin/bookings' }, 1200)
+      setLoading(false)
+      return
     }
+
+    if (inserted?.[0]) {
+      const attachmentUrl = await uploadFile(inserted[0].id)
+      if (attachmentUrl) {
+        await supabase.from('bookings').update({ attachment_url: attachmentUrl }).eq('booking_group_id', groupId)
+      }
+    }
+
+    for (const row of inserted ?? []) {
+      await syncToGoogleSheet({ ...row })
+    }
+
+    await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'admin_booking',
+        booking: { ...form, slots, groupId },
+      }),
+    })
+
+    showToast(`Tempahan berjaya ditambah (${slots.length} slot) dan diluluskan!`, 'success')
+    setTimeout(() => { window.location.href = '/admin/bookings' }, 1200)
     setLoading(false)
   }
 
@@ -194,6 +243,13 @@ export default function AdminBookingClient() {
     padding: '28px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   }
+
+  const equipmentDefs = [
+    { label: 'Microphone', field: 'microphone' as const, icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>, max: 2 },
+    { label: 'Air-cond', field: 'aircond' as const, icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>, max: 1 },
+    { label: 'PA System', field: 'pa_system' as const, icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>, max: 1 },
+    { label: 'LCD Projector', field: 'lcd_projector' as const, icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>, max: 1 },
+  ]
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -239,7 +295,7 @@ export default function AdminBookingClient() {
           ].map((item) => (
             <div key={item.field} style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>{item.label} <span style={{ color: '#dc2626' }}>*</span></label>
-              <input type={item.type} placeholder={item.placeholder}
+              <input type={item.type} value={form[item.field as keyof typeof form]} placeholder={item.placeholder}
                 onChange={(e) => updateForm(item.field, e.target.value)} style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = '#8B0000'}
                 onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
@@ -247,52 +303,88 @@ export default function AdminBookingClient() {
           ))}
         </div>
 
-        {/* Section 2 — Schedule */}
+        {/* Section 2 — Schedule, loop ikut slot */}
         <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-            <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>2</div>
-            <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#111827' }}>Schedule & Equipment</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>2</div>
+              <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#111827' }}>Schedule & Equipment</h2>
+            </div>
+            {slots.length > 1 && (
+              <span style={{ fontSize: '11px', background: '#eff6ff', color: '#2563eb', border: '1px solid #dbeafe', padding: '2px 8px', borderRadius: '999px', fontWeight: '600' }}>
+                {slots.length} slot
+              </span>
+            )}
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Booking Date <span style={{ color: '#dc2626' }}>*</span></label>
-            <BlackoutCalendar
-              value={form.booking_date}
-              onChange={(date) => updateForm('booking_date', date)}
-              placeholder="Pilih tarikh tempahan"
-              isAdmin={true}
-            />
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-            {[{ label: 'Start Time', field: 'start_time' }, { label: 'End Time', field: 'end_time' }].map((t) => (
-              <div key={t.field}>
-                <label style={labelStyle}>{t.label} <span style={{ color: '#dc2626' }}>*</span></label>
-                <input type="time" onChange={(e) => updateForm(t.field, e.target.value)}
-                  style={inputStyle}
-                  onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+          {slots.map((slot, index) => (
+            <div key={index} style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '16px', marginBottom: '14px', background: '#f9fafb' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: '#8B0000' }}>Slot {index + 1}</span>
+                {slots.length > 1 && (
+                  <button type="button" onClick={() => removeSlot(index)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>
+                    Buang Slot
+                  </button>
+                )}
               </div>
-            ))}
-          </div>
 
-          <label style={{ ...labelStyle, marginBottom: '12px' }}>Additional Equipment Request</label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            {[
-              { label: 'Microphone', field: 'microphone', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>, max: 2 },
-              { label: 'Air-cond', field: 'aircond', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>, max: 1 },
-              { label: 'PA System', field: 'pa_system', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>, max: 1 },
-              { label: 'LCD Projector', field: 'lcd_projector', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><path d="M17 2l-5 5-5-5"/></svg>, max: 1 },
-            ].map((eq) => (
-              <EquipmentSelect key={eq.field} eq={eq} value={form[eq.field as keyof typeof form] as number} onChange={(val) => updateForm(eq.field, val)} />
-            ))}
-          </div>
+              <label style={labelStyle}>Booking Date <span style={{ color: '#dc2626' }}>*</span></label>
+              <BlackoutCalendar
+                value={slot.booking_date}
+                onChange={(date) => updateSlot(index, 'booking_date', date)}
+                placeholder="Pilih tarikh tempahan"
+                isAdmin={true}
+              />
 
-          <div style={{ marginTop: '14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#2563eb', display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', margin: '14px 0' }}>
+                <div>
+                  <label style={labelStyle}>Start Time <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="time" value={slot.start_time} onChange={(e) => updateSlot(index, 'start_time', e.target.value)}
+                    style={inputStyle}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+                </div>
+                <div>
+                  <label style={labelStyle}>End Time <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="time" value={slot.end_time} onChange={(e) => updateSlot(index, 'end_time', e.target.value)}
+                    style={inputStyle}
+                    onFocus={(e) => e.target.style.borderColor = '#8B0000'}
+                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+                </div>
+              </div>
+
+              <label style={{ ...labelStyle, marginBottom: '10px' }}>Additional Equipment</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                {equipmentDefs.map((eq) => (
+                  <EquipmentSelect
+                    key={eq.field}
+                    eq={eq}
+                    value={slot[eq.field]}
+                    onChange={(val) => updateSlot(index, eq.field, val)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={addSlot}
+            style={{
+              width: '100%', padding: '10px', borderRadius: '8px',
+              border: '1.5px dashed #d1d5db', background: 'transparent',
+              color: '#6b7280', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+              marginBottom: '14px',
+            }}
+          >
+            + Tambah Hari / Slot Lain
+          </button>
+
+          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#2563eb', display: 'flex', gap: '6px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}>
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
-            <span><strong>Admin Note:</strong> This booking will be created as "Approved" bypassing lead times and time restrictions.</span>
+            <span><strong>Admin Note:</strong> Semua slot akan dicipta sebagai "Approved" (bypass lead times & restrictions). Conflict/blackout akan diminta confirm satu-satu.</span>
           </div>
         </div>
 
@@ -392,7 +484,7 @@ export default function AdminBookingClient() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
         </svg>
-        {loading ? 'Menambah...' : 'Add & Approve Booking'}
+        {loading ? 'Menambah...' : `Add & Approve Booking${slots.length > 1 ? ` (${slots.length} slot)` : ''}`}
       </button>
 
       <style>{`
