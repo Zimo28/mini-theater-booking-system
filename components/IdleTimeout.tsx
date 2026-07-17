@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-const IDLE_LIMIT_MS = 10 * 1000 // 10 minit tanpa aktiviti sebelum warning muncul
+const IDLE_LIMIT_MS = 10 * 60 * 1000 // 10 minit tanpa aktiviti sebelum warning muncul
 const WARNING_DURATION_MS = 30 * 1000 // 30 saat countdown sebelum betul-betul logout
 const CHECK_INTERVAL_MS = 1000 // check setiap 1 saat
 
