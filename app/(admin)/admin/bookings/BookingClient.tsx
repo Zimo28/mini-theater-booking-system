@@ -9,6 +9,7 @@ import { syncToGoogleSheet, deleteFromGoogleSheet } from '@/lib/googleSheet'
 
 type Booking = {
   id: string
+  booking_group_id?: string | null
   full_name: string
   phone: string
   organization: string
@@ -28,6 +29,18 @@ type Booking = {
   postponed_time_end?: string
   postpone_reason?: string
   created_at: string
+}
+
+type BookingGroup = {
+  groupKey: string
+  slots: Booking[]
+  full_name: string
+  organization: string
+  event_name: string
+  phone: string
+  status: string
+  created_at: string
+  attachment_url?: string
 }
 
 const statusColor = (status: string) => {
@@ -87,9 +100,10 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
     if (id) {
       const found = bookings.find(b => b.id === id)
       if (found) {
-        setExpanded(id)
+        const key = found.booking_group_id || found.id
+        setExpanded(key)
         setTimeout(() => {
-          const el = document.getElementById(`booking-${id}`)
+          const el = document.getElementById(`booking-${key}`)
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }, 100)
       }
@@ -101,6 +115,59 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
     initial.forEach(b => { notes[b.id] = b.note ?? '' })
     setNoteValues(notes)
   }, [])
+
+  // ---- Grouping ----
+  const groupBookings = (list: Booking[]): BookingGroup[] => {
+    const map = new Map<string, Booking[]>()
+    list.forEach(b => {
+      const key = b.booking_group_id || b.id
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(b)
+    })
+
+    return Array.from(map.entries()).map(([groupKey, slots]) => {
+      const sorted = [...slots].sort((a, b) => a.booking_date.localeCompare(b.booking_date))
+      const first = sorted[0]
+      return {
+        groupKey,
+        slots: sorted,
+        full_name: first.full_name,
+        organization: first.organization,
+        event_name: first.event_name,
+        phone: first.phone,
+        status: first.status,
+        created_at: first.created_at,
+        attachment_url: first.attachment_url,
+      }
+    })
+  }
+
+  const filteredBookings = bookings
+    .filter(b => filter === 'all' || b.status === filter)
+    .filter(b => {
+      if (!search) return true
+      const q = search.toLowerCase()
+      return (
+        b.full_name.toLowerCase().includes(q) ||
+        b.event_name.toLowerCase().includes(q) ||
+        b.organization.toLowerCase().includes(q)
+      )
+    })
+
+  const groups = groupBookings(filteredBookings).sort((a, b) => {
+    if (sortBy === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    if (sortBy === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    if (sortBy === 'date_asc') return new Date(a.slots[0].booking_date).getTime() - new Date(b.slots[0].booking_date).getTime()
+    if (sortBy === 'date_desc') return new Date(b.slots[0].booking_date).getTime() - new Date(a.slots[0].booking_date).getTime()
+    return 0
+  })
+
+  const equipment = (b: Booking) => [
+    { label: 'Microphone', value: b.microphone },
+    { label: 'Air-cond', value: b.aircond },
+    { label: 'PA System', value: b.pa_system },
+    { label: 'LCD Projector', value: b.lcd_projector },
+  ].filter(e => e.value > 0)
 
   const saveNote = async (id: string) => {
     setSavingNote(true)
@@ -118,25 +185,6 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
     setSavingNote(false)
   }
 
-  const filtered = bookings
-    .filter(b => filter === 'all' || b.status === filter)
-    .filter(b => {
-      if (!search) return true
-      const q = search.toLowerCase()
-      return (
-        b.full_name.toLowerCase().includes(q) ||
-        b.event_name.toLowerCase().includes(q) ||
-        b.organization.toLowerCase().includes(q)
-      )
-    })
-    .sort((a, b) => {
-      if (sortBy === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      if (sortBy === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      if (sortBy === 'date_asc') return new Date(a.booking_date).getTime() - new Date(b.booking_date).getTime()
-      if (sortBy === 'date_desc') return new Date(b.booking_date).getTime() - new Date(a.booking_date).getTime()
-      return 0
-    })
-
   const checkConflictForApprove = async (booking: Booking) => {
     const { data } = await supabase
       .from('bookings')
@@ -151,28 +199,33 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
     )
   }
 
-  const updateStatus = async (id: string, status: string) => {
+  // ---- Group-level actions ----
+  const updateStatusForGroup = async (groupSlots: Booking[], status: string) => {
     setLoading(true)
 
-    const booking = bookings.find(b => b.id === id)
-
-    if (status === 'approved' && booking) {
-      const hasConflict = await checkConflictForApprove(booking)
-      if (hasConflict) {
-        showToast('Conflict! Ada tempahan lain yang approved pada masa yang sama.', 'error')
-        setLoading(false)
-        return
+    if (status === 'approved') {
+      for (const booking of groupSlots) {
+        const hasConflict = await checkConflictForApprove(booking)
+        if (hasConflict) {
+          showToast(`Conflict pada ${booking.booking_date}! Ada tempahan lain yang approved pada masa yang sama.`, 'error')
+          setLoading(false)
+          return
+        }
       }
     }
 
-    const { error } = await supabase.from('bookings').update({ status }).eq('id', id)
+    const ids = groupSlots.map(s => s.id)
+    const { error } = await supabase.from('bookings').update({ status }).in('id', ids)
+
     if (!error) {
-      setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b))
-      if (booking) await syncToGoogleSheet({ ...booking, status })
+      setBookings(prev => prev.map(b => ids.includes(b.id) ? { ...b, status } : b))
+      for (const booking of groupSlots) {
+        await syncToGoogleSheet({ ...booking, status })
+      }
       await fetch('/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'status_changed', booking: { ...booking, status } }),
+        body: JSON.stringify({ type: 'status_changed', booking: { ...groupSlots[0], status, slots: groupSlots } }),
       })
       showToast(
         status === 'approved' ? 'Tempahan telah diluluskan!' : 'Tempahan telah ditolak.',
@@ -184,27 +237,21 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
     setLoading(false)
   }
 
-  const deleteBooking = async (id: string) => {
-    if (!confirm('Confirm nak delete tempahan ni?')) return
+  const deleteGroup = async (groupSlots: Booking[]) => {
+    if (!confirm(`Confirm nak delete tempahan ni${groupSlots.length > 1 ? ` (${groupSlots.length} slot)` : ''}?`)) return
     setLoading(true)
-    const { error } = await supabase.from('bookings').delete().eq('id', id)
+    const ids = groupSlots.map(s => s.id)
+    const { error } = await supabase.from('bookings').delete().in('id', ids)
     if (!error) {
-      await deleteFromGoogleSheet(id)
+      for (const id of ids) await deleteFromGoogleSheet(id)
       setExpanded(null)
-      setBookings(prev => prev.filter(b => b.id !== id))
+      setBookings(prev => prev.filter(b => !ids.includes(b.id)))
       showToast('Tempahan berjaya dipadam.', 'success')
     } else {
       showToast('Ralat semasa memadam.', 'error')
     }
     setLoading(false)
   }
-
-  const equipment = (b: Booking) => [
-    { label: 'Microphone', value: b.microphone },
-    { label: 'Air-cond', value: b.aircond },
-    { label: 'PA System', value: b.pa_system },
-    { label: 'LCD Projector', value: b.lcd_projector },
-  ].filter(e => e.value > 0)
 
   const savePostpone = async (id: string) => {
     if (!postponeForm.date || !postponeForm.start_time || !postponeForm.end_time) {
@@ -233,7 +280,7 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
       } : b))
       setPostponingId(null)
       setPostponeForm({ date: '', start_time: '', end_time: '', reason: '' })
-      showToast('Program berjaya ditangguhkan!', 'success')
+      showToast('Slot berjaya ditangguhkan!', 'success')
     } else {
       showToast('Ralat semasa mengemaskini.', 'error')
     }
@@ -243,168 +290,170 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
   const formatSubmitted = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  const printSlip = (booking: Booking) => {
-  const eq = [
-    booking.microphone > 0 ? `Mikrofon (${booking.microphone})` : null,
-    booking.aircond > 0 ? `Penghawa Dingin (${booking.aircond})` : null,
-    booking.pa_system > 0 ? `Sistem PA (${booking.pa_system})` : null,
-    booking.lcd_projector > 0 ? `Projektor LCD (${booking.lcd_projector})` : null,
-  ].filter(Boolean)
+  const printSlip = (booking: Booking, group: BookingGroup) => {
+    const eq = [
+      booking.microphone > 0 ? `Mikrofon (${booking.microphone})` : null,
+      booking.aircond > 0 ? `Penghawa Dingin (${booking.aircond})` : null,
+      booking.pa_system > 0 ? `Sistem PA (${booking.pa_system})` : null,
+      booking.lcd_projector > 0 ? `Projektor LCD (${booking.lcd_projector})` : null,
+    ].filter(Boolean)
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr + 'T00:00:00').toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })
+    const formatDate = (dateStr: string) =>
+      new Date(dateStr + 'T00:00:00').toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  const slipHTML = `<!DOCTYPE html>
-    <html lang="ms">
-    <head>
-      <meta charset="UTF-8"/>
-      <title>Slip Kelulusan - ${booking.full_name}</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: white; color: #1a1a1a; padding: 48px; }
-        .watermark {
-          position: fixed; top: 50%; left: 50%;
-          transform: translate(-50%, -50%) rotate(-30deg);
-          font-size: 90px; font-weight: 900;
-          color: rgba(22,163,74,0.07); letter-spacing: 8px;
-          pointer-events: none; z-index: 0; white-space: nowrap;
-        }
-        .content { position: relative; z-index: 1; }
-        .header { text-align: center; border-bottom: 3px solid #8B0000; padding-bottom: 20px; margin-bottom: 24px; }
-        .header h1 { font-size: 20px; font-weight: 800; color: #8B0000; letter-spacing: 1px; }
-        .header p { font-size: 12px; color: #6b7280; margin-top: 4px; }
-        .slip-title { text-align: center; margin-bottom: 16px; }
-        .slip-title h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #374151; }
-        .slip-title .ref { font-size: 11px; color: #9ca3af; margin-top: 4px; }
-        .badge {
-          display: block; width: fit-content; margin: 0 auto 24px;
-          background: #dcfce7; color: #166534; border: 1.5px solid #86efac;
-          padding: 5px 20px; border-radius: 999px; font-size: 13px; font-weight: 700;
-        }
-        .section { margin-bottom: 20px; }
-        .section-title { font-size: 10px; font-weight: 700; color: #8B0000; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; margin-bottom: 12px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .field label { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 2px; }
-        .field p { font-size: 13px; font-weight: 600; color: #1a1a1a; }
-        .eq-list { display: flex; gap: 8px; flex-wrap: wrap; }
-        .eq-tag { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
-        .footer { margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .footer .note { font-size: 10px; color: #9ca3af; line-height: 1.7; max-width: 55%; }
-        .sign .line { width: 160px; border-top: 1px solid #374151; margin-bottom: 6px; }
-        .sign p { font-size: 10px; color: #6b7280; text-align: center; }
-        .sign .name { color: #8B0000; font-weight: 700; margin-top: 2px; }
-        .generated { text-align: center; margin-top: 16px; font-size: 10px; color: #d1d5db; }
-        @media print {
-          .print-bar { display: none !important; }
-          body { padding: 40px; }
-          .watermark, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="watermark">DILULUSKAN</div>
-      <div class="content">
-        <div class="header">
-          <img src="https://mini-theater-booking-system.vercel.app/logo.png"
-            alt="Logo"
-            style="height: 56px; width: auto; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;"
-            onerror="this.style.display='none'"
-          />
-          <h1>MINI THEATER</h1>
-          <p>UiTM Cawangan Kelantan, Kampus Machang</p>
-        </div>
-        <div class="slip-title">
-          <h2>Slip Pengesahan Tempahan</h2>
-          <p class="ref">No. Rujukan: MT-${booking.id.slice(0, 8).toUpperCase()}</p>
-        </div>
-        <span class="badge">✓ DILULUSKAN</span>
-        <div class="section">
-          <p class="section-title">Maklumat Pemohon</p>
-          <div class="grid">
-            <div class="field"><label>Nama Penuh</label><p>${booking.full_name}</p></div>
-            <div class="field"><label>No. Telefon</label><p>${booking.phone}</p></div>
-            <div class="field"><label>Organisasi / Kelab</label><p>${booking.organization}</p></div>
-            <div class="field"><label>Nama Program / Event</label><p>${booking.event_name}</p></div>
-          </div>
-        </div>
-        <div class="section">
-          <p class="section-title">Maklumat Tempahan</p>
-          <div class="grid">
-            <div class="field"><label>Tarikh Program</label><p>${formatDate(booking.booking_date)}</p></div>
-            <div class="field"><label>Masa</label><p>${booking.start_time} - ${booking.end_time}</p></div>
-            <div class="field"><label>Tempat</label><p>Mini Theater, UiTM Cawangan Kelantan</p></div>
-            <div class="field"><label>Tarikh Permohonan</label><p>${formatDate(booking.created_at.split('T')[0])}</p></div>
-          </div>
-        </div>
-        <div class="section">
-          <p class="section-title">Peralatan Dipohon</p>
-          ${eq.length > 0
-            ? `<div class="eq-list">${eq.map(e => `<span class="eq-tag">${e}</span>`).join('')}</div>`
-            : '<p style="font-size:12px;color:#9ca3af;font-style:italic;">Tiada peralatan tambahan</p>'
+    const slipHTML = `<!DOCTYPE html>
+      <html lang="ms">
+      <head>
+        <meta charset="UTF-8"/>
+        <title>Slip Kelulusan - ${booking.full_name}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; background: white; color: #1a1a1a; padding: 48px; }
+          .watermark {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 90px; font-weight: 900;
+            color: rgba(22,163,74,0.07); letter-spacing: 8px;
+            pointer-events: none; z-index: 0; white-space: nowrap;
           }
-        </div>
-        <div class="footer">
-          <div class="note">
-            * Slip ini adalah pengesahan rasmi tempahan Mini Theater.<br/>
-            * Sila bawa slip ini semasa program berlangsung.<br/>
-            * Sebarang pertanyaan, hubungi pihak pengurusan.
+          .content { position: relative; z-index: 1; }
+          .header { text-align: center; border-bottom: 3px solid #8B0000; padding-bottom: 20px; margin-bottom: 24px; }
+          .header h1 { font-size: 20px; font-weight: 800; color: #8B0000; letter-spacing: 1px; }
+          .header p { font-size: 12px; color: #6b7280; margin-top: 4px; }
+          .slip-title { text-align: center; margin-bottom: 16px; }
+          .slip-title h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #374151; }
+          .slip-title .ref { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+          .badge {
+            display: block; width: fit-content; margin: 0 auto 24px;
+            background: #dcfce7; color: #166534; border: 1.5px solid #86efac;
+            padding: 5px 20px; border-radius: 999px; font-size: 13px; font-weight: 700;
+          }
+          .section { margin-bottom: 20px; }
+          .section-title { font-size: 10px; font-weight: 700; color: #8B0000; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; margin-bottom: 12px; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+          .field label { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 2px; }
+          .field p { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+          .eq-list { display: flex; gap: 8px; flex-wrap: wrap; }
+          .eq-tag { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+          .footer { margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+          .footer .note { font-size: 10px; color: #9ca3af; line-height: 1.7; max-width: 55%; }
+          .sign .line { width: 160px; border-top: 1px solid #374151; margin-bottom: 6px; }
+          .sign p { font-size: 10px; color: #6b7280; text-align: center; }
+          .sign .name { color: #8B0000; font-weight: 700; margin-top: 2px; }
+          .generated { text-align: center; margin-top: 16px; font-size: 10px; color: #d1d5db; }
+          @media print {
+            .print-bar { display: none !important; }
+            body { padding: 40px; }
+            .watermark, .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="watermark">DILULUSKAN</div>
+        <div class="content">
+          <div class="header">
+            <img src="https://mini-theater-booking-system.vercel.app/logo.png"
+              alt="Logo"
+              style="height: 56px; width: auto; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;"
+              onerror="this.style.display='none'"
+            />
+            <h1>MINI THEATER</h1>
+            <p>UiTM Cawangan Kelantan, Kampus Machang</p>
           </div>
-          <div class="sign">
-            <div class="line"></div>
-            <p>Tandatangan & Cop Rasmi</p>
-            <p class="name">Pengurusan Mini Theater</p>
+          <div class="slip-title">
+            <h2>Slip Pengesahan Tempahan</h2>
+            <p class="ref">No. Rujukan: MT-${booking.id.slice(0, 8).toUpperCase()}${group.slots.length > 1 ? ` (Slot ${group.slots.findIndex(s => s.id === booking.id) + 1} / ${group.slots.length})` : ''}</p>
           </div>
-        </div>
-        <p class="generated">Dijana pada: ${new Date().toLocaleString('ms-MY')}</p>
+          <span class="badge">✓ DILULUSKAN</span>
+          <div class="section">
+            <p class="section-title">Maklumat Pemohon</p>
+            <div class="grid">
+              <div class="field"><label>Nama Penuh</label><p>${booking.full_name}</p></div>
+              <div class="field"><label>No. Telefon</label><p>${booking.phone}</p></div>
+              <div class="field"><label>Organisasi / Kelab</label><p>${booking.organization}</p></div>
+              <div class="field"><label>Nama Program / Event</label><p>${booking.event_name}</p></div>
+            </div>
+          </div>
+          <div class="section">
+            <p class="section-title">Maklumat Tempahan</p>
+            <div class="grid">
+              <div class="field"><label>Tarikh Program</label><p>${formatDate(booking.booking_date)}</p></div>
+              <div class="field"><label>Masa</label><p>${booking.start_time} - ${booking.end_time}</p></div>
+              <div class="field"><label>Tempat</label><p>Mini Theater, UiTM Cawangan Kelantan</p></div>
+              <div class="field"><label>Tarikh Permohonan</label><p>${formatDate(booking.created_at.split('T')[0])}</p></div>
+            </div>
+          </div>
+          <div class="section">
+            <p class="section-title">Peralatan Dipohon</p>
+            ${eq.length > 0
+              ? `<div class="eq-list">${eq.map(e => `<span class="eq-tag">${e}</span>`).join('')}</div>`
+              : '<p style="font-size:12px;color:#9ca3af;font-style:italic;">Tiada peralatan tambahan</p>'
+            }
+          </div>
+          <div class="footer">
+            <div class="note">
+              * Slip ini adalah pengesahan rasmi tempahan Mini Theater.<br/>
+              * Sila bawa slip ini semasa program berlangsung.<br/>
+              * Sebarang pertanyaan, hubungi pihak pengurusan.
+            </div>
+            <div class="sign">
+              <div class="line"></div>
+              <p>Tandatangan & Cop Rasmi</p>
+              <p class="name">Pengurusan Mini Theater</p>
+            </div>
+          </div>
+          <p class="generated">Dijana pada: ${new Date().toLocaleString('ms-MY')}</p>
 
-        <div class="print-bar" style="text-align:center; margin-top: 32px; padding-top: 20px; border-top: 1px solid #f3f4f6;">
-          <button onclick="window.print()" style="
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 11px 28px; background: linear-gradient(135deg, #8B0000, #a50000);
-            color: white; border: none; border-radius: 8px;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            box-shadow: 0 4px 12px rgba(139,0,0,0.3); letter-spacing: 0.3px;
-          ">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 6 2 18 2 18 9"/>
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-              <rect x="6" y="14" width="12" height="8"/>
-            </svg>
-            Cetak / Simpan sebagai PDF
-          </button>
+          <div class="print-bar" style="text-align:center; margin-top: 32px; padding-top: 20px; border-top: 1px solid #f3f4f6;">
+            <button onclick="window.print()" style="
+              display: inline-flex; align-items: center; gap: 8px;
+              padding: 11px 28px; background: linear-gradient(135deg, #8B0000, #a50000);
+              color: white; border: none; border-radius: 8px;
+              font-size: 13px; font-weight: 600; cursor: pointer;
+              box-shadow: 0 4px 12px rgba(139,0,0,0.3); letter-spacing: 0.3px;
+            ">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+              </svg>
+              Cetak / Simpan sebagai PDF
+            </button>
+          </div>
         </div>
-      </div>
-    </body>
-    </html>`
+      </body>
+      </html>`
 
     const blob = new Blob([slipHTML], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')
   }
 
-  function renderDetail(booking: Booking) {
-    const eq = equipment(booking)
+  function renderGroupDetail(group: BookingGroup) {
+    const primary = group.slots[0]
+    const isMulti = group.slots.length > 1
+
     return (
       <div className="detail-panel" style={{ background: 'white', borderRadius: '12px', border: '1px solid #f3f4f6', padding: '20px 24px', animation: 'slideDown 0.2s ease', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
         {/* Top */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
           <div>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>{booking.full_name}</h3>
-            <p style={{ fontSize: '12px', color: '#9ca3af' }}>Submitted on {formatSubmitted(booking.created_at)}</p>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>{group.full_name}</h3>
+            <p style={{ fontSize: '12px', color: '#9ca3af' }}>Submitted on {formatSubmitted(group.created_at)}</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{
               padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '700',
-              background: booking.status === 'approved' ? '#16a34a' 
-                : booking.status === 'rejected' ? '#dc2626' 
-                : booking.status === 'postponed' ? '#7c3aed'
+              background: group.status === 'approved' ? '#16a34a'
+                : group.status === 'rejected' ? '#dc2626'
+                : group.status === 'postponed' ? '#7c3aed'
                 : '#f59e0b',
               color: 'white',
             }}>
-              {statusLabel(booking.status)}
+              {statusLabel(group.status)}
             </span>
             <button
-              onClick={(e) => { e.stopPropagation(); deleteBooking(booking.id) }}
+              onClick={(e) => { e.stopPropagation(); deleteGroup(group.slots) }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '6px', transition: 'all 0.15s' }}
               onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
               onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
@@ -421,45 +470,31 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
 
         <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '16px 0' }} />
 
-        {/* Details Grid */}
+        {/* General Info */}
         <div className="detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
           {[
-            { label: 'Event Name', value: booking.event_name, highlight: true },
-            { label: 'Organization', value: booking.organization },
-            { label: 'Full Name / Phone', value: `${booking.full_name}\n${booking.phone}` },
-            { label: 'Booking Date & Time', value: `${new Date(booking.booking_date + 'T00:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} | ${booking.start_time} - ${booking.end_time}` },
+            { label: 'Event Name', value: group.event_name, highlight: true },
+            { label: 'Organization', value: group.organization },
+            { label: 'Full Name / Phone', value: `${primary.full_name}\n${primary.phone}` },
+            { label: isMulti ? 'Total Slots' : 'Booking Date & Time', value: isMulti ? `${group.slots.length} hari/slot` : `${new Date(primary.booking_date + 'T00:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} | ${primary.start_time} - ${primary.end_time}` },
           ].map((item) => (
             <div key={item.label}>
               <p style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</p>
-              <p className="detail-value" style={{ fontSize: '14px', fontWeight: '600', color: item.highlight ? '#8B0000' : '#111827', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>{item.value}</p>
+              <p style={{ fontSize: '14px', fontWeight: '600', color: item.highlight ? '#8B0000' : '#111827', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>{item.value}</p>
             </div>
           ))}
         </div>
 
-        {/* Equipment */}
-        {eq.length > 0 && (
-          <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Requested Equipment:</p>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {eq.map((e) => (
-                <span key={e.label} style={{ padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '500', background: '#eff6ff', color: '#2563eb', border: '1px solid #dbeafe' }}>
-                  {e.label}: {e.value}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Attached File */}
+        {/* Attached File — shared across group */}
         <div style={{ border: '1px solid #f3f4f6', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px', background: '#f9fafb' }}>
           <div>
             <p style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Attached File</p>
             <p style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>Approval Paperwork Attachment</p>
           </div>
-          {booking.attachment_url ? (
+          {group.attachment_url ? (
             <div style={{ display: 'flex', gap: '8px' }}>
               <a
-                href={booking.attachment_url} target="_blank" rel="noopener noreferrer"
+                href={group.attachment_url} target="_blank" rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #e5e7eb', background: 'white', fontSize: '12px', fontWeight: '600', color: '#374151', textDecoration: 'none' }}
               >
@@ -468,47 +503,151 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
                 </svg>
                 View
               </a>
-              <button
-                onClick={async (e) => {
-                  e.stopPropagation()
-                  try {
-                    const response = await fetch(booking.attachment_url!)
-                    const blob = await response.blob()
-                    const url = URL.createObjectURL(blob)
-                    const link = document.createElement('a')
-                    link.href = url
-                    link.download = `attachment-${booking.id}.pdf`
-                    link.click()
-                    URL.revokeObjectURL(url)
-                  } catch {
-                    showToast('Gagal muat turun fail.', 'error')
-                  }
-                }}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '8px', border: '1px solid #e5e7eb', background: 'white', fontSize: '12px', fontWeight: '600', color: '#374151', cursor: 'pointer' }}
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download
-              </button>
             </div>
           ) : (
             <span style={{ fontSize: '12px', color: '#9ca3af' }}>No attachment</span>
           )}
         </div>
 
-        {/* Admin Note */}
-        <div style={{ border: '1px solid #f3f4f6', borderRadius: '10px', padding: '12px 16px', background: '#f9fafb', marginBottom: booking.status === 'pending' ? '16px' : '0' }}>
+        {/* Slot-by-slot breakdown */}
+        <div style={{ marginBottom: '16px' }}>
+          <p style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {isMulti ? 'Jadual Tempahan' : 'Peralatan & Tindakan'}
+          </p>
+          {group.slots.map((slot, i) => {
+            const eq = equipment(slot)
+            return (
+              <div key={slot.id} style={{ border: '1px solid #f3f4f6', borderRadius: '10px', padding: '14px', marginBottom: '10px', background: '#f9fafb' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: eq.length > 0 ? '10px' : '0' }}>
+                  <div>
+                    {isMulti && (
+                      <p style={{ fontSize: '11px', fontWeight: '700', color: '#8B0000', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Hari {i + 1}
+                      </p>
+                    )}
+                    <p style={{ fontSize: '13px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                      {new Date(slot.booking_date + 'T00:00:00').toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                    <p style={{ fontSize: '12px', color: '#6b7280', margin: '2px 0 0' }}>{slot.start_time} – {slot.end_time}</p>
+                  </div>
+                  {slot.status === 'approved' && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); printSlip(slot, group) }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 14px', borderRadius: '7px',
+                        border: '1px solid #bfdbfe', background: '#eff6ff',
+                        color: '#1d4ed8', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9"/>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                        <rect x="6" y="14" width="12" height="8"/>
+                      </svg>
+                      Slip
+                    </button>
+                  )}
+                </div>
+                {eq.length > 0 && (
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {eq.map(e => (
+                      <span key={e.label} style={{ padding: '2px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '500', background: '#eff6ff', color: '#2563eb', border: '1px solid #dbeafe' }}>
+                        {e.label}: {e.value}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Postpone — per slot */}
+                {slot.status === 'approved' && new Date(slot.booking_date) >= new Date(new Date().toDateString()) && (
+                  postponingId !== slot.id ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setPostponeForm({ date: slot.booking_date, start_time: slot.start_time, end_time: slot.end_time, reason: '' })
+                        setPostponingId(slot.id)
+                      }}
+                      style={{
+                        marginTop: '10px',
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 14px', borderRadius: '7px',
+                        border: '1px solid #ddd6fe', background: '#f5f3ff',
+                        color: '#7c3aed', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      Postpone Slot Ini
+                    </button>
+                  ) : (
+                    <div
+                      style={{ marginTop: '10px', border: '1px solid #ddd6fe', borderRadius: '10px', padding: '14px', background: '#f5f3ff' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '10px' }} className="postpone-grid">
+                        <div>
+                          <label style={{ fontSize: '10px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '3px', textTransform: 'uppercase' }}>New Date</label>
+                          <input type="date" value={postponeForm.date} min={new Date().toISOString().split('T')[0]}
+                            onChange={(e) => setPostponeForm(prev => ({ ...prev, date: e.target.value }))}
+                            style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '7px', padding: '7px 8px', fontSize: '12px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '10px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '3px', textTransform: 'uppercase' }}>Start</label>
+                          <input type="time" value={postponeForm.start_time}
+                            onChange={(e) => setPostponeForm(prev => ({ ...prev, start_time: e.target.value }))}
+                            style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '7px', padding: '7px 8px', fontSize: '12px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '10px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '3px', textTransform: 'uppercase' }}>End</label>
+                          <input type="time" value={postponeForm.end_time}
+                            onChange={(e) => setPostponeForm(prev => ({ ...prev, end_time: e.target.value }))}
+                            style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '7px', padding: '7px 8px', fontSize: '12px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }} />
+                        </div>
+                      </div>
+                      <textarea value={postponeForm.reason}
+                        onChange={(e) => setPostponeForm(prev => ({ ...prev, reason: e.target.value }))}
+                        placeholder="Sebab tangguh..."
+                        rows={2}
+                        style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '7px', padding: '8px 10px', fontSize: '12px', outline: 'none', background: 'white', color: '#111827', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' as const, marginBottom: '10px' }} />
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => { setPostponingId(null); setPostponeForm({ date: '', start_time: '', end_time: '', reason: '' }) }}
+                          style={{ padding: '7px 14px', borderRadius: '7px', border: '1px solid #c4b5fd', background: 'white', color: '#7c3aed', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                          Cancel
+                        </button>
+                        <button onClick={() => savePostpone(slot.id)} disabled={savingPostpone}
+                          style={{ padding: '7px 16px', borderRadius: '7px', border: 'none', background: '#7c3aed', color: 'white', fontSize: '12px', fontWeight: '600', cursor: savingPostpone ? 'not-allowed' : 'pointer', opacity: savingPostpone ? 0.7 : 1 }}>
+                          {savingPostpone ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {/* Info tangguhan */}
+                {slot.status === 'postponed' && slot.postponed_date && (
+                  <div style={{ marginTop: '10px', padding: '10px 12px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px' }}>
+                    <p style={{ fontSize: '11px', fontWeight: '700', color: '#7c3aed', marginBottom: '6px', textTransform: 'uppercase' }}>📅 Ditangguhkan</p>
+                    <p style={{ fontSize: '12px', color: '#7c3aed', fontWeight: '600', margin: 0 }}>
+                      {new Date(slot.postponed_date + 'T00:00:00').toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })} · {slot.postponed_time_start}–{slot.postponed_time_end}
+                    </p>
+                    {slot.postpone_reason && <p style={{ fontSize: '11px', color: '#6b7280', margin: '4px 0 0' }}>{slot.postpone_reason}</p>}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Admin Note — shared di slot pertama */}
+        <div style={{ border: '1px solid #f3f4f6', borderRadius: '10px', padding: '12px 16px', background: '#f9fafb', marginBottom: group.status === 'pending' ? '16px' : '0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <p style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Admin Note</p>
-            {editingNote !== booking.id ? (
+            {editingNote !== primary.id ? (
               <button
-                onClick={(e) => { e.stopPropagation(); setEditingNote(booking.id) }}
+                onClick={(e) => { e.stopPropagation(); setEditingNote(primary.id) }}
                 style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#8B0000'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
               >Edit</button>
             ) : (
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -517,7 +656,7 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
                   style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer' }}
                 >Cancel</button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); saveNote(booking.id) }}
+                  onClick={(e) => { e.stopPropagation(); saveNote(primary.id) }}
                   disabled={savingNote}
                   style={{ fontSize: '12px', color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer', fontWeight: '600' }}
                 >{savingNote ? '...' : 'Save'}</button>
@@ -525,10 +664,10 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
             )}
           </div>
 
-          {editingNote === booking.id ? (
+          {editingNote === primary.id ? (
             <textarea
-              value={noteValues[booking.id] ?? ''}
-              onChange={(e) => setNoteValues(prev => ({ ...prev, [booking.id]: e.target.value }))}
+              value={noteValues[primary.id] ?? ''}
+              onChange={(e) => setNoteValues(prev => ({ ...prev, [primary.id]: e.target.value }))}
               onClick={(e) => e.stopPropagation()}
               placeholder="Add note for this booking..."
               rows={3}
@@ -538,178 +677,26 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
                 color: '#111827', outline: 'none', resize: 'vertical',
                 boxSizing: 'border-box', fontFamily: 'inherit',
               }}
-              onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
             />
           ) : (
-            <p style={{ fontSize: '13px', color: noteValues[booking.id] ? '#374151' : '#d1d5db', fontStyle: noteValues[booking.id] ? 'normal' : 'italic' }}>
-              {noteValues[booking.id] || 'No note. Click Edit to add.'}
+            <p style={{ fontSize: '13px', color: noteValues[primary.id] ? '#374151' : '#d1d5db', fontStyle: noteValues[primary.id] ? 'normal' : 'italic' }}>
+              {noteValues[primary.id] || 'No note. Click Edit to add.'}
             </p>
           )}
         </div>
 
-        {/* Cetak Slip + Tangguh — sebaris */}
-        {booking.status === 'approved' && (
-          <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {/* Cetak Slip */}
+        {/* Approve / Reject — apply ke seluruh group */}
+        {group.status === 'pending' && (
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
             <button
-              onClick={(e) => { e.stopPropagation(); printSlip(booking) }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '9px 20px', borderRadius: '8px',
-                border: '1px solid #bfdbfe', background: '#eff6ff',
-                color: '#1d4ed8', fontSize: '13px', fontWeight: '600',
-                cursor: 'pointer', transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#dbeafe'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#eff6ff'}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 6 2 18 2 18 9"/>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                <rect x="6" y="14" width="12" height="8"/>
-              </svg>
-              Print Approval Slip
-            </button>
-
-            {/* Postpone Program */}
-            {new Date(booking.booking_date) >= new Date(new Date().toDateString()) && (
-              postponingId !== booking.id ? (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setPostponeForm({
-                      date: booking.booking_date,
-                      start_time: booking.start_time,
-                      end_time: booking.end_time,
-                      reason: ''
-                    })
-                    setPostponingId(booking.id)
-                  }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                    padding: '9px 20px', borderRadius: '8px',
-                    border: '1px solid #ddd6fe', background: '#f5f3ff',
-                    color: '#7c3aed', fontSize: '13px', fontWeight: '600',
-                    cursor: 'pointer', transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#ede9fe'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#f5f3ff'}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                  Postpone Program
-                </button>
-              ) : (
-                <div
-                  style={{ width: '100%', border: '1px solid #ddd6fe', borderRadius: '12px', padding: '18px', background: '#f5f3ff', marginTop: '4px' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <p style={{ fontSize: '13px', fontWeight: '700', color: '#7c3aed', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    Postpone Program
-                  </p>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }} className="postpone-grid">
-                    <div>
-                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Date</label>
-                      <input type="date" value={postponeForm.date} min={new Date().toISOString().split('T')[0]}
-                        onChange={(e) => setPostponeForm(prev => ({ ...prev, date: e.target.value }))}
-                        style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '8px', padding: '9px 10px', fontSize: '13px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }}
-                        onFocus={(e) => e.target.style.borderColor = '#7c3aed'} onBlur={(e) => e.target.style.borderColor = '#c4b5fd'} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Start Time</label>
-                      <input type="time" value={postponeForm.start_time}
-                        onChange={(e) => setPostponeForm(prev => ({ ...prev, start_time: e.target.value }))}
-                        style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '8px', padding: '9px 10px', fontSize: '13px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }}
-                        onFocus={(e) => e.target.style.borderColor = '#7c3aed'} onBlur={(e) => e.target.style.borderColor = '#c4b5fd'} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New End Time</label>
-                      <input type="time" value={postponeForm.end_time}
-                        onChange={(e) => setPostponeForm(prev => ({ ...prev, end_time: e.target.value }))}
-                        style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '8px', padding: '9px 10px', fontSize: '13px', outline: 'none', background: 'white', color: '#111827', boxSizing: 'border-box' as const }}
-                        onFocus={(e) => e.target.style.borderColor = '#7c3aed'} onBlur={(e) => e.target.style.borderColor = '#c4b5fd'} />
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: '14px' }}>
-                    <label style={{ fontSize: '11px', color: '#7c3aed', fontWeight: '600', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      Reason for Postponement <span style={{ color: '#9ca3af', fontWeight: '400', textTransform: 'none' }}>(required)</span>
-                    </label>
-                    <textarea value={postponeForm.reason}
-                      onChange={(e) => setPostponeForm(prev => ({ ...prev, reason: e.target.value }))}
-                      placeholder="e.g., Conflict with venue schedule, facility unavailable..."
-                      rows={3}
-                      style={{ width: '100%', border: '1.5px solid #c4b5fd', borderRadius: '8px', padding: '10px 12px', fontSize: '13px', outline: 'none', background: 'white', color: '#111827', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' as const }}
-                      onFocus={(e) => e.target.style.borderColor = '#7c3aed'} onBlur={(e) => e.target.style.borderColor = '#c4b5fd'} />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => { setPostponingId(null); setPostponeForm({ date: '', start_time: '', end_time: '', reason: '' }) }}
-                      style={{ padding: '9px 18px', borderRadius: '8px', border: '1px solid #c4b5fd', background: 'white', color: '#7c3aed', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-                      Cancel
-                    </button>
-                    <button onClick={() => savePostpone(booking.id)} disabled={savingPostpone}
-                      style={{ padding: '9px 20px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: 'white', fontSize: '13px', fontWeight: '600', cursor: savingPostpone ? 'not-allowed' : 'pointer', opacity: savingPostpone ? 0.7 : 1 }}>
-                      {savingPostpone ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-        )}
-
-        {/* Info tangguhan — tunjuk bila status postponed */}
-        {booking.status === 'postponed' && booking.postponed_date && (
-          <div style={{ marginTop: '12px', padding: '14px 16px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '10px' }}>
-            <p style={{ fontSize: '12px', fontWeight: '700', color: '#7c3aed', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              📅 Maklumat Tangguhan
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
-              <div>
-                <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>New Date</p>
-                <p style={{ color: '#7c3aed', fontWeight: '600' }}>
-                  {new Date(booking.postponed_date + 'T00:00:00').toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
-              </div>
-              <div>
-                <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>New Start Time</p>
-                <p style={{ color: '#7c3aed', fontWeight: '600' }}>
-                  {booking.postponed_time_start} – {booking.postponed_time_end}
-                </p>
-              </div>
-              {booking.postpone_reason && (
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <p style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '2px' }}>Reason for Postponement</p>
-                  <p style={{ color: '#374151', fontWeight: '500' }}>{booking.postpone_reason}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Approve / Reject */}
-        {booking.status === 'pending' && (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={(e) => { e.stopPropagation(); updateStatus(booking.id, 'approved') }}
+              onClick={(e) => { e.stopPropagation(); updateStatusForGroup(group.slots, 'approved') }}
               disabled={loading}
-              style={{ padding: '9px 24px', borderRadius: '8px', border: 'none', background: '#16a34a', color: 'white', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#15803d'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#16a34a'}
-            >✓ Approve</button>
+              style={{ padding: '9px 24px', borderRadius: '8px', border: 'none', background: '#16a34a', color: 'white', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+            >✓ Approve{isMulti ? ` (${group.slots.length} slot)` : ''}</button>
             <button
-              onClick={(e) => { e.stopPropagation(); updateStatus(booking.id, 'rejected') }}
+              onClick={(e) => { e.stopPropagation(); updateStatusForGroup(group.slots, 'rejected') }}
               disabled={loading}
-              style={{ padding: '9px 24px', borderRadius: '8px', border: 'none', background: '#dc2626', color: 'white', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#b91c1c'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#dc2626'}
+              style={{ padding: '9px 24px', borderRadius: '8px', border: 'none', background: '#dc2626', color: 'white', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
             >✗ Reject</button>
           </div>
         )}
@@ -764,8 +751,6 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
             <a
               href={sheetUrl} target="_blank" rel="noopener noreferrer"
               style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 14px', borderRadius: '8px', border: 'none', background: '#16a34a', color: 'white', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.15s' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#15803d'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#16a34a'}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -779,8 +764,8 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
             onClick={() => {
               const approved = bookings.filter(b => b.status === 'approved')
               if (approved.length === 0) { showToast('Tiada tempahan approved untuk export.', 'warning'); return }
-              const headers = ['ID', 'Full Name', 'Phone', 'Organization', 'Event Name', 'Booking Date', 'Start Time', 'End Time', 'Microphone', 'Air-cond', 'PA System', 'LCD Projector', 'Status', 'Created At']
-              const rows = approved.map(b => [b.id, b.full_name, b.phone, b.organization, b.event_name, b.booking_date, b.start_time, b.end_time, b.microphone, b.aircond, b.pa_system, b.lcd_projector, b.status, b.created_at])
+              const headers = ['ID', 'Group ID', 'Full Name', 'Phone', 'Organization', 'Event Name', 'Booking Date', 'Start Time', 'End Time', 'Microphone', 'Air-cond', 'PA System', 'LCD Projector', 'Status', 'Created At']
+              const rows = approved.map(b => [b.id, b.booking_group_id ?? '', b.full_name, b.phone, b.organization, b.event_name, b.booking_date, b.start_time, b.end_time, b.microphone, b.aircond, b.pa_system, b.lcd_projector, b.status, b.created_at])
               const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
               const blob = new Blob([csv], { type: 'text/csv' })
               const url = URL.createObjectURL(blob)
@@ -791,8 +776,6 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
               showToast('CSV berjaya diexport!', 'success')
             }}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 14px', borderRadius: '8px', border: '1px solid #fecaca', background: '#fef2f2', color: '#8B0000', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#fef2f2'}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -829,8 +812,6 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
               padding: '9px 14px 9px 36px', fontSize: '13px', outline: 'none',
               boxSizing: 'border-box', background: '#f9fafb', color: '#111827', transition: 'border-color 0.2s',
             }}
-            onFocus={(e) => e.target.style.borderColor = '#8B0000'}
-            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
           />
         </div>
 
@@ -862,7 +843,7 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
 
       {/* Table */}
       <div style={{ ...card, overflow: 'hidden' }}>
-        {filtered.length === 0 ? (
+        {groups.length === 0 ? (
           <div style={{ padding: '64px', textAlign: 'center' }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e5e7eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 16px', display: 'block' }}>
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -882,45 +863,59 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((booking) => {
-                  const sc = statusColor(booking.status)
+                {groups.map((group) => {
+                  const sc = statusColor(group.status)
+                  const isMulti = group.slots.length > 1
+                  const isOpen = expanded === group.groupKey
                   return (
-                    <React.Fragment key={booking.id}>
+                    <React.Fragment key={group.groupKey}>
                       <tr
-                        id={`booking-${booking.id}`}
-                        onClick={() => setExpanded(expanded === booking.id ? null : booking.id)}
+                        id={`booking-${group.groupKey}`}
+                        onClick={() => setExpanded(isOpen ? null : group.groupKey)}
                         style={{
                           borderBottom: '1px solid #f5f5f5',
-                          background: expanded === booking.id ? '#f5f5f5' : 'white',
+                          background: isOpen ? '#f5f5f5' : 'white',
                           cursor: 'pointer', transition: 'background 0.15s',
                         }}
-                        onMouseEnter={(e) => { if (expanded !== booking.id) e.currentTarget.style.background = '#f9fafb' }}
-                        onMouseLeave={(e) => { if (expanded !== booking.id) e.currentTarget.style.background = 'white' }}
+                        onMouseEnter={(e) => { if (!isOpen) e.currentTarget.style.background = '#f9fafb' }}
+                        onMouseLeave={(e) => { if (!isOpen) e.currentTarget.style.background = 'white' }}
                       >
                         <td style={{ padding: '12px 8px 12px 16px', width: '24px' }}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                            style={{ transition: 'transform 0.2s ease', transform: expanded === booking.id ? 'rotate(180deg)' : 'rotate(0deg)', display: 'block' }}>
+                            style={{ transition: 'transform 0.2s ease', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', display: 'block' }}>
                             <polyline points="6 9 12 15 18 9"/>
                           </svg>
                         </td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#8B0000', fontWeight: '600' }}>{booking.event_name}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>{booking.full_name}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.organization}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
-                          {new Date(booking.booking_date).toLocaleDateString('ms-MY')}
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#8B0000', fontWeight: '600' }}>
+                          {group.event_name}
+                          {isMulti && (
+                            <span style={{ marginLeft: '8px', fontSize: '11px', background: '#eff6ff', color: '#2563eb', border: '1px solid #dbeafe', padding: '2px 8px', borderRadius: '999px', fontWeight: '600' }}>
+                              {group.slots.length} hari
+                            </span>
+                          )}
                         </td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{booking.start_time} - {booking.end_time}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>{group.full_name}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{group.organization}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
+                          {isMulti
+                            ? `${new Date(group.slots[0].booking_date).toLocaleDateString('ms-MY')} – ${new Date(group.slots[group.slots.length - 1].booking_date).toLocaleDateString('ms-MY')}`
+                            : new Date(group.slots[0].booking_date).toLocaleDateString('ms-MY')
+                          }
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
+                          {isMulti ? '—' : `${group.slots[0].start_time} - ${group.slots[0].end_time}`}
+                        </td>
                         <td style={{ padding: '12px 16px' }}>
                           <span style={{ padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
-                            {statusLabel(booking.status)}
+                            {statusLabel(group.status)}
                           </span>
                         </td>
                       </tr>
 
-                      {expanded === booking.id && (
-                        <tr key={`${booking.id}-detail`}>
+                      {isOpen && (
+                        <tr key={`${group.groupKey}-detail`}>
                           <td colSpan={7} style={{ padding: '8px 12px 20px', background: '#f5f5f5' }}>
-                            {renderDetail(booking)}
+                            {renderGroupDetail(group)}
                           </td>
                         </tr>
                       )}
@@ -932,13 +927,14 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
 
             {/* Mobile Card List */}
             <div className="mobile-cards">
-              {filtered.map((booking) => {
-                const sc = statusColor(booking.status)
-                const isOpen = expanded === booking.id
+              {groups.map((group) => {
+                const sc = statusColor(group.status)
+                const isMulti = group.slots.length > 1
+                const isOpen = expanded === group.groupKey
                 return (
-                  <div key={booking.id} id={`booking-${booking.id}`}>
+                  <div key={group.groupKey} id={`booking-${group.groupKey}`}>
                     <div
-                      onClick={() => setExpanded(isOpen ? null : booking.id)}
+                      onClick={() => setExpanded(isOpen ? null : group.groupKey)}
                       style={{
                         padding: '14px 16px',
                         borderBottom: '1px solid #f3f4f6',
@@ -954,16 +950,16 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>
                       <span style={{ flex: 1, fontSize: '13px', color: '#8B0000', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {booking.event_name}
+                        {group.event_name} {isMulti && `(${group.slots.length} hari)`}
                       </span>
                       <span style={{ flexShrink: 0, padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '600', background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
-                        {statusLabel(booking.status)}
+                        {statusLabel(group.status)}
                       </span>
                     </div>
 
                     {isOpen && (
                       <div style={{ padding: '8px 12px 16px', background: '#f5f5f5' }}>
-                        {renderDetail(booking)}
+                        {renderGroupDetail(group)}
                       </div>
                     )}
                   </div>
