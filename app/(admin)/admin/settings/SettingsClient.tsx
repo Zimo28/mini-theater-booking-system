@@ -10,6 +10,16 @@ type Facility = {
   position?: number 
 }
 
+type Venue = {
+  id: string
+  name: string
+  code: string
+  description: string | null
+  capacity: number | null
+  is_active: boolean
+  position: number
+}
+
 type BlackoutDate = { 
   id: string; 
   date: string; 
@@ -20,6 +30,10 @@ const tabs = [
   {
     id: 'general', label: 'General',
     icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+  },
+  {
+    id: 'venues', label: 'Venues',
+    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
   },
   {
     id: 'equipment', label: 'Equipment',
@@ -42,9 +56,11 @@ const tabs = [
 export default function SettingsClient({
   settings: initialSettings,
   facilities: initialFacilities,
+  venues: initialVenues,
 }: {
   settings: Record<string, string>
   facilities: Facility[]
+  venues: Venue[]
 }) {
   const [settings, setSettings] = useState(initialSettings)
   const [facilities, setFacilities] = useState(initialFacilities)
@@ -57,6 +73,12 @@ export default function SettingsClient({
   const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>([])
   const [newBlackout, setNewBlackout] = useState({ date: '', reason: '' })
   const [loadingBlackout, setLoadingBlackout] = useState(false)
+
+  const [venues, setVenues] = useState(initialVenues)
+  const [newVenue, setNewVenue] = useState({ name: '', code: '', capacity: '' })
+  const [draggedVenueIndex, setDraggedVenueIndex] = useState<number | null>(null)
+  const [editingVenueId, setEditingVenueId] = useState<string | null>(null)
+  const [editVenueValue, setEditVenueValue] = useState({ name: '', code: '', capacity: '' })
 
   const updateSetting = (key: string, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -162,6 +184,104 @@ export default function SettingsClient({
     } else {
       showToast('Susunan berjaya dikemaskini!', 'success')
     }
+  }
+
+  const addVenue = async () => {
+    if (!newVenue.name.trim() || !newVenue.code.trim()) {
+      showToast('Sila isi nama dan kod venue.', 'error'); return
+    }
+    const { data, error } = await supabase
+      .from('venues')
+      .insert([{
+        name: newVenue.name.trim(),
+        code: newVenue.code.trim().toUpperCase(),
+        capacity: newVenue.capacity ? Number(newVenue.capacity) : null,
+        is_active: true,
+        position: venues.length,
+      }])
+      .select()
+      .single()
+    if (!error && data) {
+      setVenues(prev => [...prev, data])
+      setNewVenue({ name: '', code: '', capacity: '' })
+      showToast('Venue berjaya ditambah!', 'success')
+    } else {
+      showToast(error?.message.includes('duplicate') ? 'Kod venue tu dah wujud.' : 'Ralat semasa menambah venue.', 'error')
+    }
+  }
+
+  const deleteVenue = async (id: string) => {
+    const { error } = await supabase.from('venues').delete().eq('id', id)
+    if (!error) {
+      setVenues(prev => prev.filter(v => v.id !== id))
+      showToast('Venue berjaya dipadam.', 'success')
+    } else {
+      showToast('Tak boleh padam venue ni -- ada booking yang rujuk kat dia. Set "Tidak Aktif" je.', 'error')
+    }
+  }
+
+  const toggleVenueActive = async (venue: Venue) => {
+    const { error } = await supabase
+      .from('venues')
+      .update({ is_active: !venue.is_active })
+      .eq('id', venue.id)
+    if (!error) {
+      setVenues(prev => prev.map(v => v.id === venue.id ? { ...v, is_active: !v.is_active } : v))
+      showToast(venue.is_active ? 'Venue dinyahaktifkan.' : 'Venue diaktifkan semula.', 'success')
+    } else {
+      showToast('Ralat semasa kemaskini status.', 'error')
+    }
+  }
+
+  const startEditVenue = (venue: Venue) => {
+    setEditingVenueId(venue.id)
+    setEditVenueValue({ name: venue.name, code: venue.code, capacity: venue.capacity?.toString() ?? '' })
+  }
+
+  const cancelEditVenue = () => {
+    setEditingVenueId(null)
+    setEditVenueValue({ name: '', code: '', capacity: '' })
+  }
+
+  const saveEditVenue = async (id: string) => {
+    const name = editVenueValue.name.trim()
+    const code = editVenueValue.code.trim().toUpperCase()
+    if (!name || !code) { cancelEditVenue(); return }
+
+    const { error } = await supabase
+      .from('venues')
+      .update({ name, code, capacity: editVenueValue.capacity ? Number(editVenueValue.capacity) : null })
+      .eq('id', id)
+
+    if (!error) {
+      setVenues(prev => prev.map(v => v.id === id
+        ? { ...v, name, code, capacity: editVenueValue.capacity ? Number(editVenueValue.capacity) : null }
+        : v))
+      showToast('Venue berjaya dikemaskini!', 'success')
+    } else {
+      showToast(error.message.includes('duplicate') ? 'Kod venue tu dah wujud.' : 'Ralat semasa mengemaskini.', 'error')
+    }
+    cancelEditVenue()
+  }
+
+  const handleVenueDragStart = (index: number) => setDraggedVenueIndex(index)
+
+  const handleVenueDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedVenueIndex === null || draggedVenueIndex === index) return
+    const reordered = [...venues]
+    const [moved] = reordered.splice(draggedVenueIndex, 1)
+    reordered.splice(index, 0, moved)
+    setDraggedVenueIndex(index)
+    setVenues(reordered)
+  }
+
+  const handleVenueDragEnd = async () => {
+    setDraggedVenueIndex(null)
+    const updates = venues.map((v, index) => ({ id: v.id, name: v.name, code: v.code, position: index }))
+    const { error } = await supabase.from('venues').upsert(updates)
+    if (error) showToast('Ralat semasa kemaskini susunan.', 'error')
+    else showToast('Susunan venue berjaya dikemaskini!', 'success')
   }
 
   const addBlackoutDate = async () => {
@@ -366,11 +486,19 @@ export default function SettingsClient({
                   style={{ ...inputStyle, resize: 'vertical' }}
                   onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
               </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>SOP / Operation Manual (shown on public QR page)</label>
+                <textarea value={settings['sop_content'] ?? ''} onChange={(e) => updateSetting('sop_content', e.target.value)} rows={8}
+                  style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: '12px' }}
+                  onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'} />
+                <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>Plain text -- line breaks will be preserved on the public SOP page.</p>
+              </div>
             </div>
 
             {/* Facilities */}
             <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #f3f4f6' }}>
-              <label style={{ ...labelStyle, marginBottom: '12px' }}>Mini Theater Facilities</label>
+              <label style={{ ...labelStyle, marginBottom: '12px' }}>Facilities</label>
               {facilities.map((facility, index) => (
                 <div
                   key={facility.id}
@@ -480,6 +608,150 @@ export default function SettingsClient({
                   </svg>
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Venues Tab */}
+        {activeTab === 'venues' && (
+          <div style={{ padding: '28px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>Venues</h3>
+            <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '20px' }}>
+              Urus tempat yang boleh ditempah. Padam tak boleh kalau venue tu ada booking sedia ada -- guna toggle &quot;Tidak Aktif&quot; sebaliknya.
+            </p>
+
+            {venues.map((venue, index) => (
+              <div
+                key={venue.id}
+                draggable={editingVenueId !== venue.id}
+                onDragStart={() => handleVenueDragStart(index)}
+                onDragOver={(e) => handleVenueDragOver(e, index)}
+                onDragEnd={handleVenueDragEnd}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 14px', borderRadius: '8px', border: '1px solid #f3f4f6',
+                  marginBottom: '8px', gap: '12px', flexWrap: 'wrap',
+                  background: draggedVenueIndex === index ? '#fef2f2' : '#f9fafb',
+                  cursor: editingVenueId === venue.id ? 'default' : 'grab',
+                  opacity: draggedVenueIndex === index ? 0.6 : (venue.is_active ? 1 : 0.55),
+                  transition: 'background 0.15s, opacity 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '200px' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                    <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+                    <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                    <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+                  </svg>
+
+                  {editingVenueId === venue.id ? (
+                    <div style={{ display: 'flex', gap: '8px', flex: 1, flexWrap: 'wrap' }}>
+                      <input
+                        autoFocus type="text" placeholder="Nama venue"
+                        value={editVenueValue.name}
+                        onChange={(e) => setEditVenueValue(prev => ({ ...prev, name: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') saveEditVenue(venue.id); if (e.key === 'Escape') cancelEditVenue() }}
+                        style={{ fontSize: '13px', color: '#374151', flex: 2, minWidth: '120px', border: '1.5px solid #8B0000', borderRadius: '6px', padding: '5px 8px', outline: 'none' }}
+                      />
+                      <input
+                        type="text" placeholder="Kod"
+                        value={editVenueValue.code}
+                        onChange={(e) => setEditVenueValue(prev => ({ ...prev, code: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') saveEditVenue(venue.id); if (e.key === 'Escape') cancelEditVenue() }}
+                        style={{ fontSize: '13px', color: '#374151', width: '70px', border: '1.5px solid #8B0000', borderRadius: '6px', padding: '5px 8px', outline: 'none' }}
+                      />
+                      <input
+                        type="number" min="0" placeholder="Kapasiti"
+                        value={editVenueValue.capacity}
+                        onChange={(e) => setEditVenueValue(prev => ({ ...prev, capacity: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') saveEditVenue(venue.id); if (e.key === 'Escape') cancelEditVenue() }}
+                        style={{ fontSize: '13px', color: '#374151', width: '90px', border: '1.5px solid #8B0000', borderRadius: '6px', padding: '5px 8px', outline: 'none' }}
+                      />
+                      <button onClick={() => saveEditVenue(venue.id)} style={{ fontSize: '12px', fontWeight: 600, color: 'white', background: '#8B0000', border: 'none', borderRadius: '6px', padding: '5px 12px', cursor: 'pointer' }}>Simpan</button>
+                      <button onClick={cancelEditVenue} style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '5px 12px', cursor: 'pointer' }}>Batal</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>{venue.name}</span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#8B0000', background: '#fef2f2', padding: '2px 8px', borderRadius: '999px' }}>{venue.code}</span>
+                      {venue.capacity && (
+                        <span style={{ fontSize: '11px', color: '#9ca3af' }}>Kapasiti: {venue.capacity}</span>
+                      )}
+                      {!venue.is_active && (
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#9ca3af', background: '#f3f4f6', padding: '2px 8px', borderRadius: '999px' }}>Tidak Aktif</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {editingVenueId !== venue.id && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => toggleVenueActive(venue)}
+                      style={{ fontSize: '11px', fontWeight: 600, color: venue.is_active ? '#6b7280' : '#16a34a', background: 'white', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer' }}
+                    >
+                      {venue.is_active ? 'Nyahaktifkan' : 'Aktifkan'}
+                    </button>
+                    <button
+                      onClick={() => startEditVenue(venue)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#8B0000'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => deleteVenue(venue.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
+              <input
+                type="text" placeholder="Nama venue (e.g. Bilik Seminar)"
+                value={newVenue.name}
+                onChange={(e) => setNewVenue(prev => ({ ...prev, name: e.target.value }))}
+                style={{ ...inputStyle, flex: 2, minWidth: '160px' }}
+                onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+              <input
+                type="text" placeholder="Kod (e.g. SEM-A)"
+                value={newVenue.code}
+                onChange={(e) => setNewVenue(prev => ({ ...prev, code: e.target.value }))}
+                style={{ ...inputStyle, width: '120px' }}
+                onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+              <input
+                type="number" min="0" placeholder="Kapasiti"
+                value={newVenue.capacity}
+                onChange={(e) => setNewVenue(prev => ({ ...prev, capacity: e.target.value }))}
+                style={{ ...inputStyle, width: '110px' }}
+                onFocus={(e) => e.target.style.borderColor = '#8B0000'} onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
+              <button
+                onClick={addVenue}
+                style={{
+                  background: 'linear-gradient(135deg, #8B0000, #a50000)', color: 'white', border: 'none',
+                  borderRadius: '8px', padding: '0 18px', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+                }}
+              >
+                Tambah
+              </button>
             </div>
           </div>
         )}

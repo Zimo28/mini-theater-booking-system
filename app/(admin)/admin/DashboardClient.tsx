@@ -12,6 +12,8 @@ type Booking = {
   start_time: string
   end_time: string
   status: string
+  venue_id: string
+  created_at: string
 }
 
 type Upcoming = {
@@ -23,6 +25,14 @@ type Upcoming = {
   start_time: string
   end_time: string
   status: string
+  venue_id: string
+  venues?: { name: string; code: string } | null
+}
+
+type Venue = {
+  id: string
+  name: string
+  code: string
 }
 
 type Stats = {
@@ -204,10 +214,12 @@ export default function DashboardClient({
   bookings,
   upcoming,
   stats,
+  venues,
 }: {
   bookings: Booking[]
   upcoming: Upcoming[]
   stats: Stats
+  venues: Venue[]
 }) {
   const today = new Date()
 
@@ -217,16 +229,29 @@ export default function DashboardClient({
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
   const [selectedDate, setSelectedDate] = useState<string | null>(todayStr)
+  const [venueFilter, setVenueFilter] = useState('all')
+
+  const scopedBookings = venueFilter === 'all' ? bookings : bookings.filter(b => b.venue_id === venueFilter)
+  const scopedUpcoming = venueFilter === 'all' ? upcoming : upcoming.filter(u => u.venue_id === venueFilter)
+
+  const startOfMonthISO = new Date(currentYear, today.getMonth(), 1).toISOString()
+
+  const scopedStats: Stats = venueFilter === 'all' ? stats : {
+    total: scopedBookings.length,
+    pending: scopedBookings.filter(b => b.status === 'pending').length,
+    approved: scopedBookings.filter(b => b.status === 'approved').length,
+    thisMonth: scopedBookings.filter(b => b.created_at >= startOfMonthISO).length,
+  }
 
   const statsConfig = [
-    { label: 'Total Bookings', value: stats.total, Icon: IconDocument, bg: '#3b82f6' },
-    { label: 'Pending Approval', value: stats.pending, Icon: IconClock, bg: '#f59e0b' },
-    { label: 'Approved', value: stats.approved, Icon: IconCheck, bg: '#22c55e' },
-    { label: 'This Month', value: stats.thisMonth, Icon: IconCalendar, bg: '#8B0000' },
+    { label: 'Total Bookings', value: scopedStats.total, Icon: IconDocument, bg: '#3b82f6' },
+    { label: 'Pending Approval', value: scopedStats.pending, Icon: IconClock, bg: '#f59e0b' },
+    { label: 'Approved', value: scopedStats.approved, Icon: IconCheck, bg: '#22c55e' },
+    { label: 'This Month', value: scopedStats.thisMonth, Icon: IconCalendar, bg: '#8B0000' },
   ]
 
   const getBookingsForDate = (dateStr: string) =>
-    bookings.filter(b => b.booking_date === dateStr && b.status !== 'rejected')
+    scopedBookings.filter(b => b.booking_date === dateStr && b.status !== 'rejected')
 
   const getDateStatus = (dateStr: string) => {
     const dayBookings = getBookingsForDate(dateStr)
@@ -295,6 +320,38 @@ export default function DashboardClient({
         </p>
       </div>
 
+      {/* Venue Filter */}
+      {venues.length > 1 && (
+        <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>Tapis ikut venue:</span>
+          <button
+            onClick={() => setVenueFilter('all')}
+            style={{
+              padding: '6px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+              border: venueFilter === 'all' ? '1.5px solid #8B0000' : '1.5px solid #e5e7eb',
+              background: venueFilter === 'all' ? '#8B0000' : 'white',
+              color: venueFilter === 'all' ? 'white' : '#374151',
+            }}
+          >
+            Semua Venue
+          </button>
+          {venues.map(v => (
+            <button
+              key={v.id}
+              onClick={() => setVenueFilter(v.id)}
+              style={{
+                padding: '6px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                border: venueFilter === v.id ? '1.5px solid #8B0000' : '1.5px solid #e5e7eb',
+                background: venueFilter === v.id ? '#8B0000' : 'white',
+                color: venueFilter === v.id ? 'white' : '#374151',
+              }}
+            >
+              {v.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }} className="stats-grid">
         {statsConfig.map((stat) => (
@@ -323,11 +380,11 @@ export default function DashboardClient({
 
       {/* Trend Chart */}
       <div style={{ ...card, overflow: 'hidden', marginBottom: '20px' }}>
-        <MonthlyTrendChart bookings={bookings} />
+        <MonthlyTrendChart bookings={scopedBookings} />
       </div>
 
       {/* Upcoming Events */}
-      {upcoming.length > 0 && (
+      {scopedUpcoming.length > 0 && (
         <div style={{ ...card, overflow: 'hidden', marginBottom: '20px' }}>
           <div style={{
             padding: '16px 24px', borderBottom: '1px solid #f3f4f6',
@@ -350,7 +407,7 @@ export default function DashboardClient({
           </div>
 
           <div style={{ padding: '16px' }}>
-            {upcoming.map((event) => {
+            {scopedUpcoming.map((event) => {
               const date = new Date(event.booking_date + 'T00:00:00')
               // Use shared todayStr and helper — no duplicate calculation
               const diff = diffDaysFromToday(event.booking_date, todayStr)
@@ -378,7 +435,14 @@ export default function DashboardClient({
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '2px' }}>{event.event_name}</p>
+                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '2px' }}>
+                      {event.event_name}
+                      {venueFilter === 'all' && event.venues && (
+                        <span style={{ marginLeft: '8px', fontSize: '10px', fontWeight: '700', color: '#8B0000', background: '#fef2f2', padding: '2px 7px', borderRadius: '999px' }}>
+                          {event.venues.code}
+                        </span>
+                      )}
+                    </p>
                     <p style={{ fontSize: '12px', color: '#6b7280' }}>{event.organization} · {event.start_time} - {event.end_time}</p>
                   </div>
 
@@ -406,7 +470,7 @@ export default function DashboardClient({
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <h2 style={{ fontSize: '15px', fontWeight: '600', color: '#111827' }}>Mini Theater Availability</h2>
+          <h2 style={{ fontSize: '15px', fontWeight: '600', color: '#111827' }}>Venue Availability</h2>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr' }} className="calendar-grid">

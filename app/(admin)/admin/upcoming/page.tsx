@@ -7,10 +7,15 @@ export default async function UpcomingPage() {
 
   const { data } = await supabase
     .from('bookings')
-    .select('*')
+    .select('*, venues(name, code)')
     .gte('booking_date', localDate)
     .in('status', ['approved', 'pending'])
     .order('booking_date', { ascending: true })
 
-  return <UpcomingClient events={data ?? []} />
+  const { data: venues } = await supabase
+    .from('venues')
+    .select('id, name, code')
+    .order('position', { ascending: true })
+
+  return <UpcomingClient events={data ?? []} venues={venues ?? []} />
 }

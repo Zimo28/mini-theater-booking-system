@@ -1,10 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { showToast } from '@/components/Toast'
 import { supabase } from '@/lib/supabase'
 import { syncToGoogleSheet } from '@/lib/googleSheet'
 import BlackoutCalendar from '@/components/BlackoutCalendar'
+
+type Venue = {
+  id: string
+  name: string
+  code: string
+  description: string | null
+  capacity: number | null
+}
 
 type Slot = {
   booking_date: string
@@ -96,14 +105,39 @@ export default function BookingPage() {
   const [dragOver, setDragOver] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [conflictIndexes, setConflictIndexes] = useState<number[]>([])
+  const [venues, setVenues] = useState<Venue[]>([])
 
   useEffect(() => { setTimeout(() => setMounted(true), 50) }, [])
 
   const [form, setForm] = useState({
-    full_name: '', phone: '', organization: '', event_name: '',
+    full_name: '', phone: '', organization: '', event_name: '', venue_id: '',
   })
 
   const [slots, setSlots] = useState<Slot[]>([emptySlot()])
+
+  const searchParams = useSearchParams()
+  const venueCodeFromUrl = searchParams.get('venue')
+
+  useEffect(() => {
+    supabase
+      .from('venues')
+      .select('id, name, code, description, capacity')
+      .eq('is_active', true)
+      .order('position', { ascending: true })
+      .then(({ data }) => {
+        if (data) setVenues(data)
+      })
+  }, [])
+
+  // Sync venue_id whenever the ?venue= URL param changes (e.g. clicking a different
+  // venue link while already on this page) or once venues finish loading.
+  useEffect(() => {
+    if (venues.length === 0) return
+    const matched = venueCodeFromUrl
+      ? venues.find(v => v.code.toLowerCase() === venueCodeFromUrl.toLowerCase())
+      : null
+    setForm(prev => ({ ...prev, venue_id: (matched ?? venues[0])?.id ?? prev.venue_id }))
+  }, [venueCodeFromUrl, venues])
 
   const updateForm = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -147,11 +181,12 @@ export default function BookingPage() {
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i]
 
-      // Clash dengan booking lain dalam DB
+      // Clash dengan booking lain dalam DB (venue yang sama je)
       const { data } = await supabase
         .from('bookings')
         .select('start_time, end_time')
         .eq('booking_date', slot.booking_date)
+        .eq('venue_id', form.venue_id)
         .in('status', ['approved', 'pending'])
 
       const hasDbConflict = data?.some(b =>
@@ -189,6 +224,9 @@ export default function BookingPage() {
   }
 
   const handleSubmit = async () => {
+    if (!form.venue_id) {
+      showToast('Sila pilih tempat/venue.', 'error'); return
+    }
     if (!form.full_name || !form.phone || !form.organization || !form.event_name) {
       showToast('Sila isi semua maklumat peribadi.', 'error'); return
     }
@@ -312,7 +350,7 @@ export default function BookingPage() {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f5f5f5 0%, #fef2f2 100%)', display: 'flex', flexDirection: 'column', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
         <nav style={{ background: 'white', borderBottom: '1px solid #f3f4f6', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-          <a href="/"><img src="/logo.png" alt="Mini Theater" style={{ height: '44px', width: 'auto', objectFit: 'contain' }} /></a>
+          <a href="/"><img src="/logo.png" alt="Unit Kebudayaan" style={{ height: '44px', width: 'auto', objectFit: 'contain' }} /></a>
           <a href="/" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
             Kembali ke Laman Utama
@@ -334,7 +372,7 @@ export default function BookingPage() {
               <button
                 onClick={() => {
                   setSuccess(false); setFile(null); setConflictIndexes([])
-                  setForm({ full_name: '', phone: '', organization: '', event_name: '' })
+                  setForm({ full_name: '', phone: '', organization: '', event_name: '', venue_id: venues[0]?.id ?? '' })
                   setSlots([emptySlot()])
                 }}
                 style={{ background: 'linear-gradient(135deg, #8B0000, #a50000)', color: 'white', border: 'none', borderRadius: '10px', padding: '12px 32px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 12px rgba(139,0,0,0.25)' }}
@@ -360,7 +398,7 @@ export default function BookingPage() {
         position: 'sticky', top: 0, zIndex: 50,
         boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
       }}>
-        <a href="/"><img src="/logo.png" alt="Mini Theater" style={{ height: '44px', width: 'auto', objectFit: 'contain' }} /></a>
+        <a href="/"><img src="/logo.png" alt="Unit Kebudayaan" style={{ height: '44px', width: 'auto', objectFit: 'contain' }} /></a>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <a href="/" style={{
             fontSize: '13px', color: '#8B0000', textDecoration: 'none',
@@ -393,7 +431,7 @@ export default function BookingPage() {
             letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px',
           }}>
             <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fca5a5' }} />
-            Mini Theater — UiTM Cawangan Kelantan
+            Unit Kebudayaan — UiTM Cawangan Kelantan
           </div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px', marginBottom: '6px' }}>Borang Tempahan</h1>
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>Sila isi semua maklumat yang diperlukan dengan lengkap dan tepat</p>
@@ -438,6 +476,30 @@ export default function BookingPage() {
                 <h2 style={{ fontSize: '14px', fontWeight: '700', color: '#111827', margin: 0 }}>Personal & Organization Details</h2>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={labelStyle}>Tempat / Venue <span style={{ color: '#dc2626' }}>*</span></label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {venues.map(v => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setForm(prev => ({ ...prev, venue_id: v.id }))}
+                        style={{
+                          padding: '9px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: '600',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                          border: form.venue_id === v.id ? '1.5px solid #8B0000' : '1.5px solid #e5e7eb',
+                          background: form.venue_id === v.id ? '#fef2f2' : 'white',
+                          color: form.venue_id === v.id ? '#8B0000' : '#374151',
+                        }}
+                      >
+                        {v.name}
+                      </button>
+                    ))}
+                  </div>
+                  {venues.length === 0 && (
+                    <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '6px' }}>Memuatkan senarai tempat...</p>
+                  )}
+                </div>
                 {[
                   { label: 'Full Name', field: 'full_name', placeholder: 'Enter your full name', type: 'text' },
                   { label: 'Phone Number', field: 'phone', placeholder: 'e.g. 012-3456789', type: 'tel' },
@@ -654,9 +716,9 @@ export default function BookingPage() {
 
       {/* Footer */}
       <footer style={{ background: '#111827', padding: '28px 24px', textAlign: 'center' }}>
-        <img src="/logo.png" alt="Mini Theater" style={{ height: '36px', width: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto 12px', filter: 'brightness(0) invert(1)', opacity: 0.6 }} />
+        <img src="/logo.png" alt="Unit Kebudayaan" style={{ height: '36px', width: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto 12px', filter: 'brightness(0) invert(1)', opacity: 0.6 }} />
         <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>
-          © {new Date().getFullYear()} Mini Theater Booking System. All rights reserved.
+          © {new Date().getFullYear()} Sistem Tempahan Unit Kebudayaan. All rights reserved.
         </p>
       </footer>
 

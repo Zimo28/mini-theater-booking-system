@@ -84,7 +84,7 @@ export default function LoginPage() {
           transition: 'all 0.7s ease',
         }}>
           <a href="/">
-            <img src="/logo.png" alt="Mini Theater" style={{
+            <img src="/logo.png" alt="Unit Kebudayaan" style={{
               height: '72px', width: 'auto', objectFit: 'contain',
               display: 'block', margin: '0 auto 32px',
               filter: 'brightness(0) invert(1)', opacity: 0.95,
@@ -94,7 +94,7 @@ export default function LoginPage() {
           <h1 style={{
             fontSize: '32px', fontWeight: '800', color: 'white',
             letterSpacing: '-0.5px', marginBottom: '12px', lineHeight: 1.2,
-          }}>Mini Theater</h1>
+          }}>Unit Kebudayaan</h1>
           <p style={{
             fontSize: '13px', color: 'rgba(255,255,255,0.5)',
             fontWeight: '500', letterSpacing: '0.15em',
@@ -145,7 +145,7 @@ export default function LoginPage() {
           position: 'absolute', bottom: '24px',
           fontSize: '11px', color: 'rgba(255,255,255,0.2)',
           letterSpacing: '0.05em',
-        }}>© {new Date().getFullYear()} Mini Theater Booking System</p>
+        }}>© {new Date().getFullYear()} Sistem Tempahan Unit Kebudayaan</p>
       </div>
 
       {/* Right Panel */}

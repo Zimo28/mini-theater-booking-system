@@ -29,6 +29,14 @@ type Booking = {
   postponed_time_end?: string
   postpone_reason?: string
   created_at: string
+  venue_id: string
+  venues?: { name: string; code: string } | null
+}
+
+type Venue = {
+  id: string
+  name: string
+  code: string
 }
 
 type BookingGroup = {
@@ -41,6 +49,8 @@ type BookingGroup = {
   status: string
   created_at: string
   attachment_url?: string
+  venue_name: string
+  venue_code: string
 }
 
 const statusColor = (status: string) => {
@@ -64,10 +74,11 @@ const card = {
   boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
 }
 
-export default function BookingClient({ bookings: initial }: { bookings: Booking[] }) {
+export default function BookingClient({ bookings: initial, venues }: { bookings: Booking[]; venues: Venue[] }) {
   const [bookings, setBookings] = useState(initial)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [filter, setFilter] = useState('all')
+  const [venueFilter, setVenueFilter] = useState('all')
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('newest')
@@ -138,12 +149,15 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
         status: first.status,
         created_at: first.created_at,
         attachment_url: first.attachment_url,
+        venue_name: first.venues?.name ?? '-',
+        venue_code: first.venues?.code ?? '-',
       }
     })
   }
 
   const filteredBookings = bookings
     .filter(b => filter === 'all' || b.status === filter)
+    .filter(b => venueFilter === 'all' || b.venue_id === venueFilter)
     .filter(b => {
       if (!search) return true
       const q = search.toLowerCase()
@@ -379,7 +393,7 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
             <div class="grid">
               <div class="field"><label>Tarikh Program</label><p>${formatDate(booking.booking_date)}</p></div>
               <div class="field"><label>Masa</label><p>${booking.start_time} - ${booking.end_time}</p></div>
-              <div class="field"><label>Tempat</label><p>Mini Theater, UiTM Cawangan Kelantan</p></div>
+              <div class="field"><label>Tempat</label><p>${group.venue_name}, UiTM Cawangan Kelantan</p></div>
               <div class="field"><label>Tarikh Permohonan</label><p>${formatDate(booking.created_at.split('T')[0])}</p></div>
             </div>
           </div>
@@ -392,14 +406,14 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
           </div>
           <div class="footer">
             <div class="note">
-              * Slip ini adalah pengesahan rasmi tempahan Mini Theater.<br/>
+              * Slip ini adalah pengesahan rasmi tempahan Unit Kebudayaan.<br/>
               * Sila bawa slip ini semasa program berlangsung.<br/>
               * Sebarang pertanyaan, hubungi pihak pengurusan.
             </div>
             <div class="sign">
               <div class="line"></div>
               <p>Tandatangan & Cop Rasmi</p>
-              <p class="name">Pengurusan Mini Theater</p>
+              <p class="name">Pengurusan Unit Kebudayaan</p>
             </div>
           </div>
           <p class="generated">Dijana pada: ${new Date().toLocaleString('ms-MY')}</p>
@@ -474,6 +488,7 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
         <div className="detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
           {[
             { label: 'Event Name', value: group.event_name, highlight: true },
+            { label: 'Venue', value: group.venue_name, highlight: true },
             { label: 'Organization', value: group.organization },
             { label: 'Full Name / Phone', value: `${primary.full_name}\n${primary.phone}` },
             { label: isMulti ? 'Total Slots' : 'Booking Date & Time', value: isMulti ? `${group.slots.length} hari/slot` : `${new Date(primary.booking_date + 'T00:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' })} | ${primary.start_time} - ${primary.end_time}` },
@@ -764,8 +779,8 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
             onClick={() => {
               const approved = bookings.filter(b => b.status === 'approved')
               if (approved.length === 0) { showToast('Tiada tempahan approved untuk export.', 'warning'); return }
-              const headers = ['ID', 'Group ID', 'Full Name', 'Phone', 'Organization', 'Event Name', 'Booking Date', 'Start Time', 'End Time', 'Microphone', 'Air-cond', 'PA System', 'LCD Projector', 'Status', 'Created At']
-              const rows = approved.map(b => [b.id, b.booking_group_id ?? '', b.full_name, b.phone, b.organization, b.event_name, b.booking_date, b.start_time, b.end_time, b.microphone, b.aircond, b.pa_system, b.lcd_projector, b.status, b.created_at])
+              const headers = ['ID', 'Group ID', 'Venue', 'Full Name', 'Phone', 'Organization', 'Event Name', 'Booking Date', 'Start Time', 'End Time', 'Microphone', 'Air-cond', 'PA System', 'LCD Projector', 'Status', 'Created At']
+              const rows = approved.map(b => [b.id, b.booking_group_id ?? '', b.venues?.name ?? '', b.full_name, b.phone, b.organization, b.event_name, b.booking_date, b.start_time, b.end_time, b.microphone, b.aircond, b.pa_system, b.lcd_projector, b.status, b.created_at])
               const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
               const blob = new Blob([csv], { type: 'text/csv' })
               const url = URL.createObjectURL(blob)
@@ -818,6 +833,29 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          </svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+          <select
+            value={venueFilter}
+            onChange={(e) => setVenueFilter(e.target.value)}
+            style={{
+              border: '1.5px solid #e5e7eb', borderRadius: '8px', padding: '9px 32px 9px 36px',
+              fontSize: '13px', outline: 'none', background: '#f9fafb', color: '#374151',
+              cursor: 'pointer', fontWeight: '500', appearance: 'none', WebkitAppearance: 'none',
+            }}
+          >
+            <option value="all">Semua Venue</option>
+            {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+          </select>
+        </div>
+
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
             <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/>
           </svg>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -857,7 +895,7 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
             <table className="desktop-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
-                  {['', 'Event', 'Booker Name', 'Organization', 'Date', 'Time', 'Status'].map((h) => (
+                  {['', 'Event', 'Venue', 'Booker Name', 'Organization', 'Date', 'Time', 'Status'].map((h) => (
                     <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                   ))}
                 </tr>
@@ -894,6 +932,9 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
                             </span>
                           )}
                         </td>
+                        <td style={{ padding: '12px 16px', fontSize: '12px', fontWeight: '600', color: '#8B0000' }}>
+                          <span style={{ background: '#fef2f2', padding: '3px 9px', borderRadius: '999px' }}>{group.venue_name}</span>
+                        </td>
                         <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>{group.full_name}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>{group.organization}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: '#6b7280' }}>
@@ -914,7 +955,7 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
 
                       {isOpen && (
                         <tr key={`${group.groupKey}-detail`}>
-                          <td colSpan={7} style={{ padding: '8px 12px 20px', background: '#f5f5f5' }}>
+                          <td colSpan={8} style={{ padding: '8px 12px 20px', background: '#f5f5f5' }}>
                             {renderGroupDetail(group)}
                           </td>
                         </tr>
@@ -951,6 +992,9 @@ export default function BookingClient({ bookings: initial }: { bookings: Booking
                       </svg>
                       <span style={{ flex: 1, fontSize: '13px', color: '#8B0000', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {group.event_name} {isMulti && `(${group.slots.length} hari)`}
+                      </span>
+                      <span style={{ flexShrink: 0, fontSize: '10px', fontWeight: '700', color: '#8B0000', background: '#fef2f2', padding: '3px 8px', borderRadius: '999px' }}>
+                        {group.venue_code}
                       </span>
                       <span style={{ flexShrink: 0, padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '600', background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
                         {statusLabel(group.status)}

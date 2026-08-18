@@ -7,12 +7,17 @@ export default async function BookingPage() {
 
   const { data: bookings } = await supabase
     .from('bookings')
-    .select('*')
+    .select('*, venues(name, code)')
     .order('created_at', { ascending: false })
+
+  const { data: venues } = await supabase
+    .from('venues')
+    .select('id, name, code')
+    .order('position', { ascending: true })
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <BookingClient bookings={bookings ?? []} />
+      <BookingClient bookings={bookings ?? []} venues={venues ?? []} />
     </Suspense>
   )
 }

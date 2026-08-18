@@ -4,13 +4,13 @@ import LoadingBar from '@/components/LoadingBar'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Mini Theater Booking System',
-  description: 'Admin panel untuk Mini Theater Booking System',
+  title: 'Sistem Tempahan Unit Kebudayaan',
+  description: 'Sistem tempahan tempat dan equipment untuk Unit Kebudayaan',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Mini Theater',
+    title: 'Unit Kebudayaan',
   },
 }
 
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Mini Theater" />
+        <meta name="apple-mobile-web-app-title" content="Unit Kebudayaan" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body suppressHydrationWarning>

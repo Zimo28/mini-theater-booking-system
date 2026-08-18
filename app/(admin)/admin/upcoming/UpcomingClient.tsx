@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 type Event = {
   id: string
   full_name: string
@@ -9,6 +11,14 @@ type Event = {
   start_time: string
   end_time: string
   status: string
+  venue_id: string
+  venues?: { name: string; code: string } | null
+}
+
+type Venue = {
+  id: string
+  name: string
+  code: string
 }
 
 const monthNames = ['January','February','March','April','May','June',
@@ -16,15 +26,18 @@ const monthNames = ['January','February','March','April','May','June',
 const monthShort = ['JAN','FEB','MAR','APR','MAY','JUN',
   'JUL','AUG','SEP','OCT','NOV','DEC']
 
-export default function UpcomingClient({ events }: { events: Event[] }) {
+export default function UpcomingClient({ events, venues }: { events: Event[]; venues: Venue[] }) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
+  const [venueFilter, setVenueFilter] = useState('all')
 
   // Declare todayStr once at the top
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
-  // Filter out past events
-  const filteredEvents = events.filter(e => e.booking_date >= todayStr)
+  // Filter out past events (and scope by selected venue)
+  const filteredEvents = events
+    .filter(e => e.booking_date >= todayStr)
+    .filter(e => venueFilter === 'all' || e.venue_id === venueFilter)
 
   // Group using filteredEvents
   const grouped = filteredEvents.reduce((acc, event) => {
@@ -64,6 +77,36 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
           {filteredEvents.length} upcoming events
         </p>
       </div>
+
+      {venues.length > 1 && (
+        <div style={{ marginBottom: '20px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setVenueFilter('all')}
+            style={{
+              padding: '6px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+              border: venueFilter === 'all' ? '1.5px solid #8B0000' : '1.5px solid #e5e7eb',
+              background: venueFilter === 'all' ? '#8B0000' : 'white',
+              color: venueFilter === 'all' ? 'white' : '#374151',
+            }}
+          >
+            Semua Venue
+          </button>
+          {venues.map(v => (
+            <button
+              key={v.id}
+              onClick={() => setVenueFilter(v.id)}
+              style={{
+                padding: '6px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                border: venueFilter === v.id ? '1.5px solid #8B0000' : '1.5px solid #e5e7eb',
+                background: venueFilter === v.id ? '#8B0000' : 'white',
+                color: venueFilter === v.id ? 'white' : '#374151',
+              }}
+            >
+              {v.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Use filteredEvents for empty check */}
       {filteredEvents.length === 0 ? (
@@ -155,6 +198,11 @@ export default function UpcomingClient({ events }: { events: Event[] }) {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: '15px', fontWeight: '700', color: '#111827', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {event.event_name}
+                          {venueFilter === 'all' && event.venues && (
+                            <span style={{ marginLeft: '8px', fontSize: '10px', fontWeight: '700', color: '#8B0000', background: '#fef2f2', padding: '2px 7px', borderRadius: '999px' }}>
+                              {event.venues.code}
+                            </span>
+                          )}
                         </p>
                         <p style={{ fontSize: '13px', color: '#6b7280' }}>
                           {event.organization} · {event.start_time} - {event.end_time}

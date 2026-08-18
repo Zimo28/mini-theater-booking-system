@@ -12,11 +12,20 @@ type Booking = {
   start_time: string
   end_time: string
   status: string
+  venue_id: string
 }
 
 type Facility = {
   id: string
   name: string
+}
+
+type Venue = {
+  id: string
+  name: string
+  code: string
+  description: string | null
+  capacity: number | null
 }
 
 const DAYS = ['Ah', 'Is', 'Se', 'Ra', 'Kh', 'Ju', 'Sa']
@@ -35,15 +44,18 @@ export default function LandingPage({
   bookings,
   settings,
   facilities,
+  venues,
 }: {
   bookings: Booking[]
   settings: Record<string, string>
   facilities: Facility[]
+  venues: Venue[]
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [today] = useState(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedVenueId, setSelectedVenueId] = useState<string>(venues[0]?.id ?? '')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Booking[]>([])
   const [searched, setSearched] = useState(false)
@@ -102,10 +114,10 @@ export default function LandingPage({
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
   const getBookingsForDate = (date: Date) =>
-    bookings.filter(b => b.booking_date === getDateStr(date))
+    bookings.filter(b => b.booking_date === getDateStr(date) && b.venue_id === selectedVenueId)
 
   const getDateStatus = (date: Date) => {
-    const dayBookings = bookings.filter(b => b.booking_date === getDateStr(date))
+    const dayBookings = bookings.filter(b => b.booking_date === getDateStr(date) && b.venue_id === selectedVenueId)
     if (dayBookings.some(b => b.status === 'approved')) return 'booked'
     if (dayBookings.some(b => b.status === 'pending')) return 'pending'
     return 'available'
@@ -117,7 +129,7 @@ export default function LandingPage({
     setSearched(true)
     const { data } = await supabase
       .from('bookings')
-      .select('id, full_name, organization, event_name, booking_date, start_time, end_time, status')
+      .select('id, full_name, organization, event_name, booking_date, start_time, end_time, status, venue_id')
       .ilike('full_name', `%${searchQuery}%`)
     setSearchResults(data || [])
     setLoadingSearch(false)
@@ -204,7 +216,7 @@ export default function LandingPage({
             }}>
               <img
                 src="/logo.png"
-                alt="Mini Theater"
+                alt="Unit Kebudayaan"
                 style={{
                   height: '80px', width: 'auto', objectFit: 'contain',
                   filter: 'drop-shadow(0 4px 24px rgba(139,0,0,0.15))',
@@ -257,7 +269,7 @@ export default function LandingPage({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <a href="/" style={{ display: 'flex', alignItems: 'center' }}>
-          <img src="/logo.png" alt="Mini Theater"
+          <img src="/logo.png" alt="Unit Kebudayaan"
             style={{
               height: '42px', width: 'auto', objectFit: 'contain', cursor: 'pointer',
               filter: scrolled ? 'none' : 'brightness(0) invert(1)',
@@ -453,10 +465,10 @@ export default function LandingPage({
             marginBottom: '16px', lineHeight: 1.05,
             textShadow: '0 2px 40px rgba(0,0,0,0.5)',
           }}>
-            {settings['hero_title'] ?? 'Mini Theater'}
+            {settings['hero_title'] ?? 'Unit Kebudayaan'}
           </h1>
           <p style={{ fontSize: '17px', opacity: 0.7, marginBottom: '40px', lineHeight: 1.7, maxWidth: '480px', margin: '0 auto 40px' }}>
-            {settings['hero_subtitle'] ?? 'Tempah mini theater untuk acara anda dengan mudah dan pantas'}
+            {settings['hero_subtitle'] ?? 'Tempah tempat dan equipment Unit Kebudayaan untuk acara anda dengan mudah dan pantas'}
           </p>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -502,8 +514,28 @@ export default function LandingPage({
             <h2 style={{ fontSize: '34px', fontWeight: '800', color: '#111827', letterSpacing: '-0.5px', marginBottom: '8px' }}>
               Semak Ketersediaan
             </h2>
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>Pilih tarikh untuk semak slot yang tersedia</p>
+            <p style={{ fontSize: '14px', color: '#6b7280' }}>Pilih tempat, kemudian tarikh untuk semak slot yang tersedia</p>
           </div>
+
+          {venues.length > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
+              {venues.map(v => (
+                <button
+                  key={v.id}
+                  onClick={() => setSelectedVenueId(v.id)}
+                  style={{
+                    padding: '8px 18px', borderRadius: '999px', fontSize: '13px', fontWeight: '600',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                    border: selectedVenueId === v.id ? '1.5px solid #8B0000' : '1.5px solid #e5e7eb',
+                    background: selectedVenueId === v.id ? '#8B0000' : 'white',
+                    color: selectedVenueId === v.id ? 'white' : '#374151',
+                  }}
+                >
+                  {v.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="avail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             {/* Calendar */}
@@ -760,7 +792,7 @@ export default function LandingPage({
             <h2 style={{ fontSize: '34px', fontWeight: '800', color: '#111827', letterSpacing: '-0.5px', marginBottom: '8px' }}>
               Lihat Kemudahan Kami
             </h2>
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>Fasiliti mini theater yang lengkap dan selesa</p>
+            <p style={{ fontSize: '14px', color: '#6b7280' }}>Fasiliti Unit Kebudayaan yang lengkap dan selesa</p>
           </div>
 
           <div className="gallery-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
@@ -867,16 +899,16 @@ export default function LandingPage({
         padding: '40px 24px', textAlign: 'center',
       }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <img src="/logo.png" alt="Mini Theater" style={{
+          <img src="/logo.png" alt="Unit Kebudayaan" style={{
             height: '40px', width: 'auto', objectFit: 'contain',
             display: 'block', margin: '0 auto 14px',
             filter: 'brightness(0) invert(1)', opacity: 0.5,
           }} />
           <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '6px' }}>
-            {settings['theater_name'] ?? 'Mini Theater'} — {settings['contact_address'] ?? ''}
+            {settings['theater_name'] ?? 'Unit Kebudayaan'} — {settings['contact_address'] ?? ''}
           </p>
           <p style={{ fontSize: '11px', color: '#374151' }}>
-            © {new Date().getFullYear()} Mini Theater Booking System. All rights reserved.
+            © {new Date().getFullYear()} Sistem Tempahan Unit Kebudayaan. All rights reserved.
           </p>
         </div>
       </footer>

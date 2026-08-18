@@ -1,7 +1,7 @@
 {
-    "name": "Mini Theater Booking System",
-    "short_name": "Mini Theater",
-    "description": "Admin panel untuk Mini Theater Booking System",
+    "name": "Sistem Tempahan Unit Kebudayaan",
+    "short_name": "Unit Kebudayaan",
+    "description": "Sistem tempahan Unit Kebudayaan",
     "start_url": "/admin",
     "display": "standalone",
     "background_color": "#ffffff",

@@ -25,17 +25,23 @@ export default async function DashboardPage() {
 
   const { data: upcoming } = await supabase
     .from('bookings')
-    .select('*')
+    .select('*, venues(name, code)')
     .eq('status', 'approved')
     .gte('booking_date', todayStr)
     .lte('booking_date', sevenDaysLater)
     .order('booking_date')
+
+  const { data: venues } = await supabase
+    .from('venues')
+    .select('id, name, code')
+    .order('position', { ascending: true })
 
   return (
     <DashboardClient
       bookings={bookings ?? []}
       upcoming={upcoming ?? []}
       stats={{ total: total ?? 0, pending: pending ?? 0, approved: approved ?? 0, thisMonth: thisMonth ?? 0 }}
+      venues={venues ?? []}
     />
   )
 }

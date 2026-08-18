@@ -1,10 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { showToast } from '@/components/Toast'
 import { syncToGoogleSheet } from '@/lib/googleSheet'
 import BlackoutCalendar from '@/components/BlackoutCalendar'
+
+type Venue = {
+  id: string
+  name: string
+  code: string
+}
 
 type Slot = {
   booking_date: string
@@ -90,10 +96,25 @@ export default function AdminBookingClient() {
   const [loading, setLoading] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [venues, setVenues] = useState<Venue[]>([])
   const [form, setForm] = useState({
-    full_name: '', phone: '', organization: '', event_name: '',
+    full_name: '', phone: '', organization: '', event_name: '', venue_id: '',
   })
   const [slots, setSlots] = useState<Slot[]>([emptySlot()])
+
+  useEffect(() => {
+    supabase
+      .from('venues')
+      .select('id, name, code')
+      .eq('is_active', true)
+      .order('position', { ascending: true })
+      .then(({ data }) => {
+        if (data) {
+          setVenues(data)
+          setForm(prev => prev.venue_id ? prev : { ...prev, venue_id: data[0]?.id ?? '' })
+        }
+      })
+  }, [])
 
   const updateForm = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -126,6 +147,7 @@ export default function AdminBookingClient() {
       .from('bookings')
       .select('id, start_time, end_time')
       .eq('booking_date', slot.booking_date)
+      .eq('venue_id', form.venue_id)
       .in('status', ['approved', 'pending'])
 
     if (!data) return false
@@ -135,6 +157,10 @@ export default function AdminBookingClient() {
   }
 
   const handleSubmit = async () => {
+    if (!form.venue_id) {
+      showToast('Sila pilih tempat/venue.', 'error')
+      return
+    }
     if (!form.full_name || !form.phone || !form.organization || !form.event_name) {
       showToast('Sila isi semua maklumat peribadi.', 'error')
       return
@@ -286,6 +312,27 @@ export default function AdminBookingClient() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
             <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #8B0000, #a50000)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>1</div>
             <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#111827' }}>Personal & Organization Details</h2>
+          </div>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={labelStyle}>Tempat / Venue <span style={{ color: '#dc2626' }}>*</span></label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {venues.map(v => (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, venue_id: v.id }))}
+                  style={{
+                    padding: '9px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: '600',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                    border: form.venue_id === v.id ? '1.5px solid #8B0000' : '1.5px solid #e5e7eb',
+                    background: form.venue_id === v.id ? '#fef2f2' : 'white',
+                    color: form.venue_id === v.id ? '#8B0000' : '#374151',
+                  }}
+                >
+                  {v.name}
+                </button>
+              ))}
+            </div>
           </div>
           {[
             { label: 'Full Name', field: 'full_name', placeholder: 'Enter full name', type: 'text' },

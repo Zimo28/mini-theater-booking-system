@@ -146,6 +146,18 @@ export default function MobileNav({ userName }: { userName: string }) {
         <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
       </svg>
     ), badge: pendingCount > 0 ? pendingCount : null },
+    { label: 'Equipment', href: '/admin/equipment', icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+    ), badge: null },
+    { label: 'Links', href: '/admin/links', icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+      </svg>
+    ), badge: null },
     { label: 'QR Generator', href: '/admin/qr', icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/>
@@ -214,7 +226,7 @@ export default function MobileNav({ userName }: { userName: string }) {
           <Link href="/admin">
             <img
               src="/logo.png"
-              alt="Mini Theater"
+              alt="Unit Kebudayaan"
               style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
             />
           </Link>
