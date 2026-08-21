@@ -130,6 +130,25 @@ ${formatSlotsText(slots)}
     }
   }
 
+  if (type === 'equipment_loan_request') {
+    telegramMessage = `
+🔧 <b>Permohonan Pinjaman Equipment Baru!</b>
+
+📦 <b>Barang:</b> ${booking.equipment_name} (${booking.equipment_code}) × ${booking.quantity}
+👤 <b>Nama:</b> ${booking.borrower_name}
+🏢 <b>Jabatan/Kelab:</b> ${booking.department || '-'}
+📞 <b>Telefon:</b> ${booking.phone}
+${booking.expected_return_date ? `📅 <b>Jangka Pulang:</b> ${booking.expected_return_date}` : ''}
+📌 <b>Status:</b> Menunggu Kelulusan
+    `.trim()
+
+    notification = {
+      type: 'equipment_loan_request',
+      title: `Permohonan pinjaman — ${booking.equipment_name}`,
+      message: `${booking.borrower_name} · ${booking.quantity}x · ${booking.equipment_code}`,
+    }
+  }
+
   // Insert to notifications table
   if (notification) {
     await supabase.from('notifications').insert([notification])

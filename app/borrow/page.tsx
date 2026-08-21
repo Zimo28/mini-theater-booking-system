@@ -65,6 +65,22 @@ export default function BorrowPage() {
 
     if (!error) {
       setSuccess(true)
+      fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'equipment_loan_request',
+          booking: {
+            equipment_name: selectedEquipment?.name ?? '',
+            equipment_code: selectedEquipment?.code ?? '',
+            quantity: qty,
+            borrower_name: form.borrower_name.trim(),
+            department: form.department.trim(),
+            phone: form.phone.trim(),
+            expected_return_date: form.expected_return_date,
+          },
+        }),
+      }).catch(() => {})
     } else {
       showToast('Ralat semasa menghantar permohonan. Sila cuba lagi.', 'error')
     }

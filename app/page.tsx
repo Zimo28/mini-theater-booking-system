@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import TrackedLink from '@/components/TrackedLink'
 
 export const metadata = { title: 'Unit Kebudayaan' }
 
@@ -8,10 +9,15 @@ type Link = {
   url: string
   icon_key: string
   style: 'primary' | 'default' | 'social'
+  custom_icon_url: string | null
 }
 
-function LinkIcon({ iconKey }: { iconKey: string }) {
-  const common = { width: 18, height: 18, viewBox: '0 0 24 24', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+function LinkIcon({ iconKey, customIconUrl, size = 18 }: { iconKey: string; customIconUrl?: string | null; size?: number }) {
+  if (customIconUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={customIconUrl} alt="" width={size} height={size} style={{ objectFit: 'contain', flexShrink: 0, borderRadius: '4px' }} />
+  }
+  const common = { width: size, height: size, viewBox: '0 0 24 24', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
   switch (iconKey) {
     case 'calendar': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
     case 'search': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -28,16 +34,29 @@ function LinkIcon({ iconKey }: { iconKey: string }) {
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient()
-  const { data } = await supabase
+
+  const { data: linksData } = await supabase
     .from('homepage_links')
-    .select('id, title, url, icon_key, style')
+    .select('id, title, url, icon_key, style, custom_icon_url')
     .eq('is_active', true)
     .order('position', { ascending: true })
 
-  const links: Link[] = data ?? []
+  const { data: settingsData } = await supabase
+    .from('settings')
+    .select('id, value')
+    .in('id', ['hero_title', 'hero_subtitle', 'hero_logo_url'])
+
+  const settings: Record<string, string> = {}
+  settingsData?.forEach(s => { settings[s.id] = s.value })
+
+  const links: Link[] = linksData ?? []
   const socialLinks = links.filter(l => l.style === 'social')
   const primaryLink = links.find(l => l.style === 'primary')
   const otherLinks = links.filter(l => l.style !== 'social' && l.id !== primaryLink?.id)
+
+  const heroTitle = settings['hero_title']?.trim() || 'Unit Kebudayaan'
+  const heroSubtitle = settings['hero_subtitle']?.trim() || 'UiTM Cawangan Kelantan'
+  const heroLogoUrl = settings['hero_logo_url']?.trim() || '/logo.png'
 
   return (
     <div style={{
@@ -72,43 +91,44 @@ export default async function HomePage() {
             padding: '14px 20px', marginBottom: '18px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
           }}>
-            <img src="/logo.png" alt="Unit Kebudayaan" style={{
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={heroLogoUrl} alt={heroTitle} style={{
               height: '56px', width: 'auto', objectFit: 'contain', display: 'block',
             }} />
           </div>
           <h1 style={{ fontSize: '30px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px', textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>
-            Unit Kebudayaan
+            {heroTitle}
           </h1>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '20px' }}>
-            UiTM Cawangan Kelantan
+            {heroSubtitle}
           </p>
 
           {socialLinks.length > 0 && (
             <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', marginBottom: '24px' }}>
               {socialLinks.map(s => (
-                <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.title} style={{
+                <TrackedLink key={s.id} id={s.id} href={s.url} target="_blank" rel="noopener noreferrer" ariaLabel={s.title} style={{
                   width: '36px', height: '36px', borderRadius: '10px',
                   background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
                   border: '1px solid rgba(255,255,255,0.2)', color: 'white',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   textDecoration: 'none',
                 }}>
-                  <LinkIcon iconKey={s.icon_key} />
-                </a>
+                  <LinkIcon iconKey={s.icon_key} customIconUrl={s.custom_icon_url} size={16} />
+                </TrackedLink>
               ))}
             </div>
           )}
 
           {primaryLink && (
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <a href={primaryLink.url} style={{
+              <TrackedLink id={primaryLink.id} href={primaryLink.url} style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                 background: 'linear-gradient(135deg, #8B0000, #a50000)', color: 'white', textDecoration: 'none',
                 borderRadius: '10px', padding: '13px 26px', fontSize: '14px', fontWeight: '700',
                 boxShadow: '0 4px 24px rgba(139,0,0,0.45)',
               }}>
-                <LinkIcon iconKey={primaryLink.icon_key} /> {primaryLink.title}
-              </a>
+                <LinkIcon iconKey={primaryLink.icon_key} customIconUrl={primaryLink.custom_icon_url} size={16} /> {primaryLink.title}
+              </TrackedLink>
             </div>
           )}
         </div>
@@ -118,12 +138,12 @@ export default async function HomePage() {
       <section style={{ padding: '8px 20px 56px', maxWidth: '560px', margin: '0 auto' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {otherLinks.map(link => (
-            <a key={link.id} href={link.url} style={utilityCardStyle}>
+            <TrackedLink key={link.id} id={link.id} href={link.url} style={utilityCardStyle}>
               <div style={{ ...utilityIconWrap, background: '#fef2f2', color: '#8B0000' }}>
-                <LinkIcon iconKey={link.icon_key} />
+                <LinkIcon iconKey={link.icon_key} customIconUrl={link.custom_icon_url} />
               </div>
               <p style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>{link.title}</p>
-            </a>
+            </TrackedLink>
           ))}
         </div>
       </section>
