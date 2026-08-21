@@ -16,7 +16,7 @@ export default function PrintQrClient({ equipment }: { equipment: Equipment[] })
       if (!selected.has(eq.id)) return
       const canvas = canvasRefs.current[eq.id]
       if (canvas) {
-        QRCode.toCanvas(canvas, `${origin}/qr/item/${eq.code}`, { width: 140, margin: 1, color: { dark: '#111827', light: '#ffffff' } })
+        QRCode.toCanvas(canvas, `${origin}/guide/item/${eq.code}`, { width: 140, margin: 1, color: { dark: '#111827', light: '#ffffff' } })
       }
     })
   }, [equipment, selected])

@@ -14,6 +14,7 @@ type Link = {
   position: number
   click_count: number
   custom_icon_url: string | null
+  description: string | null
 }
 
 const iconOptions = [
@@ -63,9 +64,9 @@ export default function LinksClient({ links: initialLinks, settings: initialSett
   const [links, setLinks] = useState(initialLinks)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editValue, setEditValue] = useState({ title: '', url: '', icon_key: 'link', style: 'default' as Link['style'], custom_icon_url: null as string | null })
+  const [editValue, setEditValue] = useState({ title: '', url: '', icon_key: 'link', style: 'default' as Link['style'], custom_icon_url: null as string | null, description: '' })
   const [showAdd, setShowAdd] = useState(false)
-  const [newLink, setNewLink] = useState({ title: '', url: '', icon_key: 'link', style: 'default' as Link['style'], custom_icon_url: null as string | null })
+  const [newLink, setNewLink] = useState({ title: '', url: '', icon_key: 'link', style: 'default' as Link['style'], custom_icon_url: null as string | null, description: '' })
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
 
@@ -112,12 +113,12 @@ export default function LinksClient({ links: initialLinks, settings: initialSett
 
   const startEdit = (link: Link) => {
     setEditingId(link.id)
-    setEditValue({ title: link.title, url: link.url, icon_key: link.icon_key, style: link.style, custom_icon_url: link.custom_icon_url })
+    setEditValue({ title: link.title, url: link.url, icon_key: link.icon_key, style: link.style, custom_icon_url: link.custom_icon_url, description: link.description ?? '' })
   }
 
   const saveEdit = async (id: string) => {
     if (!editValue.title.trim() || !editValue.url.trim()) { setEditingId(null); return }
-    const patch = { title: editValue.title.trim(), url: editValue.url.trim(), icon_key: editValue.icon_key, style: editValue.style, custom_icon_url: editValue.custom_icon_url }
+    const patch = { title: editValue.title.trim(), url: editValue.url.trim(), icon_key: editValue.icon_key, style: editValue.style, custom_icon_url: editValue.custom_icon_url, description: editValue.description.trim() || null }
     const { error } = await supabase.from('homepage_links').update(patch).eq('id', id)
     if (!error) {
       setLinks(prev => prev.map(l => l.id === id ? { ...l, ...patch } : l))
@@ -134,12 +135,12 @@ export default function LinksClient({ links: initialLinks, settings: initialSett
     }
     const { data, error } = await supabase
       .from('homepage_links')
-      .insert([{ ...newLink, title: newLink.title.trim(), url: newLink.url.trim(), is_active: true, position: links.length }])
+      .insert([{ ...newLink, title: newLink.title.trim(), url: newLink.url.trim(), description: newLink.description.trim() || null, is_active: true, position: links.length }])
       .select()
       .single()
     if (!error && data) {
       setLinks(prev => [...prev, data])
-      setNewLink({ title: '', url: '', icon_key: 'link', style: 'default', custom_icon_url: null })
+      setNewLink({ title: '', url: '', icon_key: 'link', style: 'default', custom_icon_url: null, description: '' })
       setShowAdd(false)
       showToast('Link added!', 'success')
     } else {
@@ -260,6 +261,10 @@ export default function LinksClient({ links: initialLinks, settings: initialSett
                 </select>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>Description (subtitle bawah title, opsyenal)</label>
+                <input type="text" value={newLink.description} onChange={(e) => setNewLink(p => ({ ...p, description: e.target.value }))} style={inputStyle} placeholder="cth: Manual & panduan penggunaan" />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>Custom Icon (opsyenal, overrides preset)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {newLink.custom_icon_url && (
@@ -309,8 +314,9 @@ export default function LinksClient({ links: initialLinks, settings: initialSett
 
                 {isEditing ? (
                   <div style={{ display: 'flex', gap: '8px', flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                    <input value={editValue.title} onChange={(e) => setEditValue(p => ({ ...p, title: e.target.value }))} style={{ ...inputStyle, flex: 1, minWidth: '120px' }} />
-                    <input value={editValue.url} onChange={(e) => setEditValue(p => ({ ...p, url: e.target.value }))} style={{ ...inputStyle, flex: 1, minWidth: '140px' }} />
+                    <input value={editValue.title} onChange={(e) => setEditValue(p => ({ ...p, title: e.target.value }))} style={{ ...inputStyle, flex: 1, minWidth: '120px' }} placeholder="Title" />
+                    <input value={editValue.url} onChange={(e) => setEditValue(p => ({ ...p, url: e.target.value }))} style={{ ...inputStyle, flex: 1, minWidth: '140px' }} placeholder="URL" />
+                    <input value={editValue.description} onChange={(e) => setEditValue(p => ({ ...p, description: e.target.value }))} style={{ ...inputStyle, flex: 1, minWidth: '160px' }} placeholder="Description (opsyenal)" />
                     <select value={editValue.icon_key} onChange={(e) => setEditValue(p => ({ ...p, icon_key: e.target.value }))} style={{ ...inputStyle, width: '130px', cursor: 'pointer' }}>
                       {iconOptions.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
                     </select>
@@ -339,7 +345,9 @@ export default function LinksClient({ links: initialLinks, settings: initialSett
                     </div>
                     <div style={{ flex: 1, minWidth: '140px' }}>
                       <p style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>{link.title}</p>
-                      <p style={{ fontSize: '11px', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{link.url}</p>
+                      <p style={{ fontSize: '11px', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {link.url}{link.description && ` · ${link.description}`}
+                      </p>
                     </div>
                     <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '600', flexShrink: 0 }}>
                       {link.click_count} click{link.click_count !== 1 ? 's' : ''}
@@ -436,7 +444,12 @@ export default function LinksClient({ links: initialLinks, settings: initialSett
                   boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                 }}>
                   <span style={{ color: l.style === 'primary' ? 'white' : '#8B0000', flexShrink: 0 }}><LinkIcon iconKey={l.icon_key} customIconUrl={l.custom_icon_url} size={13} /></span>
-                  <span style={{ fontSize: '11px', fontWeight: '700', color: l.style === 'primary' ? 'white' : '#111827' }}>{l.title}</span>
+                  <div>
+                    <p style={{ fontSize: '11px', fontWeight: '700', color: l.style === 'primary' ? 'white' : '#111827', margin: 0 }}>{l.title}</p>
+                    {l.description && l.style !== 'primary' && (
+                      <p style={{ fontSize: '9px', color: '#9ca3af', margin: 0 }}>{l.description}</p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

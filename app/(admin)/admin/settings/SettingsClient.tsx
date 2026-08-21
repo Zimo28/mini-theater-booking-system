@@ -442,7 +442,7 @@ export default function SettingsClient({
             {/* Theater Info */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="settings-grid-2">
               {[
-                { label: 'Theater Name', key: 'theater_name', col: '1 / -1', type: 'text' },
+                { label: 'Organization Name', key: 'organization_name', col: '1 / -1', type: 'text' },
                 { label: 'Hero Title', key: 'hero_title', col: '1 / -1', type: 'text' },
               ].map(item => (
                 <div key={item.key} style={{ gridColumn: item.col }}>

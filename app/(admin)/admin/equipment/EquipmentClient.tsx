@@ -271,7 +271,7 @@ export default function EquipmentClient({
     .filter(e => statusFilter === 'all' || e.status === statusFilter)
 
   const qrPublicUrl = (code: string) =>
-    typeof window !== 'undefined' ? `${window.location.origin}/qr/item/${code}` : `/qr/item/${code}`
+    typeof window !== 'undefined' ? `${window.location.origin}/guide/item/${code}` : `/guide/item/${code}`
 
   const openQrPanel = (eq: Equipment) => {
     setQrPanelId(eq.id)

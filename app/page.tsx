@@ -10,6 +10,7 @@ type Link = {
   icon_key: string
   style: 'primary' | 'default' | 'social'
   custom_icon_url: string | null
+  description: string | null
 }
 
 function LinkIcon({ iconKey, customIconUrl, size = 18 }: { iconKey: string; customIconUrl?: string | null; size?: number }) {
@@ -37,7 +38,7 @@ export default async function HomePage() {
 
   const { data: linksData } = await supabase
     .from('homepage_links')
-    .select('id, title, url, icon_key, style, custom_icon_url')
+    .select('id, title, url, icon_key, style, custom_icon_url, description')
     .eq('is_active', true)
     .order('position', { ascending: true })
 
@@ -142,7 +143,12 @@ export default async function HomePage() {
               <div style={{ ...utilityIconWrap, background: '#fef2f2', color: '#8B0000' }}>
                 <LinkIcon iconKey={link.icon_key} customIconUrl={link.custom_icon_url} />
               </div>
-              <p style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>{link.title}</p>
+              <div>
+                <p style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>{link.title}</p>
+                {link.description && (
+                  <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>{link.description}</p>
+                )}
+              </div>
             </TrackedLink>
           ))}
         </div>

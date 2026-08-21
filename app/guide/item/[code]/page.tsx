@@ -31,7 +31,7 @@ export default async function EquipmentQrPage({ params }: { params: Promise<{ co
   return (
     <div style={{ minHeight: '100vh', background: '#f9fafb', padding: '24px 20px', display: 'flex', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: '420px' }}>
-        <Link href={`/qr/category/${item.category}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#6b7280', textDecoration: 'none', marginBottom: '16px' }}>
+        <Link href={`/guide/category/${item.category}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#6b7280', textDecoration: 'none', marginBottom: '16px' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           Back to {categoryLabels[item.category] ?? item.category}
         </Link>
