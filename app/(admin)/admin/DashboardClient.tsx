@@ -316,7 +316,7 @@ export default function DashboardClient({
           Admin Dashboard
         </h1>
         <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-          Manage bookings and monitor theater availability
+          Manage bookings and monitor venue availability
         </p>
       </div>
 

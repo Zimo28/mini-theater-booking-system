@@ -1,7 +1,8 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server'
-import TrackedLink from '@/components/TrackedLink'
+'use client'
 
-export const metadata = { title: 'Unit Kebudayaan' }
+import { useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { showToast } from '@/components/Toast'
 
 type Link = {
   id: string
@@ -9,169 +10,470 @@ type Link = {
   url: string
   icon_key: string
   style: 'primary' | 'default' | 'social'
+  is_active: boolean
+  position: number
+  click_count: number
   custom_icon_url: string | null
   description: string | null
 }
 
-function LinkIcon({ iconKey, customIconUrl, size = 18 }: { iconKey: string; customIconUrl?: string | null; size?: number }) {
+const iconOptions = [
+  { key: 'calendar', label: 'Calendar' },
+  { key: 'search', label: 'Search' },
+  { key: 'borrow', label: 'Borrow' },
+  { key: 'qr', label: 'QR' },
+  { key: 'lock', label: 'Lock' },
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'youtube', label: 'YouTube' },
+  { key: 'x', label: 'X (Twitter)' },
+  { key: 'link', label: 'Generic Link' },
+]
+
+function LinkIcon({ iconKey, customIconUrl, size = 16 }: { iconKey: string; customIconUrl?: string | null; size?: number }) {
   if (customIconUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={customIconUrl} alt="" width={size} height={size} style={{ objectFit: 'contain', flexShrink: 0, borderRadius: '4px' }} />
+    return <img src={customIconUrl} alt="" width={size} height={size} style={{ objectFit: 'contain', borderRadius: '3px' }} />
   }
   const common = { width: size, height: size, viewBox: '0 0 24 24', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
   switch (iconKey) {
-    case 'calendar': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    case 'search': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    case 'borrow': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
-    case 'qr': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="21"/><line x1="21" y1="14" x2="21" y2="14.01"/><line x1="14" y1="17.5" x2="17.5" y2="17.5"/><line x1="21" y1="21" x2="17.5" y2="21"/><line x1="17.5" y1="17.5" x2="17.5" y2="21"/></svg>
-    case 'lock': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-    case 'instagram': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-    case 'facebook': return <svg {...common} fill="currentColor" style={{ flexShrink: 0 }}><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>
-    case 'youtube': return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
-    case 'x': return <svg {...common} fill="currentColor" style={{ flexShrink: 0 }}><path d="M18.9 2H22l-7.6 8.7L23 22h-6.9l-5.4-6.5L4.4 22H1.2l8.1-9.3L1 2h7l4.9 5.9L18.9 2zm-1.2 18h1.7L6.4 4H4.6L17.7 20z"/></svg>
-    default: return <svg {...common} fill="none" stroke="currentColor" style={{ flexShrink: 0 }}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    case 'calendar': return <svg {...common} fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    case 'search': return <svg {...common} fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    case 'borrow': return <svg {...common} fill="none" stroke="currentColor"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+    case 'qr': return <svg {...common} fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="21"/><line x1="21" y1="14" x2="21" y2="14.01"/><line x1="14" y1="17.5" x2="17.5" y2="17.5"/><line x1="21" y1="21" x2="17.5" y2="21"/><line x1="17.5" y1="17.5" x2="17.5" y2="21"/></svg>
+    case 'lock': return <svg {...common} fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    case 'instagram': return <svg {...common} fill="none" stroke="currentColor"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    case 'facebook': return <svg {...common} fill="currentColor"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>
+    case 'youtube': return <svg {...common} fill="none" stroke="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+    case 'x': return <svg {...common} fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.9l-5.4-6.5L4.4 22H1.2l8.1-9.3L1 2h7l4.9 5.9L18.9 2zm-1.2 18h1.7L6.4 4H4.6L17.7 20z"/></svg>
+    default: return <svg {...common} fill="none" stroke="currentColor"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
   }
 }
 
-export default async function HomePage() {
-  const supabase = await createSupabaseServerClient()
+const labelStyle: React.CSSProperties = {
+  display: 'block', fontSize: '12px', fontWeight: '600', color: '#6b7280',
+  marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em',
+}
+const inputStyle: React.CSSProperties = {
+  width: '100%', border: '1.5px solid #e5e7eb', borderRadius: '8px',
+  padding: '9px 12px', fontSize: '13px', outline: 'none',
+  boxSizing: 'border-box', color: '#111827', background: 'white',
+}
 
-  const { data: linksData } = await supabase
-    .from('homepage_links')
-    .select('id, title, url, icon_key, style, custom_icon_url, description')
-    .eq('is_active', true)
-    .order('position', { ascending: true })
+export default function LinksClient({ links: initialLinks, settings: initialSettings }: { links: Link[]; settings: Record<string, string> }) {
+  const [links, setLinks] = useState(initialLinks)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState({ title: '', url: '', icon_key: 'link', style: 'default' as Link['style'], custom_icon_url: null as string | null, description: '' })
+  const [showAdd, setShowAdd] = useState(false)
+  const [newLink, setNewLink] = useState({ title: '', url: '', icon_key: 'link', style: 'default' as Link['style'], custom_icon_url: null as string | null, description: '' })
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
 
-  const { data: settingsData } = await supabase
-    .from('settings')
-    .select('id, value')
-    .in('id', ['hero_title', 'hero_subtitle', 'hero_logo_url'])
+  const [hero, setHero] = useState({
+    hero_title: initialSettings['hero_title'] ?? 'Unit Kebudayaan',
+    hero_subtitle: initialSettings['hero_subtitle'] ?? 'UiTM Cawangan Kelantan',
+    hero_logo_url: initialSettings['hero_logo_url'] ?? '',
+  })
+  const [savingHero, setSavingHero] = useState(false)
 
-  const settings: Record<string, string> = {}
-  settingsData?.forEach(s => { settings[s.id] = s.value })
+  const saveHero = async () => {
+    setSavingHero(true)
+    const entries = Object.entries(hero).map(([id, value]) => ({ id, value }))
+    const { error } = await supabase.from('settings').upsert(entries)
+    if (!error) showToast('Bio & branding saved!', 'success')
+    else showToast('Error saving bio.', 'error')
+    setSavingHero(false)
+  }
 
-  const links: Link[] = linksData ?? []
-  const socialLinks = links.filter(l => l.style === 'social')
-  const primaryLink = links.find(l => l.style === 'primary')
-  const otherLinks = links.filter(l => l.style !== 'social' && l.id !== primaryLink?.id)
+  const uploadIcon = async (file: File, target: 'new' | 'edit' | 'hero') => {
+    setUploading(true)
+    const fileName = `link-icon-${Date.now()}.${file.name.split('.').pop()}`
+    const { data, error } = await supabase.storage.from('qr-logos').upload(fileName, file, { upsert: true })
+    if (error) {
+      showToast('Upload failed.', 'error')
+      setUploading(false)
+      return
+    }
+    const { data: urlData } = supabase.storage.from('qr-logos').getPublicUrl(data.path)
+    if (target === 'new') setNewLink(p => ({ ...p, custom_icon_url: urlData.publicUrl }))
+    if (target === 'edit') setEditValue(p => ({ ...p, custom_icon_url: urlData.publicUrl }))
+    if (target === 'hero') setHero(p => ({ ...p, hero_logo_url: urlData.publicUrl }))
+    setUploading(false)
+  }
 
-  const heroTitle = settings['hero_title']?.trim() || 'Unit Kebudayaan'
-  const heroSubtitle = settings['hero_subtitle']?.trim() || 'UiTM Cawangan Kelantan'
-  const heroLogoUrl = settings['hero_logo_url']?.trim() || '/logo.png'
+  const toggleActive = async (link: Link) => {
+    const { error } = await supabase.from('homepage_links').update({ is_active: !link.is_active }).eq('id', link.id)
+    if (!error) {
+      setLinks(prev => prev.map(l => l.id === link.id ? { ...l, is_active: !l.is_active } : l))
+    } else {
+      showToast('Error updating link.', 'error')
+    }
+  }
+
+  const startEdit = (link: Link) => {
+    setEditingId(link.id)
+    setEditValue({ title: link.title, url: link.url, icon_key: link.icon_key, style: link.style, custom_icon_url: link.custom_icon_url, description: link.description ?? '' })
+  }
+
+  const saveEdit = async (id: string) => {
+    if (!editValue.title.trim() || !editValue.url.trim()) { setEditingId(null); return }
+    const patch = { title: editValue.title.trim(), url: editValue.url.trim(), icon_key: editValue.icon_key, style: editValue.style, custom_icon_url: editValue.custom_icon_url, description: editValue.description.trim() || null }
+    const { error } = await supabase.from('homepage_links').update(patch).eq('id', id)
+    if (!error) {
+      setLinks(prev => prev.map(l => l.id === id ? { ...l, ...patch } : l))
+      showToast('Link updated!', 'success')
+    } else {
+      showToast('Error updating link.', 'error')
+    }
+    setEditingId(null)
+  }
+
+  const addLink = async () => {
+    if (!newLink.title.trim() || !newLink.url.trim()) {
+      showToast('Please fill in title and URL.', 'error'); return
+    }
+    const { data, error } = await supabase
+      .from('homepage_links')
+      .insert([{ ...newLink, title: newLink.title.trim(), url: newLink.url.trim(), description: newLink.description.trim() || null, is_active: true, position: links.length }])
+      .select()
+      .single()
+    if (!error && data) {
+      setLinks(prev => [...prev, data])
+      setNewLink({ title: '', url: '', icon_key: 'link', style: 'default', custom_icon_url: null, description: '' })
+      setShowAdd(false)
+      showToast('Link added!', 'success')
+    } else {
+      showToast('Error adding link.', 'error')
+    }
+  }
+
+  const handleDeleteClick = (id: string) => {
+    if (confirmDeleteId === id) {
+      deleteLink(id)
+      setConfirmDeleteId(null)
+      return
+    }
+    setConfirmDeleteId(id)
+    setTimeout(() => setConfirmDeleteId(prev => prev === id ? null : prev), 3000)
+  }
+
+  const deleteLink = async (id: string) => {
+    const { error } = await supabase.from('homepage_links').delete().eq('id', id)
+    if (!error) {
+      setLinks(prev => prev.filter(l => l.id !== id))
+      showToast('Link deleted.', 'success')
+    } else {
+      showToast('Error deleting link.', 'error')
+    }
+  }
+
+  const handleDragStart = (index: number) => setDraggedIndex(index)
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+    const reordered = [...links]
+    const [moved] = reordered.splice(draggedIndex, 1)
+    reordered.splice(index, 0, moved)
+    setDraggedIndex(index)
+    setLinks(reordered)
+  }
+  const handleDragEnd = async () => {
+    setDraggedIndex(null)
+    const updates = links.map((l, index) => ({ id: l.id, title: l.title, url: l.url, position: index }))
+    const { error } = await supabase.from('homepage_links').upsert(updates)
+    if (error) showToast('Error saving order.', 'error')
+    else showToast('Order updated!', 'success')
+  }
 
   return (
-    <div style={{
-      minHeight: '100vh', fontFamily: "'Segoe UI', system-ui, sans-serif",
-      background: `
-        linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,0.035) 1px, transparent 1px),
-        #f9fafb
-      `,
-      backgroundSize: '36px 36px, 36px 36px, auto',
-    }}>
-
-      {/* ── HERO ── */}
-      <section style={{
-        position: 'relative', minHeight: '48vh',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        overflow: 'hidden', padding: '56px 20px',
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'url(https://images.unsplash.com/photo-1507924538820-ede94a04019d?w=1600&q=80)',
-          backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.4)',
-        }} />
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(180deg, rgba(26,0,0,0.35) 0%, rgba(26,0,0,0.6) 65%, #f9fafb 100%)',
-        }} />
-
-        <div style={{ position: 'relative', textAlign: 'center', maxWidth: '480px', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{
-            display: 'inline-block', background: 'white', borderRadius: '16px',
-            padding: '14px 20px', marginBottom: '18px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-          }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={heroLogoUrl} alt={heroTitle} style={{
-              height: '56px', width: 'auto', objectFit: 'contain', display: 'block',
-            }} />
-          </div>
-          <h1 style={{ fontSize: '30px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px', textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>
-            {heroTitle}
-          </h1>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '20px' }}>
-            {heroSubtitle}
-          </p>
-
-          {socialLinks.length > 0 && (
-            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', marginBottom: '24px' }}>
-              {socialLinks.map(s => (
-                <TrackedLink key={s.id} id={s.id} href={s.url} target="_blank" rel="noopener noreferrer" ariaLabel={s.title} style={{
-                  width: '36px', height: '36px', borderRadius: '10px',
-                  background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255,255,255,0.2)', color: 'white',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  textDecoration: 'none',
-                }}>
-                  <LinkIcon iconKey={s.icon_key} customIconUrl={s.custom_icon_url} size={16} />
-                </TrackedLink>
-              ))}
-            </div>
-          )}
-
-          {primaryLink && (
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <TrackedLink id={primaryLink.id} href={primaryLink.url} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: 'linear-gradient(135deg, #8B0000, #a50000)', color: 'white', textDecoration: 'none',
-                borderRadius: '10px', padding: '13px 26px', fontSize: '14px', fontWeight: '700',
-                boxShadow: '0 4px 24px rgba(139,0,0,0.45)',
-              }}>
-                <LinkIcon iconKey={primaryLink.icon_key} customIconUrl={primaryLink.custom_icon_url} size={16} /> {primaryLink.title}
-              </TrackedLink>
-            </div>
-          )}
+    <div className="links-manager-grid" style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 340px', gap: '28px', alignItems: 'start' }}>
+      {/* Left: manager */}
+      <div>
+        <div style={{ marginBottom: '20px' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', letterSpacing: '-0.5px' }}>Homepage Links</h1>
+          <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>Drag untuk susun semula, toggle untuk sorok/papar, klik pensel untuk edit.</p>
         </div>
-      </section>
 
-      {/* ── LINK LIST ── */}
-      <section style={{ padding: '8px 20px 56px', maxWidth: '560px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {otherLinks.map(link => (
-            <TrackedLink key={link.id} id={link.id} href={link.url} style={utilityCardStyle}>
-              <div style={{ ...utilityIconWrap, background: '#fef2f2', color: '#8B0000' }}>
-                <LinkIcon iconKey={link.icon_key} customIconUrl={link.custom_icon_url} />
+        {/* Bio & Branding */}
+        <div style={{ background: 'white', border: '1px solid #f3f4f6', borderRadius: '14px', padding: '20px', marginBottom: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <p style={{ fontSize: '13px', fontWeight: '700', color: '#111827', marginBottom: '14px' }}>Bio & Branding</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div>
+              <label style={labelStyle}>Title</label>
+              <input type="text" value={hero.hero_title} onChange={(e) => setHero(p => ({ ...p, hero_title: e.target.value }))} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Subtitle</label>
+              <input type="text" value={hero.hero_subtitle} onChange={(e) => setHero(p => ({ ...p, hero_subtitle: e.target.value }))} style={inputStyle} />
+            </div>
+          </div>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={labelStyle}>Logo</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {hero.hero_logo_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={hero.hero_logo_url} alt="Logo" style={{ height: '32px', width: 'auto', objectFit: 'contain', border: '1px solid #f3f4f6', borderRadius: '6px', padding: '4px' }} />
+              )}
+              <label style={{ fontSize: '12px', fontWeight: '600', color: '#8B0000', cursor: 'pointer', border: '1px solid #fecaca', background: '#fef2f2', borderRadius: '6px', padding: '7px 12px' }}>
+                {uploading ? 'Uploading...' : 'Upload Logo'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} disabled={uploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadIcon(f, 'hero') }} />
+              </label>
+            </div>
+            <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>Kosongkan untuk guna logo default (/logo.png).</p>
+          </div>
+          <button onClick={saveHero} disabled={savingHero} style={{ background: '#8B0000', color: 'white', border: 'none', borderRadius: '8px', padding: '9px 18px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', opacity: savingHero ? 0.6 : 1 }}>
+            {savingHero ? 'Saving...' : 'Save Bio'}
+          </button>
+        </div>
+
+        <button
+          onClick={() => setShowAdd(v => !v)}
+          style={{ background: 'linear-gradient(135deg, #8B0000, #a50000)', color: 'white', border: 'none', borderRadius: '8px', padding: '9px 18px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', marginBottom: '16px' }}
+        >
+          + Add Link
+        </button>
+
+        {showAdd && (
+          <div style={{ background: 'white', border: '1px solid #f3f4f6', borderRadius: '14px', padding: '20px', marginBottom: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div>
+                <label style={labelStyle}>Title</label>
+                <input type="text" value={newLink.title} onChange={(e) => setNewLink(p => ({ ...p, title: e.target.value }))} style={inputStyle} placeholder="cth: TikTok" />
               </div>
               <div>
-                <p style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>{link.title}</p>
-                {link.description && (
-                  <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>{link.description}</p>
+                <label style={labelStyle}>URL</label>
+                <input type="text" value={newLink.url} onChange={(e) => setNewLink(p => ({ ...p, url: e.target.value }))} style={inputStyle} placeholder="https://..." />
+              </div>
+              <div>
+                <label style={labelStyle}>Icon (preset)</label>
+                <select value={newLink.icon_key} onChange={(e) => setNewLink(p => ({ ...p, icon_key: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                  {iconOptions.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Style</label>
+                <select value={newLink.style} onChange={(e) => setNewLink(p => ({ ...p, style: e.target.value as Link['style'] }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="default">Default (card)</option>
+                  <option value="primary">Primary (highlight merah)</option>
+                  <option value="social">Social (icon bulat)</option>
+                </select>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>Description (subtitle bawah title, opsyenal)</label>
+                <input type="text" value={newLink.description} onChange={(e) => setNewLink(p => ({ ...p, description: e.target.value }))} style={inputStyle} placeholder="cth: Manual & panduan penggunaan" />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>Custom Icon (opsyenal, overrides preset)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {newLink.custom_icon_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={newLink.custom_icon_url} alt="" style={{ height: '24px', width: '24px', objectFit: 'contain', border: '1px solid #f3f4f6', borderRadius: '4px' }} />
+                  )}
+                  <label style={{ fontSize: '12px', fontWeight: '600', color: '#374151', cursor: 'pointer', border: '1px solid #e5e7eb', background: 'white', borderRadius: '6px', padding: '6px 12px' }}>
+                    {uploading ? 'Uploading...' : 'Upload Icon'}
+                    <input type="file" accept="image/*" style={{ display: 'none' }} disabled={uploading}
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadIcon(f, 'new') }} />
+                  </label>
+                  {newLink.custom_icon_url && (
+                    <button onClick={() => setNewLink(p => ({ ...p, custom_icon_url: null }))} style={{ fontSize: '11px', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}>Remove</button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={addLink} style={{ background: '#8B0000', color: 'white', border: 'none', borderRadius: '8px', padding: '9px 18px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Save</button>
+              <button onClick={() => setShowAdd(false)} style={{ background: 'white', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '9px 18px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {links.map((link, index) => {
+            const isEditing = editingId === link.id
+            return (
+              <div
+                key={link.id}
+                draggable={!isEditing}
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                style={{
+                  background: draggedIndex === index ? '#fef2f2' : 'white',
+                  border: '1px solid #f3f4f6', borderRadius: '12px', padding: '14px 16px',
+                  display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
+                  opacity: draggedIndex === index ? 0.6 : (link.is_active ? 1 : 0.5),
+                  cursor: isEditing ? 'default' : 'grab',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                  <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+                </svg>
+
+                {isEditing ? (
+                  <div style={{ display: 'flex', gap: '8px', flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <input value={editValue.title} onChange={(e) => setEditValue(p => ({ ...p, title: e.target.value }))} style={{ ...inputStyle, flex: 1, minWidth: '120px' }} placeholder="Title" />
+                    <input value={editValue.url} onChange={(e) => setEditValue(p => ({ ...p, url: e.target.value }))} style={{ ...inputStyle, flex: 1, minWidth: '140px' }} placeholder="URL" />
+                    <input value={editValue.description} onChange={(e) => setEditValue(p => ({ ...p, description: e.target.value }))} style={{ ...inputStyle, flex: 1, minWidth: '160px' }} placeholder="Description (opsyenal)" />
+                    <select value={editValue.icon_key} onChange={(e) => setEditValue(p => ({ ...p, icon_key: e.target.value }))} style={{ ...inputStyle, width: '130px', cursor: 'pointer' }}>
+                      {iconOptions.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                    </select>
+                    <select value={editValue.style} onChange={(e) => setEditValue(p => ({ ...p, style: e.target.value as Link['style'] }))} style={{ ...inputStyle, width: '130px', cursor: 'pointer' }}>
+                      <option value="default">Default</option>
+                      <option value="primary">Primary</option>
+                      <option value="social">Social</option>
+                    </select>
+                    <label style={{ fontSize: '11px', fontWeight: '600', color: '#374151', cursor: 'pointer', border: '1px solid #e5e7eb', background: 'white', borderRadius: '6px', padding: '6px 10px' }}>
+                      {uploading ? '...' : editValue.custom_icon_url ? 'Change Icon' : 'Upload Icon'}
+                      <input type="file" accept="image/*" style={{ display: 'none' }} disabled={uploading}
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadIcon(f, 'edit') }} />
+                    </label>
+                    <button onClick={() => saveEdit(link.id)} style={{ background: '#8B0000', color: 'white', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Save</button>
+                    <button onClick={() => setEditingId(null)} style={{ background: 'white', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{
+                      width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+                      background: link.style === 'primary' ? '#fef2f2' : '#f3f4f6',
+                      color: link.style === 'primary' ? '#8B0000' : '#374151',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <LinkIcon iconKey={link.icon_key} customIconUrl={link.custom_icon_url} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: '140px' }}>
+                      <p style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>{link.title}</p>
+                      <p style={{ fontSize: '11px', color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {link.url}{link.description && ` · ${link.description}`}
+                      </p>
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '600', flexShrink: 0 }}>
+                      {link.click_count} click{link.click_count !== 1 ? 's' : ''}
+                    </span>
+                    <span style={{
+                      fontSize: '10px', fontWeight: '700', padding: '3px 8px', borderRadius: '999px',
+                      background: link.style === 'primary' ? '#fef2f2' : link.style === 'social' ? '#eff6ff' : '#f3f4f6',
+                      color: link.style === 'primary' ? '#8B0000' : link.style === 'social' ? '#2563eb' : '#6b7280',
+                      textTransform: 'uppercase',
+                    }}>{link.style}</span>
+
+                    <button
+                      onClick={() => toggleActive(link)}
+                      style={{
+                        width: '38px', height: '22px', borderRadius: '999px', border: 'none', cursor: 'pointer',
+                        background: link.is_active ? '#16a34a' : '#e5e7eb', position: 'relative', transition: 'background 0.15s', flexShrink: 0,
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute', top: '2px', left: link.is_active ? '18px' : '2px',
+                        width: '18px', height: '18px', borderRadius: '50%', background: 'white', transition: 'left 0.15s',
+                      }} />
+                    </button>
+
+                    <button onClick={() => startEdit(link)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', padding: '4px' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#8B0000'} onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteClick(link.id)}
+                      style={{
+                        background: confirmDeleteId === link.id ? '#fef2f2' : 'none',
+                        border: confirmDeleteId === link.id ? '1px solid #fecaca' : 'none',
+                        cursor: 'pointer', color: confirmDeleteId === link.id ? '#dc2626' : '#d1d5db',
+                        padding: '4px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700',
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      {confirmDeleteId === link.id && 'Confirm?'}
+                    </button>
+                  </>
                 )}
               </div>
-            </TrackedLink>
-          ))}
+            )
+          })}
         </div>
-      </section>
+      </div>
 
-      {/* ── FOOTER ── */}
-      <footer style={{ padding: '28px 20px', textAlign: 'center', borderTop: '1px solid #f3f4f6' }}>
-        <p style={{ fontSize: '11px', color: '#9ca3af' }}>
-          © {new Date().getFullYear()} Sistem Tempahan Unit Kebudayaan
+      {/* Right: live preview */}
+      <div className="links-preview-panel" style={{ position: 'sticky', top: '20px' }}>
+        <p style={{ fontSize: '12px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px', textAlign: 'center' }}>
+          Live Preview
         </p>
-      </footer>
+        <div style={{
+          background: '#111827', borderRadius: '32px', padding: '14px',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+        }}>
+          <div style={{
+            background: 'linear-gradient(180deg, #1a0000 0%, #3d0000 40%, #f9fafb 40%)',
+            borderRadius: '20px', overflow: 'hidden', height: '560px', overflowY: 'auto',
+            padding: '28px 16px',
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+              <div style={{ display: 'inline-block', background: 'white', borderRadius: '12px', padding: '10px 14px', marginBottom: '10px', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+                {hero.hero_logo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={hero.hero_logo_url} alt="Logo" style={{ height: '32px', width: 'auto', objectFit: 'contain', display: 'block' }} />
+                ) : (
+                  <div style={{ width: '80px', height: '32px', background: '#f3f4f6', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: '#9ca3af', fontWeight: 700 }}>LOGO</div>
+                )}
+              </div>
+              <p style={{ fontSize: '15px', fontWeight: '800', color: 'white' }}>{hero.hero_title}</p>
+              <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '2px' }}>{hero.hero_subtitle}</p>
+            </div>
+
+            {links.filter(l => l.is_active && l.style === 'social').length > 0 && (
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px' }}>
+                {links.filter(l => l.is_active && l.style === 'social').map(l => (
+                  <div key={l.id} style={{
+                    width: '26px', height: '26px', borderRadius: '7px',
+                    background: 'rgba(255,255,255,0.15)', color: 'white',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}><LinkIcon iconKey={l.icon_key} customIconUrl={l.custom_icon_url} size={13} /></div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {links.filter(l => l.is_active && l.style !== 'social').map(l => (
+                <div key={l.id} style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderRadius: '10px',
+                  background: l.style === 'primary' ? 'linear-gradient(135deg, #8B0000, #a50000)' : 'white',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                }}>
+                  <span style={{ color: l.style === 'primary' ? 'white' : '#8B0000', flexShrink: 0 }}><LinkIcon iconKey={l.icon_key} customIconUrl={l.custom_icon_url} size={13} /></span>
+                  <div>
+                    <p style={{ fontSize: '11px', fontWeight: '700', color: l.style === 'primary' ? 'white' : '#111827', margin: 0 }}>{l.title}</p>
+                    {l.description && l.style !== 'primary' && (
+                      <p style={{ fontSize: '9px', color: '#9ca3af', margin: 0 }}>{l.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .links-manager-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .links-preview-panel {
+            position: static !important;
+            max-width: 340px;
+            margin: 0 auto;
+          }
+        }
+        @media (max-width: 480px) {
+          .links-preview-panel {
+            max-width: 280px;
+          }
+        }
+      `}</style>
     </div>
   )
-}
-
-const utilityCardStyle: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: '12px',
-  background: 'white', border: '1px solid #f3f4f6', borderRadius: '14px',
-  padding: '16px', textDecoration: 'none',
-  boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-}
-
-const utilityIconWrap: React.CSSProperties = {
-  width: '38px', height: '38px', borderRadius: '10px', flexShrink: 0,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
 }

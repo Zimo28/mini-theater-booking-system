@@ -9,5 +9,13 @@ export default async function LinksPage() {
     .select('*')
     .order('position', { ascending: true })
 
-  return <LinksClient links={links ?? []} />
+  const { data: settingsData } = await supabase
+    .from('settings')
+    .select('id, value')
+    .in('id', ['hero_title', 'hero_subtitle', 'hero_logo_url'])
+
+  const settings: Record<string, string> = {}
+  settingsData?.forEach(s => { settings[s.id] = s.value })
+
+  return <LinksClient links={links ?? []} settings={settings} />
 }
